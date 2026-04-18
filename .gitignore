@@ -1,0 +1,30 @@
+# Reference app binaries — do not commit (large, copyrighted)
+reference/*.apk
+reference/*.xapk
+*.xapk
+
+# Android build output
+/build/
+*/build/
+/app/build/
+.gradle/
+local.properties
+*.iml
+.idea/
+captures/
+.externalNativeBuild/
+.cxx/
+
+# Kotlin
+*.class
+
+# Secrets / keystores
+*.jks
+*.keystore
+keystore.properties
+signing.properties
+
+# OS / IDE
+.DS_Store
+Thumbs.db
+*.swp
