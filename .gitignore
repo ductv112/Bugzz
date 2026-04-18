@@ -17,6 +17,7 @@ captures/
 
 # Kotlin
 *.class
+.kotlin/
 
 # Secrets / keystores
 *.jks
