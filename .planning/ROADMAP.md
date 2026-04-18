@@ -7,7 +7,7 @@
 
 ## Phases
 
-- [ ] **Phase 1: Foundation & Skeleton** — Gradle, Hilt, Compose nav shell, manifest, permissions, StrictMode installed and app boots on real device.
+- [x] **Phase 1: Foundation & Skeleton** — Gradle, Hilt, Compose nav shell, manifest, permissions, StrictMode installed and app boots on real device. (completed 2026-04-18)
 - [ ] **Phase 2: Camera Preview + Face Detection + Coordinate Validation** — CameraX 1.6 pipeline live on-device with `OverlayEffect` + `MlKitAnalyzer` debug overlay proving sensor-to-buffer transform across all orientations and lenses.
 - [ ] **Phase 3: First Filter End-to-End + Photo Capture** — one production filter tracks face in real time, shutter bakes overlay into JPEG saved to `DCIM/Bugzz/`.
 - [ ] **Phase 4: Filter Catalog + Picker + Face Filter Mode** — 15-25 bundled filters with 4 bug behaviors, horizontal picker, instant in-preview filter swap.
@@ -30,10 +30,10 @@
 **Plans**: 4 plans
 
 Plans:
-- [ ] 01-01-PLAN.md — Gradle toolchain + version catalog + wrapper bootstrap (Wave 0)
-- [ ] 01-02-PLAN.md — App module build + Hilt + Compose nav shell + routes + stub screens (Wave 1)
-- [ ] 01-03-PLAN.md — AndroidManifest + resources + CAMERA permission flow + test scaffolds (Wave 2)
-- [ ] 01-04-PLAN.md — Clean debug build + FND-08 device handoff runbook (Wave 3)
+- [x] 01-01-PLAN.md — Gradle toolchain + version catalog + wrapper bootstrap (Wave 0)
+- [x] 01-02-PLAN.md — App module build + Hilt + Compose nav shell + routes + stub screens (Wave 1)
+- [x] 01-03-PLAN.md — AndroidManifest + resources + CAMERA permission flow + test scaffolds (Wave 2)
+- [x] 01-04-PLAN.md — Clean debug build + FND-08 device handoff runbook (Wave 3)
 
 ### Phase 2: Camera Preview + Face Detection + Coordinate Validation
 **Goal**: Validate the architecturally load-bearing `OverlayEffect` + `MlKitAnalyzer(COORDINATE_SYSTEM_SENSOR)` + `getSensorToBufferTransform()` pairing end-to-end on real hardware so Phase 3+ can draw production sprites without rewriting the pipeline.
@@ -114,7 +114,7 @@ Plans:
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Foundation & Skeleton | 0/? | Not started | - |
+| 1. Foundation & Skeleton | 4/4 | Complete    | 2026-04-18 |
 | 2. Camera Preview + Face Detection + Coord Validation | 0/? | Not started | - |
 | 3. First Filter End-to-End + Photo Capture | 0/? | Not started | - |
 | 4. Filter Catalog + Picker + Face Filter Mode | 0/? | Not started | - |
