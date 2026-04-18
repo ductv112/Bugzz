@@ -157,26 +157,88 @@ Explicitly excluded. Documented to prevent scope creep.
 
 ## Traceability
 
-Populated during roadmap creation.
+Final mapping locked by roadmap (2026-04-18). Every v1 requirement is assigned to exactly one phase; no orphans, no duplicates.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| FND-01 to FND-08 | Phase 1 | Pending |
-| CAM-01 to CAM-09 | Phase 2 | Pending |
-| REN-01 to REN-08 | Phase 3 | Pending |
-| CAT-01 to CAT-05 | Phase 4 | Pending |
-| MOD-01 to MOD-07 | Phase 4/5 | Pending |
-| CAP-01 to CAP-06 | Phase 3 | Pending |
-| VID-01 to VID-10 | Phase 5 | Pending |
-| UX-01 to UX-09 | Phase 6 | Pending |
-| SHR-01 to SHR-04 | Phase 6 | Pending |
-| PRF-01 to PRF-05 | Phase 7 | Pending |
+| FND-01 | Phase 1 | Pending |
+| FND-02 | Phase 1 | Pending |
+| FND-03 | Phase 1 | Pending |
+| FND-04 | Phase 1 | Pending |
+| FND-05 | Phase 1 | Pending |
+| FND-06 | Phase 1 | Pending |
+| FND-07 | Phase 1 | Pending |
+| FND-08 | Phase 1 | Pending |
+| CAM-01 | Phase 2 | Pending |
+| CAM-02 | Phase 2 | Pending |
+| CAM-03 | Phase 2 | Pending |
+| CAM-04 | Phase 2 | Pending |
+| CAM-05 | Phase 2 | Pending |
+| CAM-06 | Phase 2 | Pending |
+| CAM-07 | Phase 2 | Pending |
+| CAM-08 | Phase 2 | Pending |
+| CAM-09 | Phase 2 | Pending |
+| REN-01 | Phase 3 | Pending |
+| REN-02 | Phase 3 | Pending |
+| REN-03 | Phase 3 | Pending |
+| REN-04 | Phase 3 | Pending |
+| REN-05 | Phase 3 | Pending |
+| REN-06 | Phase 3 | Pending |
+| REN-07 | Phase 3 | Pending |
+| REN-08 | Phase 3 | Pending |
+| CAP-01 | Phase 3 | Pending |
+| CAP-02 | Phase 3 | Pending |
+| CAP-03 | Phase 3 | Pending |
+| CAP-04 | Phase 3 | Pending |
+| CAP-05 | Phase 3 | Pending |
+| CAP-06 | Phase 3 | Pending |
+| CAT-01 | Phase 4 | Pending |
+| CAT-02 | Phase 4 | Pending |
+| CAT-03 | Phase 4 | Pending |
+| CAT-04 | Phase 4 | Pending |
+| CAT-05 | Phase 4 | Pending |
+| MOD-01 | Phase 4 | Pending |
+| MOD-02 | Phase 4 | Pending |
+| MOD-03 | Phase 5 | Pending |
+| MOD-04 | Phase 5 | Pending |
+| MOD-05 | Phase 5 | Pending |
+| MOD-06 | Phase 5 | Pending |
+| MOD-07 | Phase 5 | Pending |
+| VID-01 | Phase 5 | Pending |
+| VID-02 | Phase 5 | Pending |
+| VID-03 | Phase 5 | Pending |
+| VID-04 | Phase 5 | Pending |
+| VID-05 | Phase 5 | Pending |
+| VID-06 | Phase 5 | Pending |
+| VID-07 | Phase 5 | Pending |
+| VID-08 | Phase 5 | Pending |
+| VID-09 | Phase 5 | Pending |
+| VID-10 | Phase 5 | Pending |
+| UX-01 | Phase 6 | Pending |
+| UX-02 | Phase 6 | Pending |
+| UX-03 | Phase 6 | Pending |
+| UX-04 | Phase 6 | Pending |
+| UX-05 | Phase 6 | Pending |
+| UX-06 | Phase 6 | Pending |
+| UX-07 | Phase 6 | Pending |
+| UX-08 | Phase 6 | Pending |
+| UX-09 | Phase 6 | Pending |
+| SHR-01 | Phase 6 | Pending |
+| SHR-02 | Phase 6 | Pending |
+| SHR-03 | Phase 6 | Pending |
+| SHR-04 | Phase 6 | Pending |
+| PRF-01 | Phase 7 | Pending |
+| PRF-02 | Phase 7 | Pending |
+| PRF-03 | Phase 7 | Pending |
+| PRF-04 | Phase 7 | Pending |
+| PRF-05 | Phase 7 | Pending |
 
-**Coverage (preliminary):**
+**Coverage:**
 - v1 requirements: 67 total
-- Mapped to phases (preliminary): 67
-- Unmapped: 0 ✓ (final mapping locked by roadmapper)
+- Mapped to phases: 67
+- Unmapped: 0 ✓
+- Duplicates: 0 ✓
 
 ---
 *Requirements defined: 2026-04-18*
-*Last updated: 2026-04-18 after initial definition*
+*Last updated: 2026-04-18 after roadmap creation — traceability locked*
