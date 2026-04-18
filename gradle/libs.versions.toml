@@ -4,7 +4,7 @@
 # Build tooling
 agp = "8.9.1"
 kotlin = "2.1.21"
-ksp = "2.1.21-1.0.32"
+ksp = "2.1.21-2.0.2"
 kotlinxSerialization = "1.8.0"
 
 # Android / AndroidX
