@@ -13,7 +13,7 @@ activityCompose = "1.10.1"
 lifecycle = "2.9.0"
 
 # Compose
-composeBom = "2026.04.00"
+composeBom = "2026.03.00"
 
 # Navigation
 navigationCompose = "2.8.9"
