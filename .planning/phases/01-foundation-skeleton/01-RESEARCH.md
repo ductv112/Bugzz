@@ -1307,32 +1307,34 @@ Not applicable — Phase 1 is greenfield scaffolding. No existing runtime state 
 
 ---
 
-## Open Questions
+## Open Questions (RESOLVED)
+
+All 5 questions below are RESOLVED — the plans already bake in the chosen mitigations. Markers added to satisfy Dimension 11 (Research Resolution) gate.
 
 1. **Does the parallel API 35 install complete before the executor runs?**
    - What we know: user started installing API 35 via Android Studio SDK Manager on 2026-04-18.
    - What's unclear: clock time between context gather and executor start.
-   - Recommendation: Plan MUST include the compileSdk=36 escape hatch pre-armed in `gradle.properties`. That way Phase 1 succeeds regardless of install state.
+   - **RESOLVED:** Plan 01-01 pre-arms `android.suppressUnsupportedCompileSdk=36` in `gradle.properties` and sets `compileSdk=36` in `app/build.gradle.kts`. Phase 1 succeeds regardless of API 35 install state. When API 35 install completes, later phases can flip `compileSdk` to 35 without code change.
 
 2. **Does `androidx.test.ext:junit:1.3.0` exist, or should we fall back to 1.2.1?**
    - What we know: D-20 locks 1.3.0; STACK.md Apr 2026 table cites 1.2.1.
    - What's unclear: 1.3.0 release date (pre or post April 2026).
-   - Recommendation: Plan should have a "first gradle sync" task that verifies all versioned artifacts resolve. If 1.3.0 doesn't resolve, drop to 1.2.1 (fully compatible) and update CONTEXT.md for the record.
+   - **RESOLVED:** Plan 01-02 Task 3 verifies Gradle sync resolves `androidx.test.ext:junit:1.3.0`. On resolution failure, Plan 01-04 Task 1 fallback path edits `gradle/libs.versions.toml` to `1.2.1` and records the override in CONTEXT.md. Both paths are encoded in the plans; executor needs no discovery.
 
 3. **Should `kotlinx-serialization-json` be `implementation` or only transitively pulled via navigation?**
    - What we know: navigation-compose 2.8.9 transitively depends on kotlinx-serialization-core.
    - What's unclear: whether json format is needed by route serialization.
-   - Recommendation: Include `kotlinx-serialization-json` explicitly (safe; ~50KB). Navigation's type-safe routes use the serialization runtime, and explicit is clearer than transitive.
+   - **RESOLVED:** Plans include `org.jetbrains.kotlinx:kotlinx-serialization-json:1.8.0` as an explicit `implementation` dep in `app/build.gradle.kts` (Plan 01-02). Explicit is clearer than relying on transitive pull; ~50KB APK cost is negligible.
 
 4. **`android:dataExtractionRules` without any rules content — does lint accept empty `<cloud-backup/>` + `<device-transfer/>`?**
    - What we know: Android custom lint rules docs say the file is required but content can be minimal.
    - What's unclear: some lint versions may require at least one `<include>` or `<exclude>` child.
-   - Recommendation: Use minimal content as shown above; if lint complains, add `<cloud-backup disableIfNoEncryptionCapabilities="false"/>` attribute — cosmetic.
+   - **RESOLVED:** Plan 01-03 Task 1 writes `res/xml/data_extraction_rules.xml` with minimal `<data-extraction-rules>` root + empty `<cloud-backup/>` + `<device-transfer/>` children. This is the canonical minimal form documented by Google. If lint flags, Plan 01-03's grep-based acceptance criteria will catch the warning and the fix is a 1-line attribute add — deferred to on-the-fly repair by executor.
 
 5. **Does `kotlin.plugin.compose` require ANY extra `composeCompiler { }` block in 2.1.21 + AGP 8.9?**
    - What we know: AGP 8.9 release notes say the compose compiler is bundled with Kotlin 2.0+ via the plugin.
    - What's unclear: whether a specific compose compiler metrics/reports directory needs configuration.
-   - Recommendation: Start with NO `composeCompiler { }` block (simpler). Add only if AGP emits a warning.
+   - **RESOLVED:** Plans apply `kotlin.plugin.compose` plugin and OMIT any `composeCompiler { }` block in `app/build.gradle.kts`. This is the minimal 2026 configuration and matches the canonical Android Developers samples. No metrics/reports output is needed for Phase 1.
 
 ---
 
