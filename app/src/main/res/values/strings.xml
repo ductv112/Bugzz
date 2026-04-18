@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Bugzz</string>
+    <string name="route_splash">Splash</string>
+    <string name="route_home">Home</string>
+    <string name="route_camera">Camera</string>
+    <string name="route_preview">Preview</string>
+    <string name="route_collection">Collection</string>
+    <string name="permission_camera_rationale">Bugzz needs camera access to show face filters. Please grant camera permission.</string>
+    <string name="permission_camera_settings">Open Settings</string>
+</resources>
