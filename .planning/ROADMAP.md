@@ -27,7 +27,13 @@
   3. On first launch, CAMERA permission is requested via `ActivityResultContracts`; denying it shows a "Open Settings" CTA rather than a blank screen; RECORD_AUDIO and POST_NOTIFICATIONS are NOT requested yet.
   4. Debug builds have StrictMode + LeakCanary active; zero StrictMode violations on cold start to Home screen.
   5. `AndroidManifest.xml` declares CAMERA, RECORD_AUDIO, POST_NOTIFICATIONS only (no WRITE_EXTERNAL_STORAGE); Hilt `@HiltAndroidApp` wired, injectable `@AndroidEntryPoint` MainActivity resolves dependencies.
-**Plans**: TBD
+**Plans**: 4 plans
+
+Plans:
+- [ ] 01-01-PLAN.md — Gradle toolchain + version catalog + wrapper bootstrap (Wave 0)
+- [ ] 01-02-PLAN.md — App module build + Hilt + Compose nav shell + routes + stub screens (Wave 1)
+- [ ] 01-03-PLAN.md — AndroidManifest + resources + CAMERA permission flow + test scaffolds (Wave 2)
+- [ ] 01-04-PLAN.md — Clean debug build + FND-08 device handoff runbook (Wave 3)
 
 ### Phase 2: Camera Preview + Face Detection + Coordinate Validation
 **Goal**: Validate the architecturally load-bearing `OverlayEffect` + `MlKitAnalyzer(COORDINATE_SYSTEM_SENSOR)` + `getSensorToBufferTransform()` pairing end-to-end on real hardware so Phase 3+ can draw production sprites without rewriting the pipeline.
