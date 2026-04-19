@@ -46,6 +46,7 @@ Plans:
   4. A 5-second test recording produced via `VideoCapture` on the bound `UseCaseGroup` saves an `.mp4` in which the red debug rectangle is visibly baked into every frame (proves three-stream `PREVIEW | IMAGE_CAPTURE | VIDEO_CAPTURE` binding).
   5. Face `trackingId` remains stable for the same face across 60+ consecutive frames; a One-Euro filter smooths raw landmark jitter to <1px/frame on a still head.
 **Plans**: 6 plans
+**Gap-closure plans**: 3 (02-gaps-01..03 — initial device verification on 2026-04-19 surfaced CAM-07 overlay over-draw + CAM-08 null trackingId blockers; see 02-VERIFICATION.md)
 
 Plans:
 - [x] 02-01-PLAN.md — Nyquist unit test scaffolds (OneEuroFilter + FaceDetectorOptions + OverlayEffectBuilder + CameraController) (Wave 0)
@@ -53,7 +54,10 @@ Plans:
 - [x] 02-03-PLAN.md — Detector pipeline: OneEuroFilter + LandmarkSmoother + FaceSnapshot + FaceDetectorClient + CameraLensProvider + FaceLandmarkMapper stub (Wave 2)
 - [x] 02-04-PLAN.md — Render + Controller: DebugOverlayRenderer + OverlayEffectBuilder + CameraController + CameraControllerTest un-Ignore (Wave 3)
 - [x] 02-05-PLAN.md — Compose UI: CameraScreen + CameraViewModel + CameraUiState + OneShotEvent + BugzzApp CameraRoute rewire (Wave 4)
-- [ ] 02-06-PLAN.md — Clean debug build + 02-HANDOFF.md Xiaomi 13T device runbook + user sign-off checkpoint (Wave 5)
+- [x] 02-06-PLAN.md — Clean debug build + 02-HANDOFF.md Xiaomi 13T device runbook + user sign-off checkpoint (Wave 5)
+- [ ] 02-gaps-01-PLAN.md — GAP-02-A detector + research amendment (remove .enableTracking() under contour; ADR-01) (Gap Wave 1)
+- [ ] 02-gaps-02-PLAN.md — GAP-02-B renderer matrix-scale compensation + centroid dot reduction + device re-verification (Gap Wave 2)
+- [ ] 02-gaps-03-PLAN.md — GAP-02-C MP4 frame extraction + Phase 2 final sign-off (Gap Wave 3)
 
 ### Phase 3: First Filter End-to-End + Photo Capture
 **Goal**: Prove the full render + capture pipeline with one production filter so every remaining phase is content/feature work on a validated engine — user can capture a photo with a bug visibly on their face and find it in Google Photos.
