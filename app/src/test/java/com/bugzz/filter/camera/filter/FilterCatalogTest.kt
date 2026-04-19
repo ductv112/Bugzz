@@ -22,7 +22,6 @@ class FilterCatalogTest {
     /**
      * TODO Plan 03-03: un-Ignore when FilterCatalog.all is populated with 2 entries.
      */
-    @org.junit.Ignore("Plan 03-03 — flip to GREEN when FilterCatalog has 2 entries")
     @Test
     fun catalog_hasExactlyTwoFilters() {
         assertEquals(
@@ -34,7 +33,6 @@ class FilterCatalogTest {
     /**
      * TODO Plan 03-03: un-Ignore when FilterCatalog contains ant_on_nose_v1.
      */
-    @org.junit.Ignore("Plan 03-03 — flip to GREEN when ant_on_nose_v1 is in catalog")
     @Test
     fun catalog_byId_antOnNose_resolves() {
         val filter = FilterCatalog.byId("ant_on_nose_v1")
@@ -49,7 +47,6 @@ class FilterCatalogTest {
     /**
      * TODO Plan 03-03: un-Ignore when FilterCatalog contains spider_on_forehead_v1.
      */
-    @org.junit.Ignore("Plan 03-03 — flip to GREEN when spider_on_forehead_v1 is in catalog")
     @Test
     fun catalog_byId_spiderOnForehead_resolves() {
         val filter = FilterCatalog.byId("spider_on_forehead_v1")
@@ -63,7 +60,6 @@ class FilterCatalogTest {
      * Note: this test already passes with the stub (returns null) but relies on behavior
      * that is accidentally correct. Un-Ignore explicitly for completeness.
      */
-    @org.junit.Ignore("Plan 03-03 — un-Ignore when FilterCatalog has real byId() implementation")
     @Test
     fun catalog_byId_unknown_returnsNull() {
         assertNull(

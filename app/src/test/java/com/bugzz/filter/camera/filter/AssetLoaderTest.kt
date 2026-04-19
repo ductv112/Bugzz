@@ -88,7 +88,6 @@ class AssetLoaderTest {
     /**
      * TODO Plan 03-03: un-Ignore when AssetLoader.preload() is implemented.
      */
-    @org.junit.Ignore("Plan 03-03 — flip to GREEN when AssetLoader.preload() is implemented")
     @Test
     fun preload_populatesCache_getReturnsBitmap() {
         val loader = buildStubLoader()
@@ -102,7 +101,6 @@ class AssetLoaderTest {
     /**
      * TODO Plan 03-03: un-Ignore when AssetLoader.preload() is implemented.
      */
-    @org.junit.Ignore("Plan 03-03 — flip to GREEN when AssetLoader.preload() is implemented")
     @Test
     fun preload_idempotent_multipleCallsDoNotReDecode() {
         val loader = buildStubLoader()
@@ -118,7 +116,6 @@ class AssetLoaderTest {
     /**
      * TODO Plan 03-03: un-Ignore when AssetLoader.preload() propagates decode errors correctly.
      */
-    @org.junit.Ignore("Plan 03-03 — flip to GREEN when AssetLoader.preload() handles malformed PNG")
     @Test
     fun preload_malformedPng_throwsIllegalArgument() {
         // A zero-byte or corrupted PNG should surface as IllegalArgumentException (T-03-02)

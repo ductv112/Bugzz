@@ -1,20 +1,39 @@
 package com.bugzz.filter.camera.filter
 
+import com.bugzz.filter.camera.detector.FaceLandmarkMapper
+import com.bugzz.filter.camera.render.BugBehavior
+
 /**
- * Registry of all available bug filters.
+ * Phase 3 catalog — exactly 2 filters per D-01/D-02 (ant + spider). Phase 4 scales to 15-25.
  *
- * STUB — Plan 03-03 replaces this with the 2-entry production catalog (ant_on_nose_v1 +
- * spider_on_forehead_v1) per D-01/D-02. The stub returns empty list so
- * [FilterCatalogTest.catalog_hasExactlyTwoFilters] intentionally FAILS (RED gate).
+ * @see .planning/phases/03-first-filter-end-to-end-photo-capture/03-CONTEXT.md D-01 / D-02
  */
 object FilterCatalog {
+    private val ANT_ON_NOSE = FilterDefinition(
+        id = "ant_on_nose_v1",
+        displayName = "Ant on nose",
+        anchorType = FaceLandmarkMapper.Anchor.NOSE_TIP,
+        behavior = BugBehavior.Static,
+        frameCount = 35,
+        frameDurationMs = 66L,
+        scaleFactor = 0.20f,
+        assetDir = "sprites/ant_on_nose_v1",
+        mirrorable = true,
+    )
 
-    /** All available filters. STUB: empty list — Plan 03-03 populates with 2 entries. */
-    val all: List<FilterDefinition> = emptyList()
+    private val SPIDER_ON_FOREHEAD = FilterDefinition(
+        id = "spider_on_forehead_v1",
+        displayName = "Spider on forehead",
+        anchorType = FaceLandmarkMapper.Anchor.FOREHEAD,
+        behavior = BugBehavior.Static,
+        frameCount = 23,
+        frameDurationMs = 66L,
+        scaleFactor = 0.22f,
+        assetDir = "sprites/spider_on_forehead_v1",
+        mirrorable = true,
+    )
 
-    /**
-     * Look up a filter by its unique [id].
-     * STUB: always returns null — Plan 03-03 implements real lookup.
-     */
-    fun byId(id: String): FilterDefinition? = null
+    val all: List<FilterDefinition> = listOf(ANT_ON_NOSE, SPIDER_ON_FOREHEAD)
+
+    fun byId(id: String): FilterDefinition? = all.firstOrNull { it.id == id }
 }

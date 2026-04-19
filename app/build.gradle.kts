@@ -62,6 +62,11 @@ android {
             // pulling in Robolectric. Safe because CameraControllerTest only inspects the UseCaseGroup
             // composition, not framework interactions.
             isReturnDefaultValues = true
+            // Rule 2 auto-fix (Plan 03-03 Task 2): AssetLoaderTest.preload_* tests call
+            // AssetLoader.preload() which reads from assets/ via AssetManager. Without
+            // includeAndroidResources=true, Robolectric ShadowArscAssetManager cannot serve
+            // assets from src/main/assets/ in unit tests — FileNotFoundException on open().
+            isIncludeAndroidResources = true
         }
     }
 }
