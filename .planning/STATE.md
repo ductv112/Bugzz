@@ -2,43 +2,43 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: planning
-last_updated: "2026-04-18T18:07:46.390Z"
+status: executing
+last_updated: "2026-04-19T08:37:16.190Z"
 progress:
   total_phases: 7
   completed_phases: 1
-  total_plans: 4
-  completed_plans: 4
-  percent: 100
+  total_plans: 10
+  completed_plans: 5
+  percent: 50
 ---
 
 # State: Bugzz
 
-**Last updated:** 2026-04-18
+**Last updated:** 2026-04-19
 
 ## Project Reference
 
 **Core Value:** Smooth live AR preview with bug sprites tracking face landmarks. If the live preview stutters or bugs don't stick to the face, everything else is meaningless.
 
-**Current Focus:** Phase 1 — Foundation & Skeleton
+**Current Focus:** Phase 02 — Camera Preview + Face Detection + Coordinate Validation
 
 **Milestone:** v1 — feature-parity clone of `com.insect.filters.funny.prank.bug.filter.face.camera` v1.2.7, MINUS monetization and i18n.
 
 ## Current Position
 
-Phase: 1 (Foundation & Skeleton) — EXECUTING
-Plan: 1 of 4
+Phase: 02 (Camera Preview + Face Detection + Coordinate Validation) — EXECUTING
+Plan: 2 of 6
 
 - **Phase:** 2
-- **Plan:** Not started
-- **Status:** Ready to plan
-- **Progress:** `[░░░░░░░░░░░░░░░░░░░░]` 0/7 phases
+- **Plan:** 01 complete — Nyquist Wave 0 gate satisfied; next up 02-02 (gradle deps)
+- **Status:** Executing Phase 02
+- **Progress:** [█████░░░░░] 50%
 
 ### Phase Map
 
 ```
-Phase 1: Foundation & Skeleton                            [ pending ]
-Phase 2: Camera + Face Detection + Coord Validation       [ pending ]
+Phase 1: Foundation & Skeleton                            [ complete ]
+Phase 2: Camera + Face Detection + Coord Validation       [ executing — 1/6 plans done ]
 Phase 3: First Filter End-to-End + Photo Capture          [ pending ]
 Phase 4: Filter Catalog + Picker + Face Filter Mode       [ pending ]
 Phase 5: Video Recording + Audio + Insect Filter Mode     [ pending ]
@@ -55,6 +55,7 @@ Phase 7: Performance & Device Matrix                      [ pending ]
 | Phases complete | 0/7 | 7 |
 | v1 requirements complete | 0/67 | 67 |
 | Current phase plans | —/— | — |
+| Phase 02 P01 | 3m 17s | 3 tasks | 5 files |
 
 ## Accumulated Context
 
@@ -66,6 +67,12 @@ Phase 7: Performance & Device Matrix                      [ pending ]
 4. **CameraX version:** 1.6.0 uniform across all artifacts — first version with stable `camera-effects` + `camera-compose`.
 5. **ML Kit model:** Bundled (`com.google.mlkit:face-detection:16.1.7`) — offline first-launch, no Play Services model-download race.
 6. **Persistence:** MediaStore for captures, DataStore for prefs — no Room DB for MVP.
+
+### Key Decisions During Execution
+
+1. **[Phase 02-01] Nyquist-TDD Wave 0 gate:** 4 failing unit-test files for CAM-03/04/05/06/09 land before any `feat(02-...)` commit; SUT classes land in Plans 02-03 and 02-04. (02-01-SUMMARY.md)
+2. **[Phase 02-01] Testability seam pattern:** Android-Handler-dependent SDK wrappers (`OverlayEffectBuilder`) expose config surface as companion `const val`/`val` (`TARGETS`, `QUEUE_DEPTH`) so contracts are unit-testable without Robolectric. (02-01-SUMMARY.md)
+3. **[Phase 02-01] Provider-factory seam on CameraController:** Plan 02-04 must add constructor default param `providerFactory: suspend (Context) -> ProcessCameraProvider = { ProcessCameraProvider.awaitInstance(it) }` so `CameraControllerTest` can un-`@Ignore`. (02-01-SUMMARY.md)
 
 ### Architectural Gates
 
@@ -93,16 +100,22 @@ None.
 
 ## Session Continuity
 
-**Last agent:** gsd-roadmapper
-**Last action:** Created ROADMAP.md with 7-phase structure, 100% coverage of 67 v1 requirements, goal-backward success criteria per phase, UI hints applied to Phases 4/5/6.
+**Last agent:** gsd-execute-phase (Plan 02-01 executor)
+**Last action:** Completed 02-01-PLAN.md — Nyquist Wave 0 gate for Phase 2 satisfied. Landed 4 unit-test files (OneEuroFilterTest, FaceDetectorOptionsTest, OverlayEffectBuilderTest, CameraControllerTest) pinning CAM-03/04/05/06/09 contracts. Intentional RED state; Plans 02-02/02-03/02-04 turn them GREEN. VALIDATION.md `nyquist_compliant: true`.
 
-**Next expected action:** Orchestrator presents roadmap to user for approval; on approval user runs `/gsd-plan-phase 1` to decompose Phase 1 into executable plans.
+**Stopped at:** Completed 02-01-PLAN.md — Nyquist Wave 0 gate for Phase 2 satisfied
 
-**Files modified this session:**
+**Next expected action:** Execute 02-02-PLAN.md (version-catalog + gradle dependency wiring: CameraX 1.6.0 family, ML Kit 16.1.7, mockito-kotlin for testImplementation, Timber).
 
-- `.planning/ROADMAP.md` (created)
-- `.planning/STATE.md` (created)
-- `.planning/REQUIREMENTS.md` (traceability updated)
+**Files modified this session (Plan 02-01):**
+
+- `app/src/test/java/com/bugzz/filter/camera/detector/OneEuroFilterTest.kt` (created)
+- `app/src/test/java/com/bugzz/filter/camera/detector/FaceDetectorOptionsTest.kt` (created)
+- `app/src/test/java/com/bugzz/filter/camera/render/OverlayEffectBuilderTest.kt` (created)
+- `app/src/test/java/com/bugzz/filter/camera/camera/CameraControllerTest.kt` (created)
+- `.planning/phases/02-camera-preview-face-detection-coordinate-validation/02-VALIDATION.md` (nyquist_compliant flipped)
+- `.planning/phases/02-camera-preview-face-detection-coordinate-validation/02-01-SUMMARY.md` (created)
+- `.planning/STATE.md` (updated)
 
 ---
 *State initialized: 2026-04-18*

@@ -22,13 +22,13 @@ Feature-parity clone of reference app (`com.insect.filters.funny.prank.bug.filte
 
 - [ ] **CAM-01**: Live CameraX preview renders on `CameraXViewfinder` composable in CameraScreen
 - [ ] **CAM-02**: User can flip between front and back camera via on-screen button
-- [ ] **CAM-03**: CameraX `UseCaseGroup` binds Preview + ImageCapture + VideoCapture + ImageAnalysis under one lifecycle
-- [ ] **CAM-04**: ML Kit Face Detection (contour mode, bundled model) runs on preview frames via `MlKitAnalyzer(COORDINATE_SYSTEM_SENSOR)`
-- [ ] **CAM-05**: ImageAnalysis backpressure set to `STRATEGY_KEEP_ONLY_LATEST`; preview does not stall when detection is slow
-- [ ] **CAM-06**: `OverlayEffect` binds to `PREVIEW | IMAGE_CAPTURE | VIDEO_CAPTURE` targets; debug overlay (red rect on face boundingBox) renders on preview
+- [x] **CAM-03**: CameraX `UseCaseGroup` binds Preview + ImageCapture + VideoCapture + ImageAnalysis under one lifecycle
+- [x] **CAM-04**: ML Kit Face Detection (contour mode, bundled model) runs on preview frames via `MlKitAnalyzer(COORDINATE_SYSTEM_SENSOR)`
+- [x] **CAM-05**: ImageAnalysis backpressure set to `STRATEGY_KEEP_ONLY_LATEST`; preview does not stall when detection is slow
+- [x] **CAM-06**: `OverlayEffect` binds to `PREVIEW | IMAGE_CAPTURE | VIDEO_CAPTURE` targets; debug overlay (red rect on face boundingBox) renders on preview
 - [ ] **CAM-07**: Debug overlay stays aligned in portrait + landscape, front + back lens (no manual matrix math — uses `frame.getSensorToBufferTransform()`)
 - [ ] **CAM-08**: Face tracking IDs (`trackingId`) remain stable across frames for the same face
-- [ ] **CAM-09**: 1€ (One-Euro) filter smooths landmark jitter between detector callback and renderer
+- [x] **CAM-09**: 1€ (One-Euro) filter smooths landmark jitter between detector callback and renderer
 
 ### Filter Render Engine
 
@@ -171,13 +171,13 @@ Final mapping locked by roadmap (2026-04-18). Every v1 requirement is assigned t
 | FND-08 | Phase 1 | Pending |
 | CAM-01 | Phase 2 | Pending |
 | CAM-02 | Phase 2 | Pending |
-| CAM-03 | Phase 2 | Pending |
-| CAM-04 | Phase 2 | Pending |
-| CAM-05 | Phase 2 | Pending |
-| CAM-06 | Phase 2 | Pending |
+| CAM-03 | Phase 2 | Complete |
+| CAM-04 | Phase 2 | Complete |
+| CAM-05 | Phase 2 | Complete |
+| CAM-06 | Phase 2 | Complete |
 | CAM-07 | Phase 2 | Pending |
 | CAM-08 | Phase 2 | Pending |
-| CAM-09 | Phase 2 | Pending |
+| CAM-09 | Phase 2 | Complete |
 | REN-01 | Phase 3 | Pending |
 | REN-02 | Phase 3 | Pending |
 | REN-03 | Phase 3 | Pending |
