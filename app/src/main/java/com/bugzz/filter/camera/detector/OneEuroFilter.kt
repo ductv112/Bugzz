@@ -92,4 +92,16 @@ class LandmarkSmoother(
 
     /** Clear entirely — invoke on lens flip to avoid cross-session state leak (PITFALLS #6). */
     fun clear() = filters.clear()
+
+    /**
+     * Clear filter state for a specific tracking ID when that face is no longer detected.
+     *
+     * STUB — Plan 03-02 replaces the TODO body when BboxIouTracker lands and the tracker
+     * emits a "removed" signal for [id]. Per D-25: on same ID reappearing, reinitializes fresh
+     * (no stale carry-over). D-23 guarantees removed IDs are never recycled, so fresh
+     * reinitialization is effectively unreachable — but defensive code requires it.
+     *
+     * @param id Tracker-assigned face ID whose 1€ filter state should be erased.
+     */
+    fun onFaceLost(id: Int): Unit = TODO("Plan 03-02")
 }

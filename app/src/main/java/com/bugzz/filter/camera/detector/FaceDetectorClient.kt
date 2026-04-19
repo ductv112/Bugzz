@@ -112,6 +112,11 @@ class FaceDetectorClient @Inject constructor(
             FaceContour.RIGHT_CHEEK,
             FaceContour.UPPER_LIP_TOP,
             FaceContour.LOWER_LIP_BOTTOM,
+            // Phase 3 Phase-3-research §Finding 3: FOREHEAD anchor requires LEFT_EYEBROW_TOP (=2)
+            // and RIGHT_EYEBROW_TOP (=4) so FaceLandmarkMapper.anchorPoint(face, FOREHEAD) can
+            // resolve from smoothed contour points instead of falling back to bbox center.
+            FaceContour.LEFT_EYEBROW_TOP,
+            FaceContour.RIGHT_EYEBROW_TOP,
         )
 
         /**
