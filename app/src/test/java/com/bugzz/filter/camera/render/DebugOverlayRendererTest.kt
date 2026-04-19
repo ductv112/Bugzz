@@ -4,18 +4,28 @@ import android.graphics.PointF
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Test
+import org.junit.runner.RunWith
+import org.robolectric.RobolectricTestRunner
+import org.robolectric.annotation.Config
 
 /**
  * Nyquist unit test for [DebugOverlayRenderer] helper functions (GAP-02-B / CAM-07).
  *
- * Pins the two post-GAP-02-B correctness contracts that can be unit-tested without
- * Robolectric or a live Canvas:
+ * Pins the two post-GAP-02-B correctness contracts:
  * 1. `centroidOf(points)` — mean x/y for the dot-density reduction (D-01 amendment).
  * 2. `computeSensorSpaceStroke(devicePx, scale)` — matrix-scale compensation formula
  *    (H2 root-cause fix).
  *
+ * Robolectric is required because `android.graphics.PointF`'s two-arg constructor does
+ * not store its `x` / `y` fields under the JVM `android.jar` stub when the project has
+ * `testOptions.unitTests.isReturnDefaultValues = true` (see `app/build.gradle.kts`).
+ * Robolectric provides a real shadow implementation so `PointF(x, y).x == x` holds,
+ * which the `centroidOf_*` assertions depend on.
+ *
  * Canvas.drawRect / drawCircle paths are verified on-device per 02-HANDOFF.md Step 8-9.
  */
+@RunWith(RobolectricTestRunner::class)
+@Config(sdk = [34])  // Robolectric SDK shadows; matches CameraControllerTest convention.
 class DebugOverlayRendererTest {
 
     @Test
