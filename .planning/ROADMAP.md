@@ -50,7 +50,7 @@ Plans:
 Plans:
 - [x] 02-01-PLAN.md — Nyquist unit test scaffolds (OneEuroFilter + FaceDetectorOptions + OverlayEffectBuilder + CameraController) (Wave 0)
 - [x] 02-02-PLAN.md — CameraX 1.6 + ML Kit 16.1.7 + Timber version catalog + app deps + portrait manifest + CameraModule (Wave 1)
-- [ ] 02-03-PLAN.md — Detector pipeline: OneEuroFilter + LandmarkSmoother + FaceSnapshot + FaceDetectorClient + CameraLensProvider + FaceLandmarkMapper stub (Wave 2)
+- [x] 02-03-PLAN.md — Detector pipeline: OneEuroFilter + LandmarkSmoother + FaceSnapshot + FaceDetectorClient + CameraLensProvider + FaceLandmarkMapper stub (Wave 2)
 - [ ] 02-04-PLAN.md — Render + Controller: DebugOverlayRenderer + OverlayEffectBuilder + CameraController + CameraControllerTest un-Ignore (Wave 3)
 - [ ] 02-05-PLAN.md — Compose UI: CameraScreen + CameraViewModel + CameraUiState + OneShotEvent + BugzzApp CameraRoute rewire (Wave 4)
 - [ ] 02-06-PLAN.md — Clean debug build + 02-HANDOFF.md Xiaomi 13T device runbook + user sign-off checkpoint (Wave 5)

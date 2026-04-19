@@ -27,7 +27,7 @@ Feature-parity clone of reference app (`com.insect.filters.funny.prank.bug.filte
 - [x] **CAM-05**: ImageAnalysis backpressure set to `STRATEGY_KEEP_ONLY_LATEST`; preview does not stall when detection is slow
 - [x] **CAM-06**: `OverlayEffect` binds to `PREVIEW | IMAGE_CAPTURE | VIDEO_CAPTURE` targets; debug overlay (red rect on face boundingBox) renders on preview
 - [ ] **CAM-07**: Debug overlay stays aligned in portrait + landscape, front + back lens (no manual matrix math — uses `frame.getSensorToBufferTransform()`)
-- [ ] **CAM-08**: Face tracking IDs (`trackingId`) remain stable across frames for the same face
+- [x] **CAM-08**: Face tracking IDs (`trackingId`) remain stable across frames for the same face
 - [x] **CAM-09**: 1€ (One-Euro) filter smooths landmark jitter between detector callback and renderer
 
 ### Filter Render Engine
@@ -176,7 +176,7 @@ Final mapping locked by roadmap (2026-04-18). Every v1 requirement is assigned t
 | CAM-05 | Phase 2 | Complete |
 | CAM-06 | Phase 2 | Complete |
 | CAM-07 | Phase 2 | Pending |
-| CAM-08 | Phase 2 | Pending |
+| CAM-08 | Phase 2 | Complete |
 | CAM-09 | Phase 2 | Complete |
 | REN-01 | Phase 3 | Pending |
 | REN-02 | Phase 3 | Pending |
