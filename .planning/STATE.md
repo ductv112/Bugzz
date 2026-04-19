@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: planning
-stopped_at: Phase 3 context gathered
-last_updated: "2026-04-19T14:41:25.940Z"
+status: executing
+stopped_at: Completed 03-01-PLAN.md
+last_updated: "2026-04-19T16:05:09.405Z"
 progress:
   total_phases: 7
   completed_phases: 2
-  total_plans: 13
-  completed_plans: 13
-  percent: 100
+  total_plans: 18
+  completed_plans: 14
+  percent: 78
 ---
 
 # State: Bugzz
@@ -21,20 +21,20 @@ progress:
 
 **Core Value:** Smooth live AR preview with bug sprites tracking face landmarks. If the live preview stutters or bugs don't stick to the face, everything else is meaningless.
 
-**Current Focus:** Phase 02 — Camera Preview + Face Detection + Coordinate Validation
+**Current Focus:** Phase 03 — First Filter End-to-End + Photo Capture
 
 **Milestone:** v1 — feature-parity clone of `com.insect.filters.funny.prank.bug.filter.face.camera` v1.2.7, MINUS monetization and i18n.
 
 ## Current Position
 
-Phase: 02 (Camera Preview + Face Detection + Coordinate Validation) — GAP CLOSURE (1 of 3 gap plans done)
-Plan: 02-gaps-01 complete (6 base plans + 1 gap plan); 02-gaps-02 + 02-gaps-03 remaining
+Phase: 03 (First Filter End-to-End + Photo Capture) — EXECUTING
+Plan: 1 of 5
 
 - **Phase:** 3
 - **Plan:** Not started
 - **Previous plan:** 05 complete — CameraViewModel + CameraScreen Compose UI landed: CameraUiState (5-field D-14 data class) + PermissionState sealed interface + OneShotEvent sealed interface for toasts; @HiltViewModel CameraViewModel @Inject(CameraController) exposing uiState:StateFlow + surfaceRequest reshared + events:Flow via Channel(BUFFERED).receiveAsFlow, with onFlipLens (CameraLensProvider.next), onTestRecord (delay(5_000L) auto-stop per D-04, no audio path per D-05), and orientationListener (quadrant-thresholded Surface.ROTATION_{0/90/180/270} emit per D-08); CameraScreen @Composable rendering CameraXViewfinder(ImplementationMode.EXTERNAL) fullscreen + OutlinedButton { Text("Flip") } Alignment.TopEnd (D-24 — text fallback, material-icons-extended not on classpath) + BuildConfig.DEBUG-gated Button { Text("TEST RECORD 5s" | "REC...") } Alignment.BottomCenter (D-04); CAMERA-only permission gate with rationale + Settings CTA reusing Phase 1 StubScreens pattern (D-26/27); DisposableEffect enables/disables OrientationEventListener (D-08). BugzzApp.kt CameraRoute import rewired to com.bugzz.filter.camera.ui.camera.CameraScreen (Phase 1 ui/screens stub orphaned but file retained for other routes). 4 Rule 3 auto-fixes: (1) Hilt cannot synthesize a binding for Kotlin @Inject constructor default-value Function2 param — split CameraController into internal primary constructor (test seam) + secondary @Inject constructor (production factory inlined), (2) ImplementationMode lives in androidx.camera.viewfinder.core NOT .surface — research §Open Questions #1 resolved with AAR class dump (EXTERNAL enum confirmed — no fallback to PERFORMANCE needed), (3) Icons.Default.Cameraswitch not on classpath — OutlinedButton { Text("Flip") } per plan's explicit fallback + CLAUDE.md D-24 icon polish deferred to Phase 6, (4) MutableCoordinateTransformer import dropped (unused in body). APK assembles (79 MB); 10 unit tests GREEN (9 Phase 2 Nyquist + 1 placeholder).
-- **Status:** Ready to plan
-- **Progress:** [█████████░] 85%
+- **Status:** Executing Phase 03
+- **Progress:** [████████░░] 78%
 
 ### Phase Map
 
@@ -63,6 +63,7 @@ Phase 7: Performance & Device Matrix                      [ pending ]
 | Phase 02 P04 | 14m 56s | 3 tasks | 7 files |
 | Phase 02 P05 | 5m 39s | 3 tasks | 7 files |
 | Phase 02 Pgaps-01 | 18m | 3 tasks | 6 files |
+| Phase 03 P01 | 1178s | 2 tasks | 24 files |
 
 ## Accumulated Context
 
@@ -123,7 +124,7 @@ None.
 **Last agent:** gsd-execute-phase (Plan 02-gaps-01 executor, sequential mode)
 **Last action:** Completed 02-gaps-01-PLAN.md — GAP-02-A closed. Three atomic commits: (1) `98e032a` fix(02-gaps-01-01) removed `.enableTracking()` from FaceDetectorClient.buildOptions() + flipped FaceDetectorOptionsTest to assert `trackingEnabled=false` + added KDoc warning block with GAP-02-A evidence + ADR-01 cross-ref; (2) `3aa2ed3` docs(02-gaps-01-02) created 02-ADR-01-no-ml-kit-tracking-with-contour.md (569 words, full ADR format, 4 Phase 3 BboxIouTracker follow-up items) + amended 02-CONTEXT.md D-15 (no .enableTracking() call + runtime trackingId == null) + D-22 (Phase 2 uses -1 sentinel, Phase 3 BboxIouTracker provides stable ID) + amended 02-VALIDATION.md Per-Task Verification Map (split CAM-08 off with relaxed acceptance) + Manual-Only Verifications (boundingBox centroid stability criterion, trackingId=null expected) + Wave 0 FaceDetectorOptionsTest checklist (isTrackingEnabled flip true→false); (3) `cb54bc6` docs(02-gaps-01-03) amended .planning/research/PITFALLS.md §3 at the root — replaced the misleading `.enableTracking()` recommendation at line 110 with a three-bullet callout (do NOT enable tracking under CONTOUR_MODE_ALL + MediaPipe-style bbox-IoU alternative + LANDMARK_MODE_ALL fallback) + added Warning Signs bullet for the null-trackingId symptom. No deviations required — plan executed exactly as written. 10/10 unit tests remain GREEN (4 OneEuroFilterTest + 1 FaceDetectorOptionsTest [now asserting trackingEnabled=false] + 2 OverlayEffectBuilderTest + 2 CameraControllerTest + 1 placeholder). `./gradlew :app:assembleDebug` exits 0 (82 MB APK, matches Plan 02-06 baseline). Previously: Plan 02-05 completed CameraViewModel + CameraScreen Compose UI landed. Four new files in `ui/camera/` + 1-line import rewire in `ui/BugzzApp.kt` + Rule 3 CameraController constructor split. CameraUiState (5 fields per D-14 + isRecording) + PermissionState sealed interface + OneShotEvent sealed interface. @HiltViewModel CameraViewModel @Inject(CameraController) exposes uiState:StateFlow + surfaceRequest reshared + events:Flow via Channel(BUFFERED).receiveAsFlow; onFlipLens uses CameraLensProvider.next (D-24); onTestRecord launches delay(5_000L) auto-stop (D-04) with no audio path (D-05); orientationListener is a quadrant-thresholded OrientationEventListener (D-08). CameraScreen @Composable: CameraXViewfinder(ImplementationMode.EXTERNAL) fullscreen + OutlinedButton {Text("Flip")} Alignment.TopEnd (D-24 — text fallback since material-icons-extended not on classpath per CLAUDE.md D-24 icon polish deferred to Phase 6) + BuildConfig.DEBUG-gated Button {Text("TEST RECORD 5s" | "REC...")} Alignment.BottomCenter (D-04); CAMERA-only permission gate with rationale + Settings CTA (D-26/27) reuses Phase 1 pattern verbatim; DisposableEffect(lifecycleOwner) enable/disable OrientationEventListener; LaunchedEffect collects vm.events and emits Toast per OneShotEvent variant. BugzzApp CameraRoute rewired via 1-line import swap to `ui.camera.CameraScreen`. CameraController constructor split (Rule 3 Hilt fix): primary `internal constructor(..., providerFactory: T)` preserves test seam; secondary `@Inject constructor(...)` hard-codes production factory so Hilt graph can satisfy CameraController without providing a Function2 binding — this is the canonical pattern for all future @Singleton @Inject classes with test seams. 4 Rule 3 auto-fixes total: (1) Hilt constructor split, (2) ImplementationMode package `androidx.camera.viewfinder.core` not `.surface` (research §Open Questions #1 resolved — EXTERNAL enum confirmed via AAR class dump), (3) Icons.Default.Cameraswitch → `OutlinedButton { Text("Flip") }` fallback (plan explicitly anticipated), (4) MutableCoordinateTransformer import dropped (unused). `./gradlew :app:assembleDebug` exits 0 (79 MB APK). `./gradlew :app:testDebugUnitTest` exits 0 with 10 tests / 0 failures / 0 skipped (9 Phase 2 Nyquist still GREEN: OneEuroFilterTest 4/4 + FaceDetectorOptionsTest 1/1 + OverlayEffectBuilderTest 2/2 + CameraControllerTest 2/2). CAM-01 (Compose CameraXViewfinder preview) + CAM-02 (lens flip via button) source-level complete; device verification is Plan 02-06's runbook on Xiaomi 13T.
 
-**Stopped at:** Phase 3 context gathered
+**Stopped at:** Completed 03-01-PLAN.md
 
 **Next expected action:** Execute 02-gaps-02-PLAN.md (GAP-02-B — DebugOverlayRenderer over-draw fix: diagnostic wave to isolate H1/H2/H3, then minimal-rendering rewrite, then device re-verification of HANDOFF Steps 8-9 on Xiaomi 13T). After gaps-02 closes, gaps-03 becomes unblocked (CAM-06 MP4 overlay visual re-verification). Device re-run of CAM-08 relaxed acceptance (boundingBox stability) can be bundled into the gaps-02 / gaps-03 device runbook.
 
