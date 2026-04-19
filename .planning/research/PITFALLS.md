@@ -107,13 +107,16 @@ ML Kit detects face contour/landmarks per frame independently. Positions jitter 
 - **Do NOT** use Kalman filter unless you already know it — 1€ is strictly simpler for this use case and widely adopted in MediaPipe/face-tracking pipelines.
 - Simple EMA (`pos = α·new + (1−α)·old`) is the cheap fallback; works but trades lag for smoothness at a fixed ratio. Acceptable for Phase 3 prototype, replace with 1€ before shipping.
 - Use **`setMinFaceSize(0.15f)`** (or 0.2f) — very small faces have noisier landmarks; filter them out.
-- Enable **face tracking** (`.enableTracking()`) so the same face keeps a stable `trackingId` across frames — your filter state (position, velocity, sprite animation phase) is keyed off `trackingId`, not "first face in list."
+- **Do NOT enable tracking (`.enableTracking()`) when `CONTOUR_MODE_ALL` is active** — Google ML Kit silently ignores the call at runtime; `face.trackingId` is always null, and `FaceDetectorOptions.isTrackingEnabled` reflective-reports `true` so unit tests miss the drift. Verified on Xiaomi 13T / HyperOS (Bugzz project GAP-02-A, 459/459 null trackingIds in 20s, 2026-04-19).
+- **If you need stable per-face identity with contour detection:** implement a boundingBox-IoU tracker (spatial centroid-overlap between consecutive frames assigns a monotonic local ID). This is what MediaPipe does internally. Budget ~100 LOC Kotlin + unit tests. Bugzz defers this to Phase 3 per `02-ADR-01-no-ml-kit-tracking-with-contour.md`.
+- **If your app does not need contour points** (you can anchor off bounding-box + coarse landmarks only): use `LANDMARK_MODE_ALL` + `.enableTracking()` instead. This path preserves ML Kit trackingId but loses the 100+ contour points needed for Phase 4 CRAWL behavior along face edges.
 
 **Warning signs:**
 - Filter looks "good in screenshots, bad in motion."
 - Bugs visibly buzz/shake when face is still.
 - Bugs feel "laggy" on head turn (cutoff too low).
 - Occasional large jumps when second face enters/leaves frame (tracking IDs not stable → losing filter state).
+- trackingId always `null` in logcat despite `.enableTracking()` being wired — you hit the contour/tracking exclusivity; see above fix.
 
 **Phase to address:**
 **Phase 3 (rendering).** Land raw-landmark overlay first to verify coords, then insert 1€ filter as a middleware layer between detector callback and renderer. Revisit parameters in Phase 6 (polish) with real device testing.
