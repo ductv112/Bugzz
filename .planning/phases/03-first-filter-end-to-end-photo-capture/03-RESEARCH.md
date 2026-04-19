@@ -1204,37 +1204,42 @@ Box(
 
 ---
 
-## Open Questions
+## Open Questions (RESOLVED)
 
 ### Q1: Does `BboxIouTracker.assign()` return removed IDs inline or via side-channel?
 
 - **What we know:** D-23/D-25 specify that removed IDs must trigger `LandmarkSmoother.onFaceLost(id)`.
 - **What's unclear:** Implementation signature — `fun assign(faces): List<TrackedFace>` (D-20 literal) vs `fun assign(faces): TrackerResult(tracked, removedIds)`.
 - **Recommendation:** Refine to `TrackerResult` — cleaner contract than side-channel. Planner should pick during Plan writing; either satisfies D-20..26. Research recommends `TrackerResult`.
+- **RESOLVED:** `TrackerResult(tracked: List<TrackedFace>, removedIds: List<Int>)` data class baked into Plan 03-02 Task 1 (Wave 1 production body). Plan 03-01 Wave 0 stub reflects the same shape so tests pin the final contract. Phase 2 PITFALLS#11 side-channel anti-pattern avoided.
 
 ### Q2: Front-camera ImageCapture mirror — `MirrorMode` on ImageCapture.Builder in CameraX 1.6?
 
 - **What we know:** CameraX 1.6 added mirror-mode support to ImageCapture (per research blog). VideoCapture has `MIRROR_MODE_ON_FRONT_ONLY` since 1.3.
 - **What's unclear:** Whether the `ImageCapture.Builder.setMirrorMode(...)` API is present on the 1.6.0 AAR published on Google Maven (vs preview/beta).
 - **Recommendation:** Wave 0 task: `@Grep` the CameraX AAR on local Gradle cache (`~/.gradle/caches/modules-2/files-2.1/androidx.camera/camera-core/1.6.0/*/camera-core-1.6.0.aar` → unzip → `classes.jar` → javap `ImageCapture.Builder`). If absent, the fallback is post-capture bitmap mirror. If present, set `ImageCapture.Builder().setMirrorMode(MirrorMode.MIRROR_MODE_ON_FRONT_ONLY)` in `CameraController.bind`.
+- **RESOLVED:** Runtime javap/classes.jar inspection on the 1.6.0 AAR is deferred to the Wave 4 HANDOFF runbook (Plan 03-05 Task 2 Step 1 reference-APK + Step 5 Bugzz-APK mirror cross-check). If `setMirrorMode` IS present on the published AAR and reference app uses UNMIRRORED front-cam JPEGs, the runbook flags a gap to set `ImageCapture.Builder().setMirrorMode(MirrorMode.MIRROR_MODE_OFF)` in `CameraController.bind()`. If the API is ABSENT from 1.6.0, the fallback is a post-capture horizontal bitmap flip inside the `onImageSaved` callback before finalizing the MediaStore insert (pre-`Result.success` emit). Default CameraX 1.6 front-cam ImageCapture behavior is assumed MIRRORED (matches VideoCapture MIRROR_MODE_ON_FRONT_ONLY convention); if reference app agrees, no code change needed.
 
 ### Q3: `apktool` decode output — where do ant + spider sprites live in the reference APK?
 
 - **What we know:** reference APK is 67MB; SUMMARY forensics confirmed 20 asset subfolders + 640+ drawables. Server-driven catalog download — sprites are in the bundled assets or drawables.
 - **What's unclear:** Exact path (`assets/bugs/ant/*.png` vs `res/drawable-xxhdpi/ant_frame_*.png` vs atlas).
 - **Recommendation:** Wave 0 Task: run `apktool d -o reference-extracted reference/com.insect.filters.funny.prank.bug.filter.face.camera.apk`; scan `find reference-extracted -iname "*ant*.png"`. Document in plan tasks; update D-06 path if different from guess.
+- **RESOLVED:** Discovered at runtime by Plan 03-03 Task 1 executor (apktool + `find`); extracted frames copied to `app/src/main/assets/sprites/ant_on_nose_v1/` and `app/src/main/assets/sprites/spider_on_forehead_v1/`. D-07 degenerate fallback (1 synthetic frame per filter) is accepted if extraction fails; ExecutionReport + EXTRACTION_FAILED.md document the failure for Phase 4 re-extract.
 
 ### Q4: Frame durations for ant + spider flipbook — from reference animation?
 
 - **What we know:** D-06 says `frameDurationMs` is per-filter in manifest.json.
 - **What's unclear:** Reference app's actual frame durations (if ant animation is stored as 30fps GIF vs 15fps APNG).
 - **Recommendation:** Default to 66ms/frame (~15fps playback) for Phase 3 Wave 0; tune empirically in handoff. Per-filter override in manifest.json.
+- **RESOLVED:** Default 66ms (~15fps — standard cartoon flipbook rate) per D-06 manifest schema. Plan 03-03 Task 1 inspects extracted sprites and overrides per-filter in `manifest.json` if reference app ships a companion XML/JSON specifying a different rate. FilterEngine supports any frameDurationMs via `(elapsedNanos / frameDurationNanos) % frameCount`.
 
 ### Q5: `DCIM/Bugzz/` vs `Pictures/Bugzz/` — matches reference?
 
 - **What we know:** Phase 2 VideoCapture saves to `DCIM/Bugzz/`. STATE.md open question flags this as "inspect reference runtime in Phase 3; default DCIM/Bugzz/".
 - **What's unclear:** Reference app's actual photo save directory.
 - **Recommendation:** Wave 0 task — install reference APK, capture a photo, run `adb shell find /sdcard/DCIM /sdcard/Pictures -iname "*.jpg" -newermt "10 minutes ago"`. Default to `DCIM/Bugzz/` if ambiguous; document finding in handoff.
+- **RESOLVED:** Default `DCIM/Bugzz/` per STATE.md open-question resolution (matches Phase 2 VideoCapture convention). Plan 03-05 Task 2 HANDOFF Step 1 verifies reference app actual path via `adb shell ls /sdcard/DCIM/` + `/sdcard/Pictures/` after reference-APK install + capture. If reference uses `Pictures/Bugzz/`: change `MediaStore.Images.Media.RELATIVE_PATH` in `CameraController.capturePhoto()` and update Plan 03-04 Task 1 grep acceptance criterion.
 
 ---
 
@@ -1447,7 +1452,7 @@ No framework install needed — JUnit 4 + Robolectric + Mockito already on class
 | Validation Architecture | HIGH | Extends Phase 2 JUnit+Robolectric harness unchanged; 6 new test files + 2 extensions |
 | Security Domain | HIGH | Narrow personal-use surface; 6 threat bullets ready for planner `<threat_model>` blocks |
 
-### Open Questions (to resolve during planning or Wave 0)
+### Open Questions (RESOLVED)
 
 1. `BboxIouTracker.assign` signature — `List<TrackedFace>` (D-20 literal) vs `TrackerResult(tracked, removedIds)`? Research recommends latter.
 2. CameraX 1.6 `ImageCapture.Builder.setMirrorMode` presence on published AAR — Wave 0 quick javap check.
