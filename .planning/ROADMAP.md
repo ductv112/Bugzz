@@ -45,7 +45,15 @@ Plans:
   3. Debug overlay drawn via `OverlayEffect.setOnDrawListener` renders a red rectangle that pixel-perfectly wraps the detected face in portrait, landscape, reverse-portrait, and reverse-landscape, on BOTH front and back lens, with zero manual matrix math.
   4. A 5-second test recording produced via `VideoCapture` on the bound `UseCaseGroup` saves an `.mp4` in which the red debug rectangle is visibly baked into every frame (proves three-stream `PREVIEW | IMAGE_CAPTURE | VIDEO_CAPTURE` binding).
   5. Face `trackingId` remains stable for the same face across 60+ consecutive frames; a One-Euro filter smooths raw landmark jitter to <1px/frame on a still head.
-**Plans**: TBD
+**Plans**: 6 plans
+
+Plans:
+- [ ] 02-01-PLAN.md — Nyquist unit test scaffolds (OneEuroFilter + FaceDetectorOptions + OverlayEffectBuilder + CameraController) (Wave 0)
+- [ ] 02-02-PLAN.md — CameraX 1.6 + ML Kit 16.1.7 + Timber version catalog + app deps + portrait manifest + CameraModule (Wave 1)
+- [ ] 02-03-PLAN.md — Detector pipeline: OneEuroFilter + LandmarkSmoother + FaceSnapshot + FaceDetectorClient + CameraLensProvider + FaceLandmarkMapper stub (Wave 2)
+- [ ] 02-04-PLAN.md — Render + Controller: DebugOverlayRenderer + OverlayEffectBuilder + CameraController + CameraControllerTest un-Ignore (Wave 3)
+- [ ] 02-05-PLAN.md — Compose UI: CameraScreen + CameraViewModel + CameraUiState + OneShotEvent + BugzzApp CameraRoute rewire (Wave 4)
+- [ ] 02-06-PLAN.md — Clean debug build + 02-HANDOFF.md Xiaomi 13T device runbook + user sign-off checkpoint (Wave 5)
 
 ### Phase 3: First Filter End-to-End + Photo Capture
 **Goal**: Prove the full render + capture pipeline with one production filter so every remaining phase is content/feature work on a validated engine — user can capture a photo with a bug visibly on their face and find it in Google Photos.
@@ -115,7 +123,7 @@ Plans:
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Foundation & Skeleton | 4/4 | Complete    | 2026-04-18 |
-| 2. Camera Preview + Face Detection + Coord Validation | 0/? | Not started | - |
+| 2. Camera Preview + Face Detection + Coord Validation | 0/6 | Planned | - |
 | 3. First Filter End-to-End + Photo Capture | 0/? | Not started | - |
 | 4. Filter Catalog + Picker + Face Filter Mode | 0/? | Not started | - |
 | 5. Video Recording + Audio + Insect Filter Mode | 0/? | Not started | - |
@@ -152,3 +160,4 @@ Plans:
 
 ---
 *Roadmap created: 2026-04-18*
+*Phase 2 planned: 2026-04-19 — 6 plans, 5 waves, Wave 5 ends with Xiaomi 13T device handoff*
