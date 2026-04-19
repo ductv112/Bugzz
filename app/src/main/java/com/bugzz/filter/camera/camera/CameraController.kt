@@ -10,6 +10,7 @@ import androidx.camera.core.CameraEffect
 import androidx.camera.core.CameraSelector
 import androidx.camera.core.ImageAnalysis
 import androidx.camera.core.ImageCapture
+import androidx.camera.core.ImageCaptureException
 import androidx.camera.core.MirrorMode
 import androidx.camera.core.Preview
 import androidx.camera.core.SurfaceRequest
@@ -35,6 +36,9 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.suspendCancellableCoroutine
 import timber.log.Timber
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 import java.util.concurrent.ExecutionException
 import java.util.concurrent.Executor
 import javax.inject.Inject
@@ -71,6 +75,14 @@ class CameraController internal constructor(
     private val faceDetector: FaceDetectorClient,
     private val overlayEffectBuilder: OverlayEffectBuilder,
     private val providerFactory: suspend (Context) -> ProcessCameraProvider,
+    /**
+     * Test seam (Plan 03-04 D-14 constructor-split pattern): allows tests to inject a mock
+     * ImageCapture instead of constructing a real one via ImageCapture.Builder. Production
+     * factory builds the real use case.
+     */
+    private val imageCaptureFactory: () -> ImageCapture = {
+        ImageCapture.Builder().setTargetRotation(Surface.ROTATION_0).build()
+    },
 ) {
 
     /**
@@ -89,6 +101,7 @@ class CameraController internal constructor(
         faceDetector = faceDetector,
         overlayEffectBuilder = overlayEffectBuilder,
         providerFactory = { ctx -> ProcessCameraProvider.getInstance(ctx).await() },
+        imageCaptureFactory = { ImageCapture.Builder().setTargetRotation(Surface.ROTATION_0).build() },
     )
 
     // Compose-native: emit latest SurfaceRequest to the composable for CameraXViewfinder.
@@ -137,9 +150,7 @@ class CameraController internal constructor(
             .build()
             .also { it.setAnalyzer(cameraExecutor, analyzer) }
 
-        val imageCaptureUc = ImageCapture.Builder()
-            .setTargetRotation(initialRotation)
-            .build()
+        val imageCaptureUc = imageCaptureFactory().also { it.targetRotation = initialRotation }
 
         val videoCaptureUc = VideoCapture.Builder(
             Recorder.Builder()
@@ -240,6 +251,61 @@ class CameraController internal constructor(
     fun stopTestRecording() {
         activeRecording?.stop()
         activeRecording = null
+    }
+
+    /**
+     * CAP-01/02/03 — capture photo via ImageCapture.takePicture + MediaStoreOutputFileOptions.
+     *
+     * CameraX 1.6 handles IS_PENDING transaction automatically per
+     * developer.android.com/media/camera/camerax/take-photo.
+     *
+     * On success: onResult(Result.success(uri)) — Uri is MediaStore content URI.
+     * On error:   onResult(Result.failure(ImageCaptureException)) — storage full,
+     *             access denied, or other CameraX error path.
+     *
+     * Thread: takePicture callback runs on cameraExecutor. Caller (ViewModel) forwards to
+     * main via viewModelScope.launch. No allocation or I/O on the main thread.
+     *
+     * T-03-04: callback lives inside @Singleton CameraController; onResult lambda is invoked
+     * once and released — no long-lived reference back to ViewModel.
+     */
+    fun capturePhoto(onResult: (Result<Uri>) -> Unit) {
+        val ic = imageCapture ?: run {
+            onResult(Result.failure(IllegalStateException("Camera not bound")))
+            return
+        }
+        val sdf = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.US)
+        val filename = "Bugzz_${sdf.format(Date())}.jpg"
+        val values = ContentValues().apply {
+            put(MediaStore.Images.Media.DISPLAY_NAME, filename)
+            put(MediaStore.Images.Media.MIME_TYPE, "image/jpeg")
+            put(MediaStore.Images.Media.RELATIVE_PATH, "DCIM/Bugzz")
+            // Do NOT set IS_PENDING — CameraX 1.6 handles the transaction.
+        }
+        val options = ImageCapture.OutputFileOptions.Builder(
+            appContext.contentResolver,
+            MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
+            values,
+        ).build()
+
+        ic.takePicture(
+            options,
+            cameraExecutor,
+            object : ImageCapture.OnImageSavedCallback {
+                override fun onImageSaved(results: ImageCapture.OutputFileResults) {
+                    val uri = results.savedUri ?: run {
+                        onResult(Result.failure(IllegalStateException("savedUri null on success")))
+                        return
+                    }
+                    Timber.tag("CameraController").i("Photo saved %s", uri)
+                    onResult(Result.success(uri))
+                }
+                override fun onError(exc: ImageCaptureException) {
+                    Timber.tag("CameraController").e(exc, "Photo capture failed")
+                    onResult(Result.failure(exc))
+                }
+            },
+        )
     }
 }
 
