@@ -35,7 +35,6 @@ class FaceLandmarkMapperTest {
     /**
      * TODO Plan 03-03: un-Ignore when FaceLandmarkMapper.anchorPoint() production body lands.
      */
-    @org.junit.Ignore("Plan 03-03 — flip to GREEN when FaceLandmarkMapper.anchorPoint() is implemented")
     @Test
     fun noseTip_fromNoseBridge_returnsLastPoint() {
         // NOSE_TIP = last point of NOSE_BRIDGE contour (closest to the actual nose tip)
@@ -58,7 +57,6 @@ class FaceLandmarkMapperTest {
     /**
      * TODO Plan 03-03: un-Ignore when FaceLandmarkMapper.anchorPoint() production body lands.
      */
-    @org.junit.Ignore("Plan 03-03 — flip to GREEN when FaceLandmarkMapper.anchorPoint() is implemented")
     @Test
     fun noseTip_fallbackToNoseBottom() {
         // NOSE_BRIDGE empty — fall back to NOSE_BOTTOM first point
@@ -80,7 +78,6 @@ class FaceLandmarkMapperTest {
     /**
      * TODO Plan 03-03: un-Ignore when FaceLandmarkMapper.anchorPoint() production body lands.
      */
-    @org.junit.Ignore("Plan 03-03 — flip to GREEN when FaceLandmarkMapper.anchorPoint() is implemented")
     @Test
     fun noseTip_ultimateFallback_bboxCenter() {
         // All contours empty — ultimate fallback to bbox center
@@ -101,7 +98,6 @@ class FaceLandmarkMapperTest {
     /**
      * TODO Plan 03-03: un-Ignore when FaceLandmarkMapper.anchorPoint() production body lands.
      */
-    @org.junit.Ignore("Plan 03-03 — flip to GREEN when FaceLandmarkMapper.anchorPoint() is implemented")
     @Test
     fun forehead_fromEyebrowTops_withUpwardOffset() {
         // FOREHEAD = mean of LEFT_EYEBROW_TOP[0] + RIGHT_EYEBROW_TOP[last], offset up 15% bbox height
@@ -126,7 +122,6 @@ class FaceLandmarkMapperTest {
     /**
      * TODO Plan 03-03: un-Ignore when FaceLandmarkMapper.anchorPoint() production body lands.
      */
-    @org.junit.Ignore("Plan 03-03 — flip to GREEN when FaceLandmarkMapper.anchorPoint() is implemented")
     @Test
     fun leftCheek_fromFaceContour_atFortyPercent() {
         // LEFT_CHEEK = FaceContour.FACE at index (size * 0.40).toInt() = (10 * 0.40) = 4
@@ -145,7 +140,6 @@ class FaceLandmarkMapperTest {
     /**
      * TODO Plan 03-03: un-Ignore when FaceLandmarkMapper.anchorPoint() production body lands.
      */
-    @org.junit.Ignore("Plan 03-03 — flip to GREEN when FaceLandmarkMapper.anchorPoint() is implemented")
     @Test
     fun rightCheek_fromFaceContour_atSixtyPercent() {
         // RIGHT_CHEEK = FaceContour.FACE at index (size * 0.60).toInt() = (10 * 0.60) = 6
@@ -164,7 +158,6 @@ class FaceLandmarkMapperTest {
     /**
      * TODO Plan 03-03: un-Ignore when FaceLandmarkMapper.anchorPoint() production body lands.
      */
-    @org.junit.Ignore("Plan 03-03 — flip to GREEN when FaceLandmarkMapper.anchorPoint() is implemented")
     @Test
     fun chin_fromFaceContour_atFiftyPercent() {
         // CHIN = FaceContour.FACE at index (size * 0.50).toInt() = (10 * 0.50) = 5
@@ -187,7 +180,6 @@ class FaceLandmarkMapperTest {
     /**
      * TODO Plan 03-03: un-Ignore when FaceLandmarkMapper.anchorPoint() production body lands.
      */
-    @org.junit.Ignore("Plan 03-03 — flip to GREEN when FaceLandmarkMapper.anchorPoint() is implemented")
     @Test
     fun leftEye_fromContourCentroid() {
         // LEFT_EYE = centroid (mean) of LEFT_EYE contour points
@@ -211,7 +203,6 @@ class FaceLandmarkMapperTest {
     /**
      * TODO Plan 03-03: un-Ignore when FaceLandmarkMapper.anchorPoint() production body lands.
      */
-    @org.junit.Ignore("Plan 03-03 — flip to GREEN when FaceLandmarkMapper.anchorPoint() is implemented")
     @Test
     fun rightEye_fromContourCentroid() {
         val rightPts = listOf(
@@ -238,7 +229,6 @@ class FaceLandmarkMapperTest {
     /**
      * TODO Plan 03-03: un-Ignore when FaceLandmarkMapper.anchorPoint() production body lands.
      */
-    @org.junit.Ignore("Plan 03-03 — flip to GREEN when FaceLandmarkMapper.anchorPoint() is implemented")
     @Test
     fun allAnchors_neverReturnsNull_whenBboxPresent() {
         // Parameterized: all 7 Anchor values with empty contours + non-null bbox
