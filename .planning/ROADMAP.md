@@ -69,7 +69,14 @@ Plans:
   3. The saved JPEG contains the bug sprite baked in at the same position it appeared in live preview (proves `OverlayEffect` on `IMAGE_CAPTURE` target) with correct front-camera mirror convention matching reference app.
   4. `AssetLoader` decodes sprites from `assets/sprites/` into an `LruCache<String, Bitmap>`; a flipbook animation plays at configured frame rate; swapping from test filter to production filter takes effect within one preview frame without rebinding CameraX.
   5. LeakCanary reports zero leaks after 30 consecutive captures; memory profiler shows flat allocation curve (no per-frame Bitmap churn in hot path).
-**Plans**: TBD
+**Plans**: 5 plans
+
+Plans:
+- [ ] 03-01-PLAN.md — Nyquist Wave 0 test scaffolds (BboxIouTracker, LandmarkSmoother, FaceDetectorClient, FaceLandmarkMapper, FilterCatalog, AssetLoader, FilterEngine, BugBehavior, CameraController.capturePhoto) (Wave 0)
+- [ ] 03-02-PLAN.md — ADR-01 closure — BboxIouTracker impl + LandmarkSmoother.onFaceLost + FaceDetectorClient tracker wiring + SMOOTHED_CONTOUR_TYPES extension (Wave 1)
+- [ ] 03-03-PLAN.md — Filter render stack — APK asset extract + FilterDefinition/FilterCatalog/AssetLoader + BugBehavior + FaceLandmarkMapper production + FilterEngine + OverlayEffectBuilder extension (Wave 2)
+- [ ] 03-04-PLAN.md — Shutter + capture UX — CameraController.capturePhoto + OneShotEvent.PhotoSaved/Error + CameraViewModel.onShutterTapped/onCycleFilter + CameraScreen shutter button + Cycle Filter debug button + capture-flash (Wave 3)
+- [ ] 03-05-PLAN.md — Clean build + 03-HANDOFF.md Xiaomi 13T runbook + CAM-08 re-verify (ADR-01 #4 documentation close) (Wave 4)
 
 ### Phase 4: Filter Catalog + Picker + Face Filter Mode
 **Goal**: Scale from one filter to a shipping catalog (15-25 bug filters across 4 behaviors) with a polished filter picker so users can browse and switch bug effects live on-camera — delivering the Face Filter mode end-to-end.
@@ -128,7 +135,7 @@ Plans:
 |-------|----------------|--------|-----------|
 | 1. Foundation & Skeleton | 4/4 | Complete    | 2026-04-18 |
 | 2. Camera Preview + Face Detection + Coord Validation | 0/6 | Planned | - |
-| 3. First Filter End-to-End + Photo Capture | 0/? | Not started | - |
+| 3. First Filter End-to-End + Photo Capture | 0/5 | Planned | - |
 | 4. Filter Catalog + Picker + Face Filter Mode | 0/? | Not started | - |
 | 5. Video Recording + Audio + Insect Filter Mode | 0/? | Not started | - |
 | 6. UX Polish — Splash, Home, Onboarding, Preview, Collection, Share | 0/? | Not started | - |
