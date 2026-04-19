@@ -12,6 +12,9 @@ data class CameraUiState(
     val isDetectorReady: Boolean = true,
     val isRecording: Boolean = false,
     val lastErrorMessage: String? = null,
+    // Phase 3
+    val activeFilterId: String? = null,
+    val captureFlashVisible: Boolean = false,
 )
 
 /**

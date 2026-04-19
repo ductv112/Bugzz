@@ -8,37 +8,55 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.bugzz.filter.camera.camera.CameraController
 import com.bugzz.filter.camera.camera.CameraLensProvider
+import com.bugzz.filter.camera.filter.AssetLoader
+import com.bugzz.filter.camera.filter.FilterCatalog
+import com.bugzz.filter.camera.filter.FilterDefinition
+import com.bugzz.filter.camera.render.FilterEngine
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.asCoroutineDispatcher
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import java.util.concurrent.Executor
 import javax.inject.Inject
+import javax.inject.Named
 
 /**
  * Seam between Compose UI and the @Singleton CameraController (Plan 02-04).
  *
+ * Phase 3 additions (Plan 03-04):
+ *   - Constructor adds FilterEngine, AssetLoader, @Named("cameraExecutor") Executor.
+ *   - bind(owner) extended: after controller.bind succeeds, preloads + activates the first
+ *     catalog filter (ant_on_nose_v1) on cameraExecutor dispatcher (no main-thread I/O).
+ *   - onShutterTapped(): delegates to controller.capturePhoto; on success emits
+ *     OneShotEvent.PhotoSaved; on failure emits OneShotEvent.PhotoError. Also toggles
+ *     captureFlashVisible true → false for the 150ms capture-flash overlay (D-16).
+ *   - onCycleFilter(): advances activeFilterId through FilterCatalog.all (mod size); preloads
+ *     + calls filterEngine.setFilter. Debug-only trigger from CameraScreen (D-10).
+ *
  * Contracts (D-13 / D-14):
  *   - Exposes `uiState: StateFlow<CameraUiState>` — collected via collectAsStateWithLifecycle.
- *   - Exposes `surfaceRequest: StateFlow<SurfaceRequest?>` — reshares CameraController's flow; the
- *     composable passes the non-null value into CameraXViewfinder.
- *   - Exposes `events: Flow<OneShotEvent>` — Channel(BUFFERED).receiveAsFlow() for one-shot
- *     toasts (D-04 TEST RECORD).
+ *   - Exposes `surfaceRequest: StateFlow<SurfaceRequest?>` — reshares CameraController's flow.
+ *   - Exposes `events: Flow<OneShotEvent>` — Channel(BUFFERED).receiveAsFlow() for one-shot toasts.
  *
  * Lifecycle:
- *   - `bind(owner)` called from CameraScreen LaunchedEffect once permission is granted. On lens
- *     change, the same LaunchedEffect re-fires (keyed on uiState.lens), triggering rebind via
- *     CameraController.bind — which in turn calls flipLens semantics indirectly via unbindAll.
- *   - Orientation listener is owned by the composable's DisposableEffect (created here via
- *     `orientationListener(context)`; enable/disable lives on the composable side).
- *   - `onCleared()` stops any active test recording (safety net — normally the 5s delay has
- *     already fired).
+ *   - `bind(owner)` called from CameraScreen LaunchedEffect once permission is granted.
+ *   - Orientation listener owned by composable's DisposableEffect (D-08).
+ *   - `onCleared()` stops any active test recording (safety net).
+ *
+ * T-03-04: viewModelScope is tied to ViewModel lifecycle (auto-cancelled on onCleared).
+ * No Activity references captured in capturePhoto lambda closure.
  */
 @HiltViewModel
 class CameraViewModel @Inject constructor(
     private val controller: CameraController,
+    private val filterEngine: FilterEngine,
+    private val assetLoader: AssetLoader,
+    @Named("cameraExecutor") private val cameraExecutor: Executor,
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(CameraUiState())
@@ -52,13 +70,31 @@ class CameraViewModel @Inject constructor(
 
     private var currentRotation: Int = Surface.ROTATION_0
 
-    /** Invoked from CameraScreen LaunchedEffect when permission granted or lens changes. */
+    /**
+     * Invoked from CameraScreen LaunchedEffect when permission granted or lens changes.
+     * Phase 3: after bind succeeds, preloads + activates the first filter on first call.
+     */
     fun bind(owner: LifecycleOwner) {
         viewModelScope.launch {
             runCatching { controller.bind(owner, _uiState.value.lens, currentRotation) }
                 .onFailure {
                     _events.send(OneShotEvent.CameraError(it.message ?: "bind failed"))
+                    return@launch
                 }
+
+            // Phase 3 D-01 — activate the first production filter on first bind.
+            if (_uiState.value.activeFilterId == null) {
+                val initial = FilterCatalog.all.firstOrNull() ?: return@launch
+                try {
+                    withContext(cameraExecutor.asCoroutineDispatcher()) {
+                        assetLoader.preload(initial.id)
+                    }
+                    filterEngine.setFilter(initial)
+                    _uiState.value = _uiState.value.copy(activeFilterId = initial.id)
+                } catch (e: Exception) {
+                    _events.send(OneShotEvent.PhotoError("Filter load failed: ${e.message ?: "unknown"}"))
+                }
+            }
         }
     }
 
@@ -96,9 +132,52 @@ class CameraViewModel @Inject constructor(
     }
 
     /**
+     * D-13/D-15/D-35 — production shutter.
+     * Haptic fires in Compose layer (RESEARCH §Example 8 — LocalView.current.performHapticFeedback).
+     * captureFlashVisible toggled true immediately, then false after callback (D-16).
+     *
+     * T-03-04: onResult lambda is a one-shot callback; viewModelScope.launch captures no Activity ref.
+     */
+    fun onShutterTapped() {
+        _uiState.value = _uiState.value.copy(captureFlashVisible = true)
+        controller.capturePhoto { result ->
+            viewModelScope.launch {
+                _uiState.value = _uiState.value.copy(captureFlashVisible = false)
+                result.fold(
+                    onSuccess = { uri -> _events.send(OneShotEvent.PhotoSaved(uri)) },
+                    onFailure = { exc -> _events.send(OneShotEvent.PhotoError(exc.message ?: "capture failed")) },
+                )
+            }
+        }
+    }
+
+    /**
+     * D-10/D-11 — debug-only filter swap. Production catalog UX lands in Phase 4.
+     * Advances activeFilterId index through FilterCatalog.all (mod size).
+     * Preload runs on cameraExecutor dispatcher — never blocks main thread.
+     */
+    fun onCycleFilter() {
+        val all = FilterCatalog.all
+        if (all.isEmpty()) return
+        val currentId = _uiState.value.activeFilterId
+        val currentIdx = all.indexOfFirst { it.id == currentId }.coerceAtLeast(-1)
+        val next: FilterDefinition = all[(currentIdx + 1) % all.size]
+        viewModelScope.launch {
+            try {
+                withContext(cameraExecutor.asCoroutineDispatcher()) {
+                    assetLoader.preload(next.id)
+                }
+                filterEngine.setFilter(next)
+                _uiState.value = _uiState.value.copy(activeFilterId = next.id)
+            } catch (e: Exception) {
+                _events.send(OneShotEvent.PhotoError("Filter load failed: ${e.message ?: "unknown"}"))
+            }
+        }
+    }
+
+    /**
      * D-08 — OrientationEventListener with quadrant thresholds. Composable calls enable()/disable()
-     * inside a DisposableEffect. Emits only when the rotation quadrant changes (skips the ~45°
-     * edge-of-quadrant flips that would thrash targetRotation).
+     * inside a DisposableEffect. Emits only when the rotation quadrant changes.
      */
     fun orientationListener(context: Context): OrientationEventListener =
         object : OrientationEventListener(context) {
