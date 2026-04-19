@@ -94,14 +94,20 @@ class LandmarkSmoother(
     fun clear() = filters.clear()
 
     /**
-     * Clear filter state for a specific tracking ID when that face is no longer detected.
+     * ADR-01 #2 — drop per-id state when BboxIouTracker emits a removed ID.
+     * Unknown IDs are a no-op (defensive — tracker should not emit duplicate removals).
      *
-     * STUB — Plan 03-02 replaces the TODO body when BboxIouTracker lands and the tracker
-     * emits a "removed" signal for [id]. Per D-25: on same ID reappearing, reinitializes fresh
-     * (no stale carry-over). D-23 guarantees removed IDs are never recycled, so fresh
-     * reinitialization is effectively unreachable — but defensive code requires it.
+     * Per D-25: on same ID reappearing, reinitializes fresh (no stale carry-over).
+     * D-23 guarantees removed IDs are never recycled, so fresh reinitialization is
+     * effectively unreachable — but defensive code requires it.
      *
      * @param id Tracker-assigned face ID whose 1€ filter state should be erased.
      */
-    fun onFaceLost(id: Int): Unit = TODO("Plan 03-02")
+    fun onFaceLost(id: Int) {
+        val prefix = "$id:"
+        val iter = filters.keys.iterator()
+        while (iter.hasNext()) {
+            if (iter.next().startsWith(prefix)) iter.remove()
+        }
+    }
 }

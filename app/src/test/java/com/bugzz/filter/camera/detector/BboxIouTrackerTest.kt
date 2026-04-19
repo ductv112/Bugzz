@@ -20,10 +20,8 @@ import org.robolectric.annotation.Config
  * Tests cover: IoU math, greedy match algorithm, MAX_TRACKED_FACES=2 cap,
  * MAX_DROPOUT_FRAMES=5 retention, monotonic ID assignment (D-21/22/23).
  *
- * Wave 0 state: all tests that call [BboxIouTracker.iou] or [BboxIouTracker.assign]
- * are @Ignore'd because those methods are TODO stubs in the placeholder SUT. Only
- * [companion_constantsMatchSpec] runs — it asserts the WRONG stub constant values and
- * intentionally FAILS (RED gate). Plan 03-02 un-Ignores all tests + replaces the stub.
+ * Wave 1 state: all @Ignore annotations removed — Plan 03-02 has implemented the full
+ * production body. All tests must be GREEN.
  *
  * Robolectric is used because [android.graphics.Rect]'s intersection / contains methods
  * require a real Android SDK implementation (JVM stubs are no-ops).
@@ -43,10 +41,6 @@ class BboxIouTrackerTest {
     // IoU math (static method on companion)
     // -------------------------------------------------------------------------
 
-    /**
-     * TODO Plan 03-02: un-Ignore when BboxIouTracker.iou() has production body.
-     */
-    @org.junit.Ignore("Plan 03-02 — flip to GREEN when BboxIouTracker.iou() is implemented")
     @Test
     fun iou_identicalBoxes_returns1() {
         val box = Rect(0, 0, 100, 100)
@@ -54,10 +48,6 @@ class BboxIouTrackerTest {
         assertEquals("IoU of identical boxes must be 1.0", 1.0f, result, 1e-6f)
     }
 
-    /**
-     * TODO Plan 03-02: un-Ignore when BboxIouTracker.iou() has production body.
-     */
-    @org.junit.Ignore("Plan 03-02 — flip to GREEN when BboxIouTracker.iou() is implemented")
     @Test
     fun iou_disjointBoxes_returns0() {
         val a = Rect(0, 0, 100, 100)
@@ -66,10 +56,6 @@ class BboxIouTrackerTest {
         assertEquals("IoU of disjoint boxes must be 0.0", 0.0f, result, 1e-6f)
     }
 
-    /**
-     * TODO Plan 03-02: un-Ignore when BboxIouTracker.iou() has production body.
-     */
-    @org.junit.Ignore("Plan 03-02 — flip to GREEN when BboxIouTracker.iou() is implemented")
     @Test
     fun iou_halfOverlap_returnsOneThird() {
         // a = [0,0,100,100] area=10000; b = [50,0,150,100] area=10000
@@ -85,10 +71,6 @@ class BboxIouTrackerTest {
     // assign() — ID assignment
     // -------------------------------------------------------------------------
 
-    /**
-     * TODO Plan 03-02: un-Ignore when BboxIouTracker.assign() is implemented.
-     */
-    @org.junit.Ignore("Plan 03-02 — flip to GREEN when BboxIouTracker.assign() is implemented")
     @Test
     fun assign_firstFrame_assignsMonotonicNewIds() {
         val face1 = mockFace(Rect(0, 0, 100, 100))
@@ -102,10 +84,6 @@ class BboxIouTrackerTest {
         assertTrue("No removals on first frame", result.removedIds.isEmpty())
     }
 
-    /**
-     * TODO Plan 03-02: un-Ignore when BboxIouTracker.assign() is implemented.
-     */
-    @org.junit.Ignore("Plan 03-02 — flip to GREEN when BboxIouTracker.assign() is implemented")
     @Test
     fun assign_sameFaceNextFrame_retainsSameId() {
         // Frame 1: face at Rect(100,100,300,300)
@@ -120,10 +98,6 @@ class BboxIouTrackerTest {
         assertEquals("Slightly-moved face must retain same ID", originalId, r2.tracked.first().id)
     }
 
-    /**
-     * TODO Plan 03-02: un-Ignore when BboxIouTracker.assign() is implemented.
-     */
-    @org.junit.Ignore("Plan 03-02 — flip to GREEN when BboxIouTracker.assign() is implemented")
     @Test
     fun assign_threeFaces_capsAtMaxTrackedFaces() {
         // Three non-overlapping faces
@@ -139,10 +113,6 @@ class BboxIouTrackerTest {
         )
     }
 
-    /**
-     * TODO Plan 03-02: un-Ignore when BboxIouTracker.assign() is implemented.
-     */
-    @org.junit.Ignore("Plan 03-02 — flip to GREEN when BboxIouTracker.assign() is implemented")
     @Test
     fun assign_faceDisappears_dropsAfterFiveFrames() {
         // Frame 1: face present → id=0
@@ -167,10 +137,6 @@ class BboxIouTrackerTest {
         assertEquals("Removed ID must be 0", 0, removalFrame.removedIds.first())
     }
 
-    /**
-     * TODO Plan 03-02: un-Ignore when BboxIouTracker.assign() is implemented.
-     */
-    @org.junit.Ignore("Plan 03-02 — flip to GREEN when BboxIouTracker.assign() is implemented")
     @Test
     fun assign_faceReappearsAsDifferent_assignsNewId() {
         val face = mockFace(Rect(100, 100, 200, 200))
@@ -186,16 +152,8 @@ class BboxIouTrackerTest {
         assertEquals("Reappeared face must get a fresh monotonic ID", 1, result.tracked.first().id)
     }
 
-    /**
-     * Companion constants RED gate. The stub has intentionally wrong values (0.0f / 0 / 0).
-     * @Ignore'd to keep testDebugUnitTest exit 0. Plan 03-02 replaces the stub constants with
-     * the correct values (0.3f / 5 / 2) and un-Ignores this test.
-     */
-    @org.junit.Ignore("Plan 03-02 — flip to GREEN when BboxIouTracker companion constants are 0.3f/5/2")
     @Test
     fun companion_constantsMatchSpec() {
-        // These assertions FAIL in Wave 0 (stub has wrong values) — that is the Nyquist RED gate.
-        // Plan 03-02 replaces the stub and makes these GREEN.
         assertEquals(
             "IOU_MATCH_THRESHOLD must be 0.3f per D-21",
             0.3f, BboxIouTracker.IOU_MATCH_THRESHOLD, 1e-6f,
@@ -210,10 +168,6 @@ class BboxIouTrackerTest {
         )
     }
 
-    /**
-     * TODO Plan 03-02: un-Ignore when BboxIouTracker.assign() is implemented.
-     */
-    @org.junit.Ignore("Plan 03-02 — flip to GREEN when BboxIouTracker.assign() is implemented")
     @Test
     fun assign_lowIouNewFace_assignsNewId() {
         // Frame 1: face at Rect(0,0,100,100) → id=0

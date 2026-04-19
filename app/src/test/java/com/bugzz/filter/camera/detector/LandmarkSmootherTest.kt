@@ -6,8 +6,8 @@ import org.junit.Test
 /**
  * Nyquist Wave 0 tests for [LandmarkSmoother.onFaceLost] (ADR-01 #2).
  *
- * RED state in Wave 0: [LandmarkSmoother.onFaceLost] is a TODO stub.
- * Plan 03-02 implements the method and flips these to GREEN.
+ * Wave 1 state: @Ignore annotations removed — Plan 03-02 has implemented
+ * [LandmarkSmoother.onFaceLost] with a real body. All tests must be GREEN.
  *
  * Pure JVM — no Robolectric needed (LandmarkSmoother only uses Double arithmetic).
  */
@@ -15,10 +15,6 @@ class LandmarkSmootherTest {
 
     private val smoother = LandmarkSmoother(minCutoff = 1.0, beta = 0.007, dCutoff = 1.0)
 
-    /**
-     * TODO Plan 03-02: un-Ignore when LandmarkSmoother.onFaceLost() is implemented.
-     */
-    @org.junit.Ignore("Plan 03-02 — flip to GREEN when LandmarkSmoother.onFaceLost() is implemented")
     @Test
     fun onFaceLost_clearsThatIdOnly_otherIdsSurvive() {
         // Seed two IDs with initial values
@@ -50,10 +46,6 @@ class LandmarkSmootherTest {
         )
     }
 
-    /**
-     * TODO Plan 03-02: un-Ignore when LandmarkSmoother.onFaceLost() is implemented.
-     */
-    @org.junit.Ignore("Plan 03-02 — flip to GREEN when LandmarkSmoother.onFaceLost() is implemented")
     @Test
     fun sameIdReappears_startsFreshState() {
         // Seed id=3 at time 1000ms
@@ -74,10 +66,6 @@ class LandmarkSmootherTest {
         )
     }
 
-    /**
-     * TODO Plan 03-02: un-Ignore when LandmarkSmoother.onFaceLost() is implemented.
-     */
-    @org.junit.Ignore("Plan 03-02 — flip to GREEN when LandmarkSmoother.onFaceLost() is implemented")
     @Test
     fun onFaceLost_unknownId_isNoOp() {
         // onFaceLost on an ID that never had state — must not throw
