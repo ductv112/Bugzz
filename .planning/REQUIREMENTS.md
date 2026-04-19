@@ -61,9 +61,9 @@ Feature-parity clone of reference app (`com.insect.filters.funny.prank.bug.filte
 
 ### Photo Capture
 
-- [ ] **CAP-01**: Shutter button captures photo via CameraX `ImageCapture.takePicture()`
-- [ ] **CAP-02**: Captured JPEG has filter overlay baked in (OverlayEffect composites into IMAGE_CAPTURE output)
-- [ ] **CAP-03**: Photo saved to `DCIM/Bugzz/` via MediaStore `Images` insert with `IS_PENDING` transaction pattern
+- [x] **CAP-01**: Shutter button captures photo via CameraX `ImageCapture.takePicture()`
+- [x] **CAP-02**: Captured JPEG has filter overlay baked in (OverlayEffect composites into IMAGE_CAPTURE output)
+- [x] **CAP-03**: Photo saved to `DCIM/Bugzz/` via MediaStore `Images` insert with `IS_PENDING` transaction pattern
 - [ ] **CAP-04**: Front-camera photos saved with correct mirror convention matching reference app behavior
 - [ ] **CAP-05**: Saved photo visible in Google Photos / device gallery within 1 second of capture
 - [ ] **CAP-06**: No Bitmap memory leaks in capture path (verified via LeakCanary)
@@ -186,9 +186,9 @@ Final mapping locked by roadmap (2026-04-18). Every v1 requirement is assigned t
 | REN-06 | Phase 3 | Pending |
 | REN-07 | Phase 3 | Pending |
 | REN-08 | Phase 3 | Pending |
-| CAP-01 | Phase 3 | Pending |
-| CAP-02 | Phase 3 | Pending |
-| CAP-03 | Phase 3 | Pending |
+| CAP-01 | Phase 3 | Complete |
+| CAP-02 | Phase 3 | Complete |
+| CAP-03 | Phase 3 | Complete |
 | CAP-04 | Phase 3 | Pending |
 | CAP-05 | Phase 3 | Pending |
 | CAP-06 | Phase 3 | Pending |

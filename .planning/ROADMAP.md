@@ -75,7 +75,7 @@ Plans:
 - [x] 03-01-PLAN.md — Nyquist Wave 0 test scaffolds (BboxIouTracker, LandmarkSmoother, FaceDetectorClient, FaceLandmarkMapper, FilterCatalog, AssetLoader, FilterEngine, BugBehavior, CameraController.capturePhoto) (Wave 0)
 - [x] 03-02-PLAN.md — ADR-01 closure — BboxIouTracker impl + LandmarkSmoother.onFaceLost + FaceDetectorClient tracker wiring + SMOOTHED_CONTOUR_TYPES extension (Wave 1)
 - [x] 03-03-PLAN.md — Filter render stack — APK asset extract + FilterDefinition/FilterCatalog/AssetLoader + BugBehavior + FaceLandmarkMapper production + FilterEngine + OverlayEffectBuilder extension (Wave 2)
-- [ ] 03-04-PLAN.md — Shutter + capture UX — CameraController.capturePhoto + OneShotEvent.PhotoSaved/Error + CameraViewModel.onShutterTapped/onCycleFilter + CameraScreen shutter button + Cycle Filter debug button + capture-flash (Wave 3)
+- [x] 03-04-PLAN.md — Shutter + capture UX — CameraController.capturePhoto + OneShotEvent.PhotoSaved/Error + CameraViewModel.onShutterTapped/onCycleFilter + CameraScreen shutter button + Cycle Filter debug button + capture-flash (Wave 3)
 - [ ] 03-05-PLAN.md — Clean build + 03-HANDOFF.md Xiaomi 13T runbook + CAM-08 re-verify (ADR-01 #4 documentation close) (Wave 4)
 
 ### Phase 4: Filter Catalog + Picker + Face Filter Mode
@@ -135,7 +135,7 @@ Plans:
 |-------|----------------|--------|-----------|
 | 1. Foundation & Skeleton | 4/4 | Complete    | 2026-04-18 |
 | 2. Camera Preview + Face Detection + Coord Validation | 0/6 | Planned | - |
-| 3. First Filter End-to-End + Photo Capture | 1/5 | In Progress|  |
+| 3. First Filter End-to-End + Photo Capture | 4/5 | In Progress|  |
 | 4. Filter Catalog + Picker + Face Filter Mode | 0/? | Not started | - |
 | 5. Video Recording + Audio + Insect Filter Mode | 0/? | Not started | - |
 | 6. UX Polish — Splash, Home, Onboarding, Preview, Collection, Share | 0/? | Not started | - |
