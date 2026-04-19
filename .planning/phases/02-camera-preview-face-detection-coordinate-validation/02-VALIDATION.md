@@ -2,8 +2,8 @@
 phase: 02
 slug: camera-preview-face-detection-coordinate-validation
 status: draft
-nyquist_compliant: false
-wave_0_complete: false
+nyquist_compliant: true
+wave_0_complete: true
 created: 2026-04-19
 ---
 
@@ -44,10 +44,10 @@ Filled by planner. Each task in each PLAN.md links into this table via `<automat
 
 | Task ID | Plan | Wave | Requirement | Threat Ref | Secure Behavior | Test Type | Automated Command | File Exists | Status |
 |---------|------|------|-------------|------------|-----------------|-----------|-------------------|-------------|--------|
-| 02-XX-YY | — | 0 | CAM-09 | — | N/A (math) | unit | `./gradlew :app:testDebugUnitTest --tests "*OneEuroFilterTest*"` | ❌ W0 | ⬜ pending |
-| 02-XX-YY | — | 0 | CAM-04 | — | N/A | unit | `./gradlew :app:testDebugUnitTest --tests "*FaceDetectorOptionsTest*"` | ❌ W0 | ⬜ pending |
-| 02-XX-YY | — | 0 | CAM-06 | — | N/A | unit | `./gradlew :app:testDebugUnitTest --tests "*OverlayEffectBuilderTest*"` | ❌ W0 | ⬜ pending |
-| 02-XX-YY | — | 0 | CAM-03, CAM-05 | — | N/A | unit | `./gradlew :app:testDebugUnitTest --tests "*CameraControllerTest*"` | ❌ W0 | ⬜ pending |
+| 02-01-01 | 02-01 | 0 | CAM-09 | — | N/A (math) | unit | `./gradlew :app:testDebugUnitTest --tests "*OneEuroFilterTest*"` | ✅ | ❌ red (intentional — SUT lands in Plan 02-03) |
+| 02-01-02 | 02-01 | 0 | CAM-04 | — | N/A | unit | `./gradlew :app:testDebugUnitTest --tests "*FaceDetectorOptionsTest*"` | ✅ | ❌ red (intentional — SUT lands in Plan 02-03) |
+| 02-01-02 | 02-01 | 0 | CAM-06 | — | N/A | unit | `./gradlew :app:testDebugUnitTest --tests "*OverlayEffectBuilderTest*"` | ✅ | ❌ red (intentional — SUT lands in Plan 02-04) |
+| 02-01-03 | 02-01 | 0 | CAM-03, CAM-05 | — | N/A | unit | `./gradlew :app:testDebugUnitTest --tests "*CameraControllerTest*"` | ✅ | ❌ red (intentional — SUT lands in Plan 02-04; mockito-kotlin added in Plan 02-02) |
 | 02-XX-YY | — | later | CAM-01, CAM-02, CAM-07, CAM-08 | — | N/A | manual-only | device runbook 02-HANDOFF.md on Xiaomi 13T | ❌ manual | ⬜ pending |
 
 *Status: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky*
@@ -58,22 +58,22 @@ Filled by planner. Each task in each PLAN.md links into this table via `<automat
 
 Four unit test files must exist before ANY `feat(02-...)` implementation commit that writes the code under test. This is the Nyquist gate — no code without a failing test.
 
-- [ ] `app/src/test/java/com/bugzz/filter/camera/detector/OneEuroFilterTest.kt` — covers CAM-09. Cases:
+- [x] `app/src/test/java/com/bugzz/filter/camera/detector/OneEuroFilterTest.kt` — covers CAM-09. Cases:
    1. Constant input → output equals input within ε=1e-6.
    2. Step input (jump from 0 to 100 at t=1.0) → output smoothly approaches 100 over 5+ samples.
    3. Sine-wave jitter on stationary base → output shows measurable attenuation (RMS output < RMS input).
    4. First sample initializes without division-by-zero (`tPrev` defaults handled).
-- [ ] `app/src/test/java/com/bugzz/filter/camera/detector/FaceDetectorOptionsTest.kt` — covers CAM-04 + CAM-15. Assert `FaceDetectorClient.buildOptions()` produces:
+- [x] `app/src/test/java/com/bugzz/filter/camera/detector/FaceDetectorOptionsTest.kt` — covers CAM-04 + CAM-15. Assert `FaceDetectorClient.buildOptions()` produces:
    - `performanceMode == PERFORMANCE_MODE_FAST`
    - `contourMode == CONTOUR_MODE_ALL`
    - `isTrackingEnabled == true`
    - `minFaceSize == 0.15f`
    - `landmarkMode == LANDMARK_MODE_NONE`
    - `classificationMode == CLASSIFICATION_MODE_NONE`
-- [ ] `app/src/test/java/com/bugzz/filter/camera/render/OverlayEffectBuilderTest.kt` — covers CAM-06. Assert:
+- [x] `app/src/test/java/com/bugzz/filter/camera/render/OverlayEffectBuilderTest.kt` — covers CAM-06. Assert:
    - Target mask equals `CameraEffect.PREVIEW or CameraEffect.VIDEO_CAPTURE or CameraEffect.IMAGE_CAPTURE`
    - `queueDepth == 0`
-- [ ] `app/src/test/java/com/bugzz/filter/camera/camera/CameraControllerTest.kt` — covers CAM-03 + CAM-05. Mock `ProcessCameraProvider`. Assert:
+- [x] `app/src/test/java/com/bugzz/filter/camera/camera/CameraControllerTest.kt` — covers CAM-03 + CAM-05. Mock `ProcessCameraProvider`. Assert:
    - After `bind()`, `UseCaseGroup` includes exactly 4 use cases (Preview + ImageAnalysis + ImageCapture + VideoCapture)
    - After `bind()`, `UseCaseGroup` has 1 effect attached
    - `ImageAnalysis` backpressure strategy equals `STRATEGY_KEEP_ONLY_LATEST`
@@ -100,7 +100,7 @@ Four unit test files must exist before ANY `feat(02-...)` implementation commit 
 - [ ] Wave 0 covers all MISSING references (4 unit test files minimum)
 - [ ] No watch-mode flags
 - [ ] Feedback latency < 10s (quick) / < 60s (full)
-- [ ] `nyquist_compliant: true` set in frontmatter (after planner assigns all Task IDs)
+- [x] `nyquist_compliant: true` set in frontmatter (after planner assigns all Task IDs)
 - [ ] `02-HANDOFF.md` device runbook executed on Xiaomi 13T (user sign-off — pastes 12/12 PASS result into STATE.md)
 
-**Approval:** pending (planner will populate Per-Task Verification Map and flip `nyquist_compliant: true` when all tasks have verification hooks)
+**Approval:** Wave 0 Nyquist gate satisfied on 2026-04-19 — Plan 02-01 landed all four test files (commits 98b3348, 97a5378, 693d986). Intentional RED state; Plans 02-02/02-03/02-04 turn them GREEN. Device-runbook sign-off remains pending (Plan 02-06 handoff).
