@@ -1,41 +1,73 @@
 package com.bugzz.filter.camera.render
 
+import android.os.Handler
+import android.os.HandlerThread
 import androidx.camera.core.CameraEffect
 import androidx.camera.effects.OverlayEffect
+import com.bugzz.filter.camera.detector.FaceDetectorClient
+import timber.log.Timber
+import javax.inject.Inject
+import javax.inject.Singleton
 
 /**
- * Builder for the three-stream [OverlayEffect] (D-25 / CAM-06).
+ * Constructs the single OverlayEffect instance reused across lens flips (D-25).
  *
- * **Plan 02-03 placeholder stub.** The real implementation lands in Plan 02-04 —
- * see `.planning/phases/02-camera-preview-face-detection-coordinate-validation/02-04-PLAN.md`.
- * This stub exists only to let the test sourceset compile so Plan 02-03's GREEN-gate tests
- * (`OneEuroFilterTest`, `FaceDetectorOptionsTest`) can run. `OverlayEffectBuilderTest` stays
- * RED at runtime because [TARGETS] and [QUEUE_DEPTH] here are deliberately wrong placeholders.
+ * The effect:
+ *   - Targets PREVIEW + VIDEO_CAPTURE + IMAGE_CAPTURE (CAM-06; bakes overlay into all 3 streams)
+ *   - Draws on a dedicated HandlerThread ("BugzzRenderThread") to avoid main-thread contention
+ *     during Compose recomposition (research §Open Questions #2)
+ *   - Applies `canvas.setMatrix(frame.sensorToBufferTransform)` BEFORE every draw call
+ *     (CAM-07 / PITFALLS #5 — setMatrix must precede drawRect; pairs with COORDINATE_SYSTEM_SENSOR
+ *     configured on the MlKitAnalyzer in FaceDetectorClient)
  *
- * Plan 02-04 will:
- *  - Populate [TARGETS] to `PREVIEW or VIDEO_CAPTURE or IMAGE_CAPTURE` (CAM-06 three-stream).
- *  - Populate [QUEUE_DEPTH] to `0` (per-frame compositing, no latency buffer).
- *  - Implement [build] to construct a real OverlayEffect with Handler + onDrawListener.
+ * Companion constants are `internal` so OverlayEffectBuilderTest (Plan 01) can assert them
+ * without instantiating OverlayEffect itself (OverlayEffect requires an Android Handler and
+ * is not unit-testable in a plain JVM harness).
  */
-class OverlayEffectBuilder {
+@Singleton
+class OverlayEffectBuilder @Inject constructor(
+    private val faceDetector: FaceDetectorClient,
+    private val renderer: DebugOverlayRenderer,
+) {
+    private lateinit var renderThread: HandlerThread
+    private lateinit var renderHandler: Handler
 
-    /** Plan 02-04 stub — real instance not built in 02-03. */
-    fun build(): OverlayEffect =
-        throw NotImplementedError("OverlayEffectBuilder.build() lands in Plan 02-04")
+    /** Construct ONCE per app session. D-25: reuse across lens flips. */
+    fun build(): OverlayEffect {
+        renderThread = HandlerThread("BugzzRenderThread").apply { start() }
+        renderHandler = Handler(renderThread.looper)
+
+        val effect = OverlayEffect(
+            /* targets       = */ TARGETS,
+            /* queueDepth    = */ QUEUE_DEPTH,
+            /* handler       = */ renderHandler,
+            /* errorListener = */ { throwable -> Timber.e(throwable, "OverlayEffect internal error") },
+        )
+
+        effect.setOnDrawListener { frame ->
+            val canvas = frame.overlayCanvas
+            // CRITICAL: match COORDINATE_SYSTEM_SENSOR from MlKitAnalyzer (D-17 / CAM-07).
+            // setMatrix MUST precede any drawRect / drawCircle (PITFALLS #5).
+            canvas.setMatrix(frame.sensorToBufferTransform)
+            val snapshot = faceDetector.latestSnapshot.get()
+            renderer.draw(canvas, snapshot, frame.timestampNanos)
+            true  // = "I drew something; present this frame"
+        }
+
+        return effect
+    }
+
+    /** Release the render HandlerThread — callable from ViewModel onCleared(). */
+    fun release() {
+        if (::renderThread.isInitialized) renderThread.quitSafely()
+    }
 
     companion object {
-        /**
-         * Placeholder — Plan 02-04 sets this to the real target mask.
-         * [OverlayEffectBuilderTest.target_mask_covers_preview_image_video] intentionally
-         * fails against this wrong value (Nyquist RED until Plan 02-04).
-         */
-        const val TARGETS: Int = 0
+        /** Exposed for OverlayEffectBuilderTest (Plan 01) — asserts the exact target mask (CAM-06). */
+        internal val TARGETS: Int =
+            CameraEffect.PREVIEW or CameraEffect.VIDEO_CAPTURE or CameraEffect.IMAGE_CAPTURE
 
-        /**
-         * Placeholder — Plan 02-04 sets this to 0 for per-frame compositing.
-         * [OverlayEffectBuilderTest.queue_depth_is_zero] intentionally fails against this
-         * wrong value (Nyquist RED until Plan 02-04).
-         */
-        const val QUEUE_DEPTH: Int = -1
+        /** Exposed for OverlayEffectBuilderTest (Plan 01) — asserts queueDepth == 0 (draw every frame). */
+        internal const val QUEUE_DEPTH: Int = 0
     }
 }
