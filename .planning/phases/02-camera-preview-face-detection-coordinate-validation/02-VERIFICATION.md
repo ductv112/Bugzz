@@ -257,6 +257,31 @@ Create a gap-closure plan `02-gaps-02` (Renderer scale/density fix):
 
 ---
 
+**Diagnostic findings (2026-04-19, Wave A — commit `9924141` + `1ec0a0d`)**
+
+Diagnostic logging (`OverlayDiag` Timber tag) captured on Xiaomi 13T Pro (aristotle_global, HyperOS) across ~13 frames over ~25s face hold. Representative log line:
+
+```
+OverlayDiag: scaleX=0.741 scaleY=0.741 trans=-0.0,-180.0 preBB=500,400-1500x1150 postBB=370,300-1100x850
+```
+
+**Hypothesis resolution:**
+
+- **H2 DISPROVED** — `scaleX = scaleY = 0.741` (uniform DOWN-scale, NOT up-scale). A 4f strokeWidth drawn through this matrix renders at `4f × 0.741 ≈ 2.96 device pixels` — thinner than intended, not thicker. Matrix scale compensation (Task 2 `computeSensorSpaceStroke`) is a *defensive* correction that hardens the renderer against future devices where sensor > buffer (which WOULD upscale), but is not the primary cause here.
+- **H1 PARTIALLY CONFIRMED** — ~97 dots are drawn per frame but 0.9% of face area in sensor coords, which at scale 0.741 = ~0.5% of buffer area. This alone cannot produce the solid red saturation observed in `bugzz05-final.png`. Density reduction to ≤15 centroids (Task 2) is a correctness + legibility improvement, not the root-cause fix.
+- **H3 RULED OUT** — `postBB` matches the face region on screen (~1100×850 device pixels wraps the user's face in the 927×1920 preview letterbox area). No coord-space mismatch.
+
+**Actual root cause — NEW hypothesis H4: `OverlayEffect.overlayCanvas` is NOT automatically cleared between frames.** Per-frame drawings PERSIST on the canvas indefinitely. Observable symptoms this explains:
+1. After 10 lens flips, each flip produces a boundingBox at a different position → 10 "ghost" rect outlines accumulate (screenshot `bf3.png` clearly shows 6-10 concentric red outlines).
+2. Over 20+ seconds of face hold with natural head micro-motion, each frame's centroid dot lands at a slightly shifted position → hundreds of accumulated "trail" dots visible despite only 9-15 drawn per frame.
+3. The original `bugzz05-final.png` solid-red appearance = thousands of accumulated per-frame drawings covering the full preview area.
+
+**Fix committed in `1ec0a0d`:** `OverlayEffectBuilder.setOnDrawListener` now invokes `canvas.drawColor(Color.TRANSPARENT, PorterDuff.Mode.CLEAR)` at the start of each frame, BEFORE `canvas.setMatrix`, wiping the overlay buffer before the renderer draws. Works with both centroid reduction (Task 2) and matrix compensation (Task 2) — layered defenses.
+
+**Research correction (deferred to gaps-02 final task):** `.planning/research/ARCHITECTURE.md §3` and `.planning/research/PITFALLS.md` should document that `OverlayEffect` overlay canvas must be manually cleared with `drawColor(CLEAR)` at frame start.
+
+---
+
 ### GAP-02-C — CAM-06 overlay-in-MP4 visual confirmation (blocked by GAP-02-B)
 
 **Requirement:** CAM-06 (visual layer)
