@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: Completed 03-01-PLAN.md
-last_updated: "2026-04-19T16:05:09.405Z"
+stopped_at: Completed 03-02-PLAN.md
+last_updated: "2026-04-19T16:18:34.341Z"
 progress:
   total_phases: 7
   completed_phases: 2
   total_plans: 18
-  completed_plans: 14
-  percent: 78
+  completed_plans: 15
+  percent: 83
 ---
 
 # State: Bugzz
@@ -34,7 +34,7 @@ Plan: 1 of 5
 - **Plan:** Not started
 - **Previous plan:** 05 complete — CameraViewModel + CameraScreen Compose UI landed: CameraUiState (5-field D-14 data class) + PermissionState sealed interface + OneShotEvent sealed interface for toasts; @HiltViewModel CameraViewModel @Inject(CameraController) exposing uiState:StateFlow + surfaceRequest reshared + events:Flow via Channel(BUFFERED).receiveAsFlow, with onFlipLens (CameraLensProvider.next), onTestRecord (delay(5_000L) auto-stop per D-04, no audio path per D-05), and orientationListener (quadrant-thresholded Surface.ROTATION_{0/90/180/270} emit per D-08); CameraScreen @Composable rendering CameraXViewfinder(ImplementationMode.EXTERNAL) fullscreen + OutlinedButton { Text("Flip") } Alignment.TopEnd (D-24 — text fallback, material-icons-extended not on classpath) + BuildConfig.DEBUG-gated Button { Text("TEST RECORD 5s" | "REC...") } Alignment.BottomCenter (D-04); CAMERA-only permission gate with rationale + Settings CTA reusing Phase 1 StubScreens pattern (D-26/27); DisposableEffect enables/disables OrientationEventListener (D-08). BugzzApp.kt CameraRoute import rewired to com.bugzz.filter.camera.ui.camera.CameraScreen (Phase 1 ui/screens stub orphaned but file retained for other routes). 4 Rule 3 auto-fixes: (1) Hilt cannot synthesize a binding for Kotlin @Inject constructor default-value Function2 param — split CameraController into internal primary constructor (test seam) + secondary @Inject constructor (production factory inlined), (2) ImplementationMode lives in androidx.camera.viewfinder.core NOT .surface — research §Open Questions #1 resolved with AAR class dump (EXTERNAL enum confirmed — no fallback to PERFORMANCE needed), (3) Icons.Default.Cameraswitch not on classpath — OutlinedButton { Text("Flip") } per plan's explicit fallback + CLAUDE.md D-24 icon polish deferred to Phase 6, (4) MutableCoordinateTransformer import dropped (unused in body). APK assembles (79 MB); 10 unit tests GREEN (9 Phase 2 Nyquist + 1 placeholder).
 - **Status:** Executing Phase 03
-- **Progress:** [████████░░] 78%
+- **Progress:** [████████░░] 83%
 
 ### Phase Map
 
@@ -64,6 +64,7 @@ Phase 7: Performance & Device Matrix                      [ pending ]
 | Phase 02 P05 | 5m 39s | 3 tasks | 7 files |
 | Phase 02 Pgaps-01 | 18m | 3 tasks | 6 files |
 | Phase 03 P01 | 1178s | 2 tasks | 24 files |
+| Phase 03 P02 | 482 | 2 tasks | 7 files |
 
 ## Accumulated Context
 
@@ -77,6 +78,9 @@ Phase 7: Performance & Device Matrix                      [ pending ]
 6. **Persistence:** MediaStore for captures, DataStore for prefs — no Room DB for MVP.
 
 ### Key Decisions During Execution
+
+17. **[Phase 03-02] TrackerResult return type over drainRemovedIds():** `assign()` returns `TrackerResult(tracked, removedIds)` atomically — FaceDetectorClient gets both tracked faces and dropped IDs from one call. No side-channel drain needed; cleaner contract per Research §Open Questions Q1 resolution. (03-02-SUMMARY.md)
+18. **[Phase 03-02] FaceDetectorClientTest MlKitContext limitation — tracker contract tested directly:** `FaceDetectorClient` cannot be unit-constructed (calls `FaceDetection.getClient()` → `MlKitContext.getInstance()` → `IllegalStateException`). Test verifies `BboxIouTracker.assign()` contract directly; structural ordering (tracker before smoother) enforced by sequential consumer body + compile-time Hilt codegen. Pattern: ML Kit SDK wrapper classes cannot be unit-constructed without full Android runtime; test the algorithm contract instead. (03-02-SUMMARY.md Deviation 1)
 
 1. **[Phase 02-01] Nyquist-TDD Wave 0 gate:** 4 failing unit-test files for CAM-03/04/05/06/09 land before any `feat(02-...)` commit; SUT classes land in Plans 02-03 and 02-04. (02-01-SUMMARY.md)
 2. **[Phase 02-01] Testability seam pattern:** Android-Handler-dependent SDK wrappers (`OverlayEffectBuilder`) expose config surface as companion `const val`/`val` (`TARGETS`, `QUEUE_DEPTH`) so contracts are unit-testable without Robolectric. (02-01-SUMMARY.md)
@@ -121,23 +125,25 @@ None.
 
 ## Session Continuity
 
-**Last agent:** gsd-execute-phase (Plan 02-gaps-01 executor, sequential mode)
-**Last action:** Completed 02-gaps-01-PLAN.md — GAP-02-A closed. Three atomic commits: (1) `98e032a` fix(02-gaps-01-01) removed `.enableTracking()` from FaceDetectorClient.buildOptions() + flipped FaceDetectorOptionsTest to assert `trackingEnabled=false` + added KDoc warning block with GAP-02-A evidence + ADR-01 cross-ref; (2) `3aa2ed3` docs(02-gaps-01-02) created 02-ADR-01-no-ml-kit-tracking-with-contour.md (569 words, full ADR format, 4 Phase 3 BboxIouTracker follow-up items) + amended 02-CONTEXT.md D-15 (no .enableTracking() call + runtime trackingId == null) + D-22 (Phase 2 uses -1 sentinel, Phase 3 BboxIouTracker provides stable ID) + amended 02-VALIDATION.md Per-Task Verification Map (split CAM-08 off with relaxed acceptance) + Manual-Only Verifications (boundingBox centroid stability criterion, trackingId=null expected) + Wave 0 FaceDetectorOptionsTest checklist (isTrackingEnabled flip true→false); (3) `cb54bc6` docs(02-gaps-01-03) amended .planning/research/PITFALLS.md §3 at the root — replaced the misleading `.enableTracking()` recommendation at line 110 with a three-bullet callout (do NOT enable tracking under CONTOUR_MODE_ALL + MediaPipe-style bbox-IoU alternative + LANDMARK_MODE_ALL fallback) + added Warning Signs bullet for the null-trackingId symptom. No deviations required — plan executed exactly as written. 10/10 unit tests remain GREEN (4 OneEuroFilterTest + 1 FaceDetectorOptionsTest [now asserting trackingEnabled=false] + 2 OverlayEffectBuilderTest + 2 CameraControllerTest + 1 placeholder). `./gradlew :app:assembleDebug` exits 0 (82 MB APK, matches Plan 02-06 baseline). Previously: Plan 02-05 completed CameraViewModel + CameraScreen Compose UI landed. Four new files in `ui/camera/` + 1-line import rewire in `ui/BugzzApp.kt` + Rule 3 CameraController constructor split. CameraUiState (5 fields per D-14 + isRecording) + PermissionState sealed interface + OneShotEvent sealed interface. @HiltViewModel CameraViewModel @Inject(CameraController) exposes uiState:StateFlow + surfaceRequest reshared + events:Flow via Channel(BUFFERED).receiveAsFlow; onFlipLens uses CameraLensProvider.next (D-24); onTestRecord launches delay(5_000L) auto-stop (D-04) with no audio path (D-05); orientationListener is a quadrant-thresholded OrientationEventListener (D-08). CameraScreen @Composable: CameraXViewfinder(ImplementationMode.EXTERNAL) fullscreen + OutlinedButton {Text("Flip")} Alignment.TopEnd (D-24 — text fallback since material-icons-extended not on classpath per CLAUDE.md D-24 icon polish deferred to Phase 6) + BuildConfig.DEBUG-gated Button {Text("TEST RECORD 5s" | "REC...")} Alignment.BottomCenter (D-04); CAMERA-only permission gate with rationale + Settings CTA (D-26/27) reuses Phase 1 pattern verbatim; DisposableEffect(lifecycleOwner) enable/disable OrientationEventListener; LaunchedEffect collects vm.events and emits Toast per OneShotEvent variant. BugzzApp CameraRoute rewired via 1-line import swap to `ui.camera.CameraScreen`. CameraController constructor split (Rule 3 Hilt fix): primary `internal constructor(..., providerFactory: T)` preserves test seam; secondary `@Inject constructor(...)` hard-codes production factory so Hilt graph can satisfy CameraController without providing a Function2 binding — this is the canonical pattern for all future @Singleton @Inject classes with test seams. 4 Rule 3 auto-fixes total: (1) Hilt constructor split, (2) ImplementationMode package `androidx.camera.viewfinder.core` not `.surface` (research §Open Questions #1 resolved — EXTERNAL enum confirmed via AAR class dump), (3) Icons.Default.Cameraswitch → `OutlinedButton { Text("Flip") }` fallback (plan explicitly anticipated), (4) MutableCoordinateTransformer import dropped (unused). `./gradlew :app:assembleDebug` exits 0 (79 MB APK). `./gradlew :app:testDebugUnitTest` exits 0 with 10 tests / 0 failures / 0 skipped (9 Phase 2 Nyquist still GREEN: OneEuroFilterTest 4/4 + FaceDetectorOptionsTest 1/1 + OverlayEffectBuilderTest 2/2 + CameraControllerTest 2/2). CAM-01 (Compose CameraXViewfinder preview) + CAM-02 (lens flip via button) source-level complete; device verification is Plan 02-06's runbook on Xiaomi 13T.
+**Last agent:** gsd-execute-phase (Plan 03-02 executor, sequential mode)
+**Last action:** Completed 03-02-PLAN.md — ADR-01 follow-ups #1/#2/#3 closed. Two atomic commits: (1) `d5d33d0` feat(03-02-01) BboxIouTracker full greedy IoU production body (TrackerResult API, constants 0.3f/5/2, monotonic IDs) + LandmarkSmoother.onFaceLost real body (iterator.remove on "$id:" prefix); all 10 BboxIouTrackerTest + 3 LandmarkSmootherTest un-Ignored and GREEN; (2) `7139e23` feat(03-02-02) FaceDetectorClient gains tracker: BboxIouTracker as second @Inject param; createAnalyzer consumer rewritten: tracker.assign(faces) → removedIds.forEach { smoother.onFaceLost(it) } → trackerResult.tracked.map { smoothFace(tf, tNanos) }; smoothFace(tf: TrackedFace) uses tf.id (never face.trackingId sentinel); Timber format id=%d; SMOOTHED_CONTOUR_TYPES reordered with LEFT_EYEBROW_TOP + RIGHT_EYEBROW_TOP after FACE; FaceSnapshot.kt KDoc updated; FaceDetectorClientTest un-Ignored with tracker contract assertions. 1 Rule 1 auto-fix: FaceDetectorClient cannot be unit-constructed (MlKitContext required) — test verifies BboxIouTracker.assign() contract directly instead. 74 tests / 0 failures / 31 @Ignored (Wave 2/3). APK assembles; Hilt auto-resolves BboxIouTracker.
 
-**Stopped at:** Completed 03-01-PLAN.md
+**Stopped at:** Completed 03-02-PLAN.md
 
-**Next expected action:** Execute 02-gaps-02-PLAN.md (GAP-02-B — DebugOverlayRenderer over-draw fix: diagnostic wave to isolate H1/H2/H3, then minimal-rendering rewrite, then device re-verification of HANDOFF Steps 8-9 on Xiaomi 13T). After gaps-02 closes, gaps-03 becomes unblocked (CAM-06 MP4 overlay visual re-verification). Device re-run of CAM-08 relaxed acceptance (boundingBox stability) can be bundled into the gaps-02 / gaps-03 device runbook.
+**Next expected action:** Execute 03-03-PLAN.md (Wave 2 — FilterEngine + AssetLoader + FaceLandmarkMapper production impl; un-Ignores FilterEngineTest + FaceLandmarkMapperTest + FilterCatalogTest + AssetLoaderTest).
 
-**Files modified this session (Plan 02-gaps-01):**
+**Files modified this session (Plan 03-02):**
 
-- `app/src/main/java/com/bugzz/filter/camera/detector/FaceDetectorClient.kt` (modified — removed `.enableTracking()` call; added KDoc warning block with GAP-02-A evidence + ADR-01 ref; updated activeIds inline comment for null-trackingId + -1 sentinel flow)
-- `app/src/test/java/com/bugzz/filter/camera/detector/FaceDetectorOptionsTest.kt` (modified — dropped `.enableTracking()` from expected builder; flipped `trackingEnabled=true` → `trackingEnabled=false`; updated diagnostic messages + class KDoc amendment note)
-- `.planning/phases/02-camera-preview-face-detection-coordinate-validation/02-ADR-01-no-ml-kit-tracking-with-contour.md` (created — 569 words; full ADR format; 4 Phase 3 BboxIouTracker follow-up items + alternatives table)
-- `.planning/phases/02-camera-preview-face-detection-coordinate-validation/02-CONTEXT.md` (modified — D-15 + D-22 amended with GAP-02-A + ADR-01 cross-refs)
-- `.planning/phases/02-camera-preview-face-detection-coordinate-validation/02-VALIDATION.md` (modified — Per-Task CAM-08 row split to relaxed acceptance; Manual-Only row updated to boundingBox-centroid-continuity criterion; Wave 0 checklist isTrackingEnabled flipped)
-- `.planning/research/PITFALLS.md` (modified — §3 line 110 bullet replaced with 3-bullet callout + new Warning Signs bullet for null-trackingId symptom)
-- `.planning/phases/02-camera-preview-face-detection-coordinate-validation/02-gaps-01-SUMMARY.md` (created)
+- `app/src/main/java/com/bugzz/filter/camera/detector/BboxIouTracker.kt` (replaced stub with full production body — greedy IoU matcher, TrackerResult return type, companion constants 0.3f/5/2)
+- `app/src/main/java/com/bugzz/filter/camera/detector/OneEuroFilter.kt` (LandmarkSmoother.onFaceLost TODO replaced with real iterator.remove body)
+- `app/src/main/java/com/bugzz/filter/camera/detector/FaceDetectorClient.kt` (tracker param added; createAnalyzer consumer rewritten; smoothFace signature changed to TrackedFace; Timber format updated; SMOOTHED_CONTOUR_TYPES reordered)
+- `app/src/main/java/com/bugzz/filter/camera/detector/FaceSnapshot.kt` (KDoc updated — trackingId is tracker-assigned stable ID, not ML Kit sentinel)
+- `app/src/test/java/com/bugzz/filter/camera/detector/BboxIouTrackerTest.kt` (all 10 @Ignore annotations removed)
+- `app/src/test/java/com/bugzz/filter/camera/detector/LandmarkSmootherTest.kt` (all 3 @Ignore annotations removed)
+- `app/src/test/java/com/bugzz/filter/camera/detector/FaceDetectorClientTest.kt` (@Ignore removed; tracker wire-up test body implemented)
+- `.planning/phases/03-first-filter-end-to-end-photo-capture/03-02-SUMMARY.md` (created)
 - `.planning/STATE.md` (updated — this file)
+- `.planning/ROADMAP.md` (updated via roadmap update-plan-progress 03)
 - `.planning/ROADMAP.md` (updated via roadmap update-plan-progress 02)
 - `.planning/REQUIREMENTS.md` (updated — CAM-08 marked complete via requirements mark-complete)
 
