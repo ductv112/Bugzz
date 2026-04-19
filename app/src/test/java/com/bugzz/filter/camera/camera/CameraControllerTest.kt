@@ -1,6 +1,8 @@
 package com.bugzz.filter.camera.camera
 
 import android.content.Context
+import android.net.Uri
+import android.provider.MediaStore
 import android.view.Surface
 import androidx.camera.core.CameraEffect
 import androidx.camera.core.ImageAnalysis
@@ -13,6 +15,7 @@ import com.bugzz.filter.camera.detector.FaceDetectorClient
 import com.bugzz.filter.camera.render.OverlayEffectBuilder
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertTrue
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.mockito.kotlin.any
@@ -109,5 +112,71 @@ class CameraControllerTest {
             "ImageAnalysis.backpressureStrategy must be STRATEGY_KEEP_ONLY_LATEST — CAM-05 / PITFALLS #4",
             ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST, ia?.backpressureStrategy
         )
+    }
+
+    // -------------------------------------------------------------------------
+    // Phase 3 Wave 0: capturePhoto tests (CAP-01 / CAP-03) — @Ignore'd until Plan 03-04
+    // -------------------------------------------------------------------------
+
+    /**
+     * Verifies [CameraController.capturePhoto] calls ImageCapture.takePicture when camera is bound.
+     *
+     * @Ignore'd because [CameraController.capturePhoto] does not yet exist — Plan 03-04 Task 1 adds it.
+     * The test body is fully written against the Plan 03-04 final contract.
+     *
+     * Test seam: Plan 03-04 must add an `internal` primary constructor param
+     * `imageCaptureFactory: () -> ImageCapture = { ImageCapture.Builder().build() }`
+     * (following the Phase 2 providerFactory split pattern — D-14 Phase 2 STATE).
+     */
+    @org.junit.Ignore("Plan 03-04 — flip to GREEN when capturePhoto method lands")
+    @Test
+    fun capturePhoto_invokesTakePicture_onBoundImageCapture() {
+        // TODO Plan 03-04: construct CameraController with a mock imageCaptureFactory that returns
+        // a mock ImageCapture; call bind() then capturePhoto {}; verify mockImageCapture.takePicture()
+        // was invoked with non-null OutputFileOptions, non-null Executor, non-null callback.
+    }
+
+    /**
+     * Verifies [CameraController.capturePhoto] builds ContentValues with correct MediaStore fields.
+     *
+     * Acceptance criteria (D-32):
+     *   - RELATIVE_PATH == "DCIM/Bugzz"
+     *   - MIME_TYPE == "image/jpeg"
+     *   - DISPLAY_NAME matches regex Bugzz_\d{8}_\d{6}\.jpg
+     *
+     * @Ignore'd because [CameraController.capturePhoto] does not yet exist — Plan 03-04 Task 1 adds it.
+     */
+    @org.junit.Ignore("Plan 03-04 — flip to GREEN when capturePhoto method lands")
+    @Test
+    fun capturePhoto_outputFileOptions_hasDCIMBugzzRelativePath() {
+        // TODO Plan 03-04: capture ContentValues passed to ImageCapture.OutputFileOptions.Builder
+        // via the imageCaptureFactory seam; assert the 3 D-32 fields.
+        //
+        // Inline assertion template (to be activated when seam exists):
+        // assertEquals("DCIM/Bugzz", contentValues.getAsString(MediaStore.Images.Media.RELATIVE_PATH))
+        // assertEquals("image/jpeg",  contentValues.getAsString(MediaStore.Images.Media.MIME_TYPE))
+        // assertTrue(contentValues.getAsString(MediaStore.Images.Media.DISPLAY_NAME)
+        //     .matches(Regex("Bugzz_\\d{8}_\\d{6}\\.jpg")))
+        assertTrue("placeholder — test body wired in Plan 03-04", true)
+    }
+
+    /**
+     * Verifies [CameraController.capturePhoto] emits failure when camera is not bound.
+     *
+     * @Ignore'd because [CameraController.capturePhoto] does not yet exist — Plan 03-04 Task 1 adds it.
+     */
+    @org.junit.Ignore("Plan 03-04 — flip to GREEN when capturePhoto method lands")
+    @Test
+    fun capturePhoto_controllerNotBound_emitsFailure() {
+        // TODO Plan 03-04: construct CameraController WITHOUT calling bind();
+        // call capturePhoto { result -> ... }; assert result.isFailure and
+        // result.exceptionOrNull() is IllegalStateException.
+        //
+        // Inline assertion template:
+        // var capturedResult: Result<Uri>? = null
+        // controller.capturePhoto { capturedResult = it }
+        // assertNotNull(capturedResult)
+        // assertTrue(capturedResult!!.isFailure)
+        // assertTrue(capturedResult!!.exceptionOrNull() is IllegalStateException)
     }
 }

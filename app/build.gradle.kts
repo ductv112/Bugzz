@@ -134,4 +134,9 @@ dependencies {
     // which calls Preview.Builder() → OptionsBundle.from() → ArrayMap.keySet(). The JVM
     // android.jar has ArrayMap stubbed; Robolectric provides a real shadow impl.
     testImplementation(libs.robolectric)
+
+    // kotlinx-coroutines-test — runTest / UnconfinedTestDispatcher for CameraViewModelTest
+    // Rule 3 auto-fix (Plan 03-01 Task 2): CameraViewModelTest uses runTest{} which requires
+    // kotlinx-coroutines-test on the test classpath. Not pulled transitively by lifecycle.
+    testImplementation(libs.kotlinx.coroutines.test)
 }

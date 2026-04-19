@@ -49,6 +49,7 @@ espressoCore = "3.7.0"
 mockito = "5.11.0"
 mockitoKotlin = "5.2.1"
 robolectric = "4.13"
+coroutinesTest = "1.10.2"
 
 [libraries]
 # Core
@@ -112,6 +113,11 @@ mockito-kotlin = { module = "org.mockito.kotlin:mockito-kotlin", version.ref = "
 # Preview.Builder (Plan 02-04 Task 3). Without it, CameraX 1.6 internals trip on
 # android.util.ArrayMap stubs (Rule 3 auto-fix; Plan 01 assumed Mockito-only would suffice).
 robolectric = { module = "org.robolectric:robolectric", version.ref = "robolectric" }
+
+# kotlinx-coroutines-test — runTest / UnconfinedTestDispatcher for CameraViewModelTest
+# Rule 3 auto-fix (Plan 03-01 Task 2): CameraViewModelTest uses runTest{} + UnconfinedTestDispatcher;
+# no coroutines-test dep was on classpath from Phase 2 (only coroutines-core transitive from lifecycle).
+kotlinx-coroutines-test = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-test", version.ref = "coroutinesTest" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
