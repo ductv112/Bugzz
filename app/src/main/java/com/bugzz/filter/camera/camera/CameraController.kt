@@ -56,18 +56,41 @@ import kotlin.coroutines.resumeWithException
  *   - VideoCapture is ALWAYS bound (D-06 — even though only the debug test button triggers it).
  *   - No audio on test recording (D-05 — no `.withAudioEnabled()`; T-02-06).
  *
- * @param providerFactory Test seam — defaults to `ProcessCameraProvider.awaitInstance(context)`
- *   in production. CameraControllerTest (Plan 01) passes a mock provider factory.
+ * Provider-factory seam: the primary `@Inject` constructor hard-codes the production factory
+ * (`ProcessCameraProvider.getInstance(ctx).await()`) so the Hilt graph has no "how do I provide
+ * a suspend lambda?" ambiguity. Tests use the secondary constructor to inject a mock factory.
+ * Plan 02-05 Rule 3 auto-fix: Hilt cannot satisfy a `Function2` injection even when it has a
+ * Kotlin default value — the default exists in bytecode only for direct Kotlin callers, not
+ * for Dagger's generated factory. Splitting the constructor keeps the seam testable without
+ * requiring a Hilt `@Provides` binding for the lambda.
  */
 @Singleton
-class CameraController @Inject constructor(
+class CameraController internal constructor(
     @ApplicationContext private val appContext: Context,
     @Named("cameraExecutor") private val cameraExecutor: Executor,
     private val faceDetector: FaceDetectorClient,
     private val overlayEffectBuilder: OverlayEffectBuilder,
-    private val providerFactory: suspend (Context) -> ProcessCameraProvider =
-        { ctx -> ProcessCameraProvider.getInstance(ctx).await() },
+    private val providerFactory: suspend (Context) -> ProcessCameraProvider,
 ) {
+
+    /**
+     * Production constructor — Hilt-visible. Uses the static `ProcessCameraProvider.getInstance`
+     * ListenableFuture adapted via the `await()` extension at the bottom of this file.
+     */
+    @Inject
+    constructor(
+        @ApplicationContext appContext: Context,
+        @Named("cameraExecutor") cameraExecutor: Executor,
+        faceDetector: FaceDetectorClient,
+        overlayEffectBuilder: OverlayEffectBuilder,
+    ) : this(
+        appContext = appContext,
+        cameraExecutor = cameraExecutor,
+        faceDetector = faceDetector,
+        overlayEffectBuilder = overlayEffectBuilder,
+        providerFactory = { ctx -> ProcessCameraProvider.getInstance(ctx).await() },
+    )
+
     // Compose-native: emit latest SurfaceRequest to the composable for CameraXViewfinder.
     private val _surfaceRequest = MutableStateFlow<SurfaceRequest?>(null)
     val surfaceRequest: StateFlow<SurfaceRequest?> = _surfaceRequest.asStateFlow()

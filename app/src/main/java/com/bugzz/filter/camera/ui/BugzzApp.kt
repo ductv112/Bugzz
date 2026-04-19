@@ -9,7 +9,7 @@ import com.bugzz.filter.camera.ui.nav.CollectionRoute
 import com.bugzz.filter.camera.ui.nav.HomeRoute
 import com.bugzz.filter.camera.ui.nav.PreviewRoute
 import com.bugzz.filter.camera.ui.nav.SplashRoute
-import com.bugzz.filter.camera.ui.screens.CameraScreen
+import com.bugzz.filter.camera.ui.camera.CameraScreen
 import com.bugzz.filter.camera.ui.screens.CollectionScreen
 import com.bugzz.filter.camera.ui.screens.HomeScreen
 import com.bugzz.filter.camera.ui.screens.PreviewScreen
