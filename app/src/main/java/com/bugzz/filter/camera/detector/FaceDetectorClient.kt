@@ -20,14 +20,20 @@ import javax.inject.Singleton
  *
  * Contract (D-18/19/20/22):
  *   - Single-writer: the MlKitAnalyzer callback (running on cameraExecutor) writes latestSnapshot.
- *   - Multi-reader: DebugOverlayRenderer (Plan 04) reads latestSnapshot on renderExecutor each draw.
+ *   - Multi-reader: DebugOverlayRenderer / FilterEngine reads latestSnapshot on renderExecutor
+ *     each draw.
  *   - Lock-free: AtomicReference provides visibility; reader may see 1-2-frame stale snapshot.
  *
+ * Runtime face identity comes from [BboxIouTracker] (Plan 03-02). ML Kit's own trackingId is
+ * always null under CONTOUR_MODE_ALL — see ADR-01.
+ *
  * @see .planning/phases/02-camera-preview-face-detection-coordinate-validation/02-CONTEXT.md D-15..D-22
+ * @see .planning/phases/02-camera-preview-face-detection-coordinate-validation/02-ADR-01-no-ml-kit-tracking-with-contour.md
  */
 @Singleton
 class FaceDetectorClient @Inject constructor(
     @Named("cameraExecutor") private val cameraExecutor: Executor,
+    private val tracker: BboxIouTracker,   // ADR-01 #3 — Phase 3 bbox-IoU tracker
 ) {
     private val options = buildOptions()
     private val detector: FaceDetector = FaceDetection.getClient(options)
@@ -46,28 +52,27 @@ class FaceDetectorClient @Inject constructor(
             val faces: List<Face> = result.getValue(detector) ?: emptyList()
             val tNanos = System.nanoTime()
 
-            // 1€ smoothing: `activeIds` is always empty in contour mode (face.trackingId == null —
-            // see buildOptions KDoc / ADR-01). `LandmarkSmoother` keys on the -1 sentinel in
-            // smoothFace() — so retainActive(emptySet()) clears all smoother state every frame.
-            // This is acceptable for Phase 2's single-face runbook; Phase 3 replaces this with
-            // a bbox-IoU-keyed smoother.
-            val activeIds = faces.mapNotNull { it.trackingId }.toSet()
-            smoother.retainActive(activeIds)
+            // ADR-01 #3 — tracker assigns stable IDs (ML Kit trackingId always null under
+            // CONTOUR_MODE_ALL per ADR-01). Assignment MUST precede smoothing so each 1€
+            // filter's state key matches the face identity we want to persist across frames.
+            val trackerResult = tracker.assign(faces)
 
-            val smoothedFaces = faces.map { face -> smoothFace(face, tNanos) }
+            // ADR-01 #2 — drop smoother state for faces the tracker just lost.
+            for (id in trackerResult.removedIds) smoother.onFaceLost(id)
+
+            val smoothedFaces = trackerResult.tracked.map { tf -> smoothFace(tf, tNanos) }
             latestSnapshot.set(FaceSnapshot(smoothedFaces, tNanos))
 
-            // Timber FaceTracker logging (D-03 / CAM-08 verification via logcat) — debug-gated
-            // by Plan 02's conditional DebugTree planting (release tree not planted → no-op).
-            if (faces.isNotEmpty()) {
-                faces.forEach { f ->
+            // T-02-06 / T-03-05 — aggregate-only Timber; never land per-landmark coord lists.
+            if (trackerResult.tracked.isNotEmpty()) {
+                for (tf in trackerResult.tracked) {
                     Timber.tag("FaceTracker").v(
-                        "t=%d id=%s bb=%d,%d contours=%d",
+                        "t=%d id=%d bb=%d,%d contours=%d",
                         tNanos,
-                        f.trackingId?.toString() ?: "null",
-                        f.boundingBox.centerX(),
-                        f.boundingBox.centerY(),
-                        f.allContours.size,
+                        tf.id,
+                        tf.face.boundingBox.centerX(),
+                        tf.face.boundingBox.centerY(),
+                        tf.face.allContours.size,
                     )
                 }
             }
@@ -79,8 +84,9 @@ class FaceDetectorClient @Inject constructor(
     /** D-25 — clear 1€ state on lens flip (PITFALLS #6 — stale trackingId state leak). */
     fun onLensFlipped() = smoother.clear()
 
-    private fun smoothFace(face: Face, tNanos: Long): SmoothedFace {
-        val id = face.trackingId ?: -1
+    private fun smoothFace(tf: BboxIouTracker.TrackedFace, tNanos: Long): SmoothedFace {
+        val id = tf.id   // non-negative tracker-assigned ID (ADR-01 #3)
+        val face = tf.face
         val smoothedContours: Map<Int, List<PointF>> = buildMap {
             for (type in SMOOTHED_CONTOUR_TYPES) {
                 val contour = face.getContour(type) ?: continue
@@ -104,6 +110,8 @@ class FaceDetectorClient @Inject constructor(
     companion object {
         private val SMOOTHED_CONTOUR_TYPES: List<Int> = listOf(
             FaceContour.FACE,
+            FaceContour.LEFT_EYEBROW_TOP,      // Phase 3 — FOREHEAD anchor
+            FaceContour.RIGHT_EYEBROW_TOP,     // Phase 3 — FOREHEAD anchor
             FaceContour.NOSE_BRIDGE,
             FaceContour.NOSE_BOTTOM,
             FaceContour.LEFT_EYE,
@@ -112,11 +120,6 @@ class FaceDetectorClient @Inject constructor(
             FaceContour.RIGHT_CHEEK,
             FaceContour.UPPER_LIP_TOP,
             FaceContour.LOWER_LIP_BOTTOM,
-            // Phase 3 Phase-3-research §Finding 3: FOREHEAD anchor requires LEFT_EYEBROW_TOP (=2)
-            // and RIGHT_EYEBROW_TOP (=4) so FaceLandmarkMapper.anchorPoint(face, FOREHEAD) can
-            // resolve from smoothed contour points instead of falling back to bbox center.
-            FaceContour.LEFT_EYEBROW_TOP,
-            FaceContour.RIGHT_EYEBROW_TOP,
         )
 
         /**
@@ -126,7 +129,7 @@ class FaceDetectorClient @Inject constructor(
          * **Tracking NOT enabled.** Google ML Kit silently ignores `.enableTracking()` at runtime
          * when `CONTOUR_MODE_ALL` is active — `face.trackingId` is always null. This was verified
          * on Xiaomi 13T / HyperOS (GAP-02-A, 459/459 frames, 2026-04-19). Face identity across
-         * frames is deferred to Phase 3 via a bbox-IoU centroid-overlap heuristic — see
+         * frames is provided by [BboxIouTracker] (Plan 03-02) — see
          * `02-ADR-01-no-ml-kit-tracking-with-contour.md`. Do not re-add `.enableTracking()` here
          * without also switching away from `CONTOUR_MODE_ALL`; the two are mutually exclusive.
          */

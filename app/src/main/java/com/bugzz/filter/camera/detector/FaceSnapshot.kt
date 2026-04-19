@@ -5,10 +5,12 @@ import android.graphics.Rect
 
 /**
  * Immutable smoothed face record — produced by FaceDetectorClient (cameraExecutor writes),
- * consumed by DebugOverlayRenderer (renderExecutor reads). D-19 handoff contract.
+ * consumed by DebugOverlayRenderer / FilterEngine (renderExecutor reads). D-19 handoff contract.
  *
- * @property trackingId ML Kit face trackingId (-1 if unavailable — primary face may still populate
- *   contours even when trackingId missing, but smoothed state requires a stable id).
+ * @property trackingId Tracker-assigned stable integer ID (non-negative, monotonic) from
+ *   [BboxIouTracker]. Replaces ML Kit's native trackingId which is always null under
+ *   CONTOUR_MODE_ALL — see 02-ADR-01-no-ml-kit-tracking-with-contour.md. Same face across
+ *   consecutive frames retains the same ID as long as bbox IoU >= 0.3 and gap <= 5 frames.
  * @property boundingBox Sensor-coord rect around the face — always populated.
  * @property contours Key = FaceContour.Type (int); Value = smoothed points along that contour.
  *   Populated ONLY for primary face (ML Kit contour limitation — PITFALLS #13 / D-23).
