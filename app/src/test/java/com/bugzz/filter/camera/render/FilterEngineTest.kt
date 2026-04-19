@@ -85,7 +85,6 @@ class FilterEngineTest {
     /**
      * TODO Plan 03-03: un-Ignore when FilterEngine.onDraw() is implemented.
      */
-    @org.junit.Ignore("Plan 03-03 — flip to GREEN when FilterEngine.onDraw() is implemented")
     @Test
     fun onDraw_nullFace_returnsEarly_neverCallsDrawBitmap() {
         engine.setFilter(filterA)
@@ -103,7 +102,6 @@ class FilterEngineTest {
     /**
      * TODO Plan 03-03: un-Ignore when FilterEngine.onDraw() is implemented.
      */
-    @org.junit.Ignore("Plan 03-03 — flip to GREEN when FilterEngine.onDraw() is implemented")
     @Test
     fun onDraw_nullActiveFilter_returnsEarly() {
         // setFilter never called — no active filter
@@ -117,7 +115,6 @@ class FilterEngineTest {
      * Pins D-11 no-ghost contract: if assetLoader.get() returns null (preload not yet done),
      * onDraw must skip drawing to avoid showing the previous filter's last frame.
      */
-    @org.junit.Ignore("Plan 03-03 — flip to GREEN when FilterEngine.setFilter() is implemented")
     @Test
     fun setFilter_beforePreload_onDrawSkipsDrawing() {
         engine.setFilter(filterA)
@@ -132,7 +129,6 @@ class FilterEngineTest {
     /**
      * TODO Plan 03-03: un-Ignore when FilterEngine.setFilter() + onDraw() are implemented.
      */
-    @org.junit.Ignore("Plan 03-03 — flip to GREEN when FilterEngine.setFilter() + onDraw() are implemented")
     @Test
     fun setFilter_afterPreload_onDrawCallsDrawBitmap() {
         val fakeBitmap = Bitmap.createBitmap(10, 10, Bitmap.Config.ARGB_8888)
@@ -153,7 +149,6 @@ class FilterEngineTest {
      * filterA has frameCount=3, frameDurationMs=100 (100_000_000 ns per frame).
      * Sequence: t=0 → idx=0; t=120ms → idx=1; t=220ms → idx=2; t=320ms → idx=0 (wrap).
      */
-    @org.junit.Ignore("Plan 03-03 — flip to GREEN when FilterEngine flipbook frame-index is implemented")
     @Test
     fun flipbookIndex_advancesOverTime() {
         val fakeBitmap = Bitmap.createBitmap(10, 10, Bitmap.Config.ARGB_8888)
@@ -185,7 +180,6 @@ class FilterEngineTest {
      * TODO Plan 03-03: un-Ignore when FilterEngine.onDraw() calls setMatrix before drawBitmap.
      * Pins the CAM-07 matrix-before-draw contract inherited from Phase 2 OverlayEffectBuilder.
      */
-    @org.junit.Ignore("Plan 03-03 — flip to GREEN when FilterEngine.onDraw() calls setMatrix before drawBitmap")
     @Test
     fun onDraw_callsCanvasSetMatrixBeforeDrawBitmap() {
         val fakeBitmap = Bitmap.createBitmap(10, 10, Bitmap.Config.ARGB_8888)
@@ -207,7 +201,6 @@ class FilterEngineTest {
      * TODO Plan 03-03: un-Ignore when FilterEngine.onDraw() logging is implemented.
      * Pins T-03-05: FilterEngine must NEVER log PointF coordinates or "x=" patterns.
      */
-    @org.junit.Ignore("Plan 03-03 — flip to GREEN when FilterEngine.onDraw() biometric log policy is verified")
     @Test
     fun onDraw_doesNotLogLandmarkCoords() {
         // This test verifies the logging policy at the source level.
@@ -224,7 +217,6 @@ class FilterEngineTest {
     /**
      * TODO Plan 03-03: un-Ignore when FilterEngine.setFilter() resets BugState on swap.
      */
-    @org.junit.Ignore("Plan 03-03 — flip to GREEN when FilterEngine.setFilter() resets BugState")
     @Test
     fun setFilter_swap_resetsBugStateFrameIndex() {
         val fakeBitmap = Bitmap.createBitmap(10, 10, Bitmap.Config.ARGB_8888)
@@ -247,8 +239,10 @@ class FilterEngineTest {
         }
         engine.onDraw(mockCanvas, frame0, face = buildFace())
 
-        // filterB frame index after swap must start at 0 (no carry-over from filterA)
-        verify(mockAssetLoader).get(any(), frameIdxCaptor.capture())
+        // filterB frame index after swap must start at 0 (no carry-over from filterA).
+        // get() is called twice total (once for filterA at idx=2, once for filterB at idx=0);
+        // lastValue captures the filterB call — verifies no carry-over (Rule 1 fix: times(2)).
+        verify(mockAssetLoader, times(2)).get(any(), frameIdxCaptor.capture())
         assertEquals("Frame index must reset to 0 after filter swap", 0, frameIdxCaptor.lastValue)
     }
 
