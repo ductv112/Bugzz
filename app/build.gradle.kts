@@ -85,4 +85,24 @@ dependencies {
     androidTestImplementation(libs.androidx.test.ext.junit)
     androidTestImplementation(libs.androidx.test.espresso.core)
     androidTestImplementation(platform(libs.androidx.compose.bom))
+
+    // CameraX 1.6.0 (Phase 2) — uniform family
+    implementation(libs.androidx.camera.core)
+    implementation(libs.androidx.camera.camera2)
+    implementation(libs.androidx.camera.lifecycle)
+    implementation(libs.androidx.camera.video)
+    implementation(libs.androidx.camera.view)
+    implementation(libs.androidx.camera.effects)
+    implementation(libs.androidx.camera.mlkit.vision)
+    implementation(libs.androidx.camera.compose)
+
+    // ML Kit Face Detection (bundled ~3-4MB model; no Play Services download race)
+    implementation(libs.mlkit.face.detection)
+
+    // Logging (debug tree planted in BugzzApplication when BuildConfig.DEBUG)
+    implementation(libs.timber)
+
+    // Test — Mockito for CameraControllerTest (ProcessCameraProvider mocking)
+    testImplementation(libs.mockito.core)
+    testImplementation(libs.mockito.kotlin)
 }
