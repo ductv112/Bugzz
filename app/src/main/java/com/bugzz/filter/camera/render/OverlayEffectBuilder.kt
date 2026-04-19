@@ -1,6 +1,8 @@
 package com.bugzz.filter.camera.render
 
+import android.graphics.Color
 import android.graphics.Matrix
+import android.graphics.PorterDuff
 import android.graphics.Rect
 import android.graphics.RectF
 import android.os.Handler
@@ -50,6 +52,12 @@ class OverlayEffectBuilder @Inject constructor(
 
         effect.setOnDrawListener { frame ->
             val canvas = frame.overlayCanvas
+            // GAP-02-B root cause fix: OverlayEffect does NOT clear the overlay canvas
+            // between frames — prior-frame drawings persist and accumulate across frames
+            // (especially visible across lens flips where bbox jumps position, producing
+            // nested "ghost" rectangles). Clear to full transparency BEFORE setMatrix so
+            // the clear covers the entire buffer regardless of the sensor transform.
+            canvas.drawColor(Color.TRANSPARENT, PorterDuff.Mode.CLEAR)
             // CRITICAL: match COORDINATE_SYSTEM_SENSOR from MlKitAnalyzer (D-17 / CAM-07).
             // setMatrix MUST precede any drawRect / drawCircle (PITFALLS #5).
             canvas.setMatrix(frame.sensorToBufferTransform)
