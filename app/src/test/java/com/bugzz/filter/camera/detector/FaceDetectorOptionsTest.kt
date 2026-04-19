@@ -26,6 +26,9 @@ import org.junit.Test
  *
  * Intentional Nyquist RED: [FaceDetectorClient] does not yet exist;
  * Plan 02-03 lands the companion `buildOptions()` factory.
+ *
+ * Updated 2026-04-19 per GAP-02-A: assertion flipped from trackingEnabled=true to
+ * trackingEnabled=false — see 02-ADR-01-no-ml-kit-tracking-with-contour.md.
  */
 class FaceDetectorOptionsTest {
 
@@ -37,7 +40,6 @@ class FaceDetectorOptionsTest {
             .setContourMode(FaceDetectorOptions.CONTOUR_MODE_ALL)
             .setLandmarkMode(FaceDetectorOptions.LANDMARK_MODE_NONE)
             .setClassificationMode(FaceDetectorOptions.CLASSIFICATION_MODE_NONE)
-            .enableTracking()
             .setMinFaceSize(0.15f)
             .build()
 
@@ -66,8 +68,9 @@ class FaceDetectorOptionsTest {
             actualStr.contains("minFaceSize=0.15"),
         )
         assertTrue(
-            "tracking must be enabled (D-15 / CAM-08 — trackingId stability); toString=$actualStr",
-            actualStr.contains("trackingEnabled=true"),
+            "tracking must be DISABLED — ML Kit silently ignores .enableTracking() under " +
+                "CONTOUR_MODE_ALL (GAP-02-A / ADR-01); toString=$actualStr",
+            actualStr.contains("trackingEnabled=false"),
         )
 
         // Composite equals as the definitive D-15 gate — ML Kit FaceDetectorOptions
@@ -75,7 +78,8 @@ class FaceDetectorOptionsTest {
         // ones the toString format might hide) fails here.
         assertEquals(
             "options must equal D-15 expected (performanceMode=FAST + contourMode=ALL + " +
-                "landmarkMode=NONE + classificationMode=NONE + tracking=true + minFaceSize=0.15)",
+                "landmarkMode=NONE + classificationMode=NONE + tracking=false + minFaceSize=0.15) " +
+                "— per GAP-02-A / ADR-01, tracking is intentionally NOT enabled under contour mode",
             expected,
             opts,
         )

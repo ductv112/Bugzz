@@ -46,7 +46,11 @@ class FaceDetectorClient @Inject constructor(
             val faces: List<Face> = result.getValue(detector) ?: emptyList()
             val tNanos = System.nanoTime()
 
-            // 1€ smoothing: retain state only for currently-tracked faces (D-22)
+            // 1€ smoothing: `activeIds` is always empty in contour mode (face.trackingId == null —
+            // see buildOptions KDoc / ADR-01). `LandmarkSmoother` keys on the -1 sentinel in
+            // smoothFace() — so retainActive(emptySet()) clears all smoother state every frame.
+            // This is acceptable for Phase 2's single-face runbook; Phase 3 replaces this with
+            // a bbox-IoU-keyed smoother.
             val activeIds = faces.mapNotNull { it.trackingId }.toSet()
             smoother.retainActive(activeIds)
 
@@ -113,6 +117,13 @@ class FaceDetectorClient @Inject constructor(
         /**
          * Exposed for FaceDetectorOptionsTest (Plan 01) — asserts D-15 values exactly. Do NOT
          * inline into `options` field initializer; the test calls this static method directly.
+         *
+         * **Tracking NOT enabled.** Google ML Kit silently ignores `.enableTracking()` at runtime
+         * when `CONTOUR_MODE_ALL` is active — `face.trackingId` is always null. This was verified
+         * on Xiaomi 13T / HyperOS (GAP-02-A, 459/459 frames, 2026-04-19). Face identity across
+         * frames is deferred to Phase 3 via a bbox-IoU centroid-overlap heuristic — see
+         * `02-ADR-01-no-ml-kit-tracking-with-contour.md`. Do not re-add `.enableTracking()` here
+         * without also switching away from `CONTOUR_MODE_ALL`; the two are mutually exclusive.
          */
         fun buildOptions(): FaceDetectorOptions =
             FaceDetectorOptions.Builder()
@@ -120,7 +131,6 @@ class FaceDetectorClient @Inject constructor(
                 .setContourMode(FaceDetectorOptions.CONTOUR_MODE_ALL)
                 .setLandmarkMode(FaceDetectorOptions.LANDMARK_MODE_NONE)
                 .setClassificationMode(FaceDetectorOptions.CLASSIFICATION_MODE_NONE)
-                .enableTracking()
                 .setMinFaceSize(0.15f)
                 .build()
     }
