@@ -104,6 +104,14 @@ dependencies {
     // Logging (debug tree planted in BugzzApplication when BuildConfig.DEBUG)
     implementation(libs.timber)
 
+    // Guava — CameraX ProcessCameraProvider.getInstance() returns ListenableFuture<T>; we need
+    // the type on the compile classpath for our await() bridge in CameraController. camera-core
+    // brings guava transitively at runtime, but does not re-export it. Declare directly here.
+    // Rule 3 auto-fix in Plan 02-04: 02-RESEARCH.md §A5 claimed awaitInstance() exists on
+    // ProcessCameraProvider.Companion; it does not in 1.6.0 — only getInstance() returning
+    // ListenableFuture. ~2.7MB jar; acceptable for a prank app.
+    implementation(libs.guava)
+
     // Test — Mockito for CameraControllerTest (ProcessCameraProvider mocking)
     testImplementation(libs.mockito.core)
     testImplementation(libs.mockito.kotlin)

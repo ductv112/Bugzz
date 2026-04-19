@@ -26,6 +26,12 @@ mlkitFace = "16.1.7"
 # Logging
 timber = "5.0.1"
 
+# Guava — needed to surface ListenableFuture type from CameraX
+# ProcessCameraProvider.getInstance() onto the compile classpath. The standalone listenablefuture
+# stub jar is rewritten by Gradle to 9999.0-empty-to-avoid-conflict-with-guava, so we depend on
+# guava directly (android variant, matches camera-core's transitive)
+guava = "33.3.1-android"
+
 # Navigation
 navigationCompose = "2.8.9"
 
@@ -93,6 +99,9 @@ mlkit-face-detection = { module = "com.google.mlkit:face-detection", version.ref
 
 # Logging
 timber = { module = "com.jakewharton.timber:timber", version.ref = "timber" }
+
+# Guava — surfaces ListenableFuture for CameraX await() bridge (see CameraController.kt)
+guava = { module = "com.google.guava:guava", version.ref = "guava" }
 
 # Test — Mockito (for CameraControllerTest ProcessCameraProvider mock)
 mockito-core   = { module = "org.mockito:mockito-core",          version.ref = "mockito" }
