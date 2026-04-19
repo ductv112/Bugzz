@@ -56,8 +56,8 @@ Plans:
 - [x] 02-05-PLAN.md — Compose UI: CameraScreen + CameraViewModel + CameraUiState + OneShotEvent + BugzzApp CameraRoute rewire (Wave 4)
 - [x] 02-06-PLAN.md — Clean debug build + 02-HANDOFF.md Xiaomi 13T device runbook + user sign-off checkpoint (Wave 5)
 - [x] 02-gaps-01-PLAN.md — GAP-02-A detector + research amendment (remove .enableTracking() under contour; ADR-01) (Gap Wave 1)
-- [ ] 02-gaps-02-PLAN.md — GAP-02-B renderer matrix-scale compensation + centroid dot reduction + device re-verification (Gap Wave 2)
-- [ ] 02-gaps-03-PLAN.md — GAP-02-C MP4 frame extraction + Phase 2 final sign-off (Gap Wave 3)
+- [x] 02-gaps-02-PLAN.md — GAP-02-B renderer matrix-scale compensation + centroid dot reduction + device re-verification (Gap Wave 2)
+- [x] 02-gaps-03-PLAN.md — GAP-02-C MP4 frame extraction + Phase 2 final sign-off (Gap Wave 3)
 
 ### Phase 3: First Filter End-to-End + Photo Capture
 **Goal**: Prove the full render + capture pipeline with one production filter so every remaining phase is content/feature work on a validated engine — user can capture a photo with a bug visibly on their face and find it in Google Photos.

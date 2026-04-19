@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: executing
-stopped_at: Completed 02-gaps-01-PLAN.md — GAP-02-A closed (.enableTracking() removed from FaceDetectorClient + test flipped to trackingEnabled=false + ADR-01 created + CONTEXT D-15/D-22 + VALIDATION CAM-08 + PITFALLS §3 all amended); 10 unit tests remain GREEN; gaps-02 + gaps-03 still open
-last_updated: "2026-04-19T13:22:37.621Z"
+status: planning
+stopped_at: Completed 02-gaps-01-PLAN.md — GAP-02-A closed; 10/10 unit tests GREEN; APK clean; gaps-02 + gaps-03 remaining.
+last_updated: "2026-04-19T14:21:29.860Z"
 progress:
   total_phases: 7
-  completed_phases: 1
+  completed_phases: 2
   total_plans: 13
-  completed_plans: 11
-  percent: 85
+  completed_plans: 13
+  percent: 100
 ---
 
 # State: Bugzz
@@ -30,10 +30,10 @@ progress:
 Phase: 02 (Camera Preview + Face Detection + Coordinate Validation) — GAP CLOSURE (1 of 3 gap plans done)
 Plan: 02-gaps-01 complete (6 base plans + 1 gap plan); 02-gaps-02 + 02-gaps-03 remaining
 
-- **Phase:** 2
-- **Plan:** 02-gaps-01 complete — GAP-02-A (CAM-08 null trackingId) closed. Removed `.enableTracking()` from `FaceDetectorClient.buildOptions()` — was silently ignored by ML Kit under `CONTOUR_MODE_ALL` (459/459 null trackingIds on Xiaomi 13T per Plan 02-06 device runbook). Flipped `FaceDetectorOptionsTest` to assert `trackingEnabled=false`. Created `02-ADR-01-no-ml-kit-tracking-with-contour.md` (569 words, Status/Context/Decision/Consequences/Follow-ups/Alternatives) listing 4 Phase 3 action items: implement `BboxIouTracker`, re-key `LandmarkSmoother` on tracker ID, thread tracker through `createAnalyzer()`, update `02-VERIFICATION.md` CAM-08 row on Phase 3 exit. Amended 02-CONTEXT.md D-15 (no `.enableTracking()`, runtime trackingId == null, ADR cross-ref) + D-22 (Phase 2 uses `id=-1` sentinel; Phase 3 BboxIouTracker provides stable ID). Amended 02-VALIDATION.md Per-Task Verification Map (split CAM-08 into its own "relaxed" row), Manual-Only Verifications (boundingBox centerX/Y stability on still head 60+ frames, trackingId=null expected), Wave 0 checklist (`isTrackingEnabled == true` → `== false`). Patched research root: `.planning/research/PITFALLS.md §3` line 110 bullet replaced with 3-bullet callout (do NOT enable tracking under CONTOUR_MODE_ALL + MediaPipe-style bbox-IoU alternative + LANDMARK_MODE_ALL fallback for apps that don't need contour) + new Warning Signs bullet flagging `trackingId always null` symptom. 3 atomic commits: `98e032a` (fix: detector + test), `3aa2ed3` (docs: ADR + CONTEXT + VALIDATION), `cb54bc6` (docs: PITFALLS §3). 10/10 unit tests remain GREEN; APK still builds cleanly (82 MB). GAP-02-B + GAP-02-C remain open — gaps-02 is next (renderer scale/density fix), gaps-03 depends on gaps-02.
+- **Phase:** 3
+- **Plan:** Not started
 - **Previous plan:** 05 complete — CameraViewModel + CameraScreen Compose UI landed: CameraUiState (5-field D-14 data class) + PermissionState sealed interface + OneShotEvent sealed interface for toasts; @HiltViewModel CameraViewModel @Inject(CameraController) exposing uiState:StateFlow + surfaceRequest reshared + events:Flow via Channel(BUFFERED).receiveAsFlow, with onFlipLens (CameraLensProvider.next), onTestRecord (delay(5_000L) auto-stop per D-04, no audio path per D-05), and orientationListener (quadrant-thresholded Surface.ROTATION_{0/90/180/270} emit per D-08); CameraScreen @Composable rendering CameraXViewfinder(ImplementationMode.EXTERNAL) fullscreen + OutlinedButton { Text("Flip") } Alignment.TopEnd (D-24 — text fallback, material-icons-extended not on classpath) + BuildConfig.DEBUG-gated Button { Text("TEST RECORD 5s" | "REC...") } Alignment.BottomCenter (D-04); CAMERA-only permission gate with rationale + Settings CTA reusing Phase 1 StubScreens pattern (D-26/27); DisposableEffect enables/disables OrientationEventListener (D-08). BugzzApp.kt CameraRoute import rewired to com.bugzz.filter.camera.ui.camera.CameraScreen (Phase 1 ui/screens stub orphaned but file retained for other routes). 4 Rule 3 auto-fixes: (1) Hilt cannot synthesize a binding for Kotlin @Inject constructor default-value Function2 param — split CameraController into internal primary constructor (test seam) + secondary @Inject constructor (production factory inlined), (2) ImplementationMode lives in androidx.camera.viewfinder.core NOT .surface — research §Open Questions #1 resolved with AAR class dump (EXTERNAL enum confirmed — no fallback to PERFORMANCE needed), (3) Icons.Default.Cameraswitch not on classpath — OutlinedButton { Text("Flip") } per plan's explicit fallback + CLAUDE.md D-24 icon polish deferred to Phase 6, (4) MutableCoordinateTransformer import dropped (unused in body). APK assembles (79 MB); 10 unit tests GREEN (9 Phase 2 Nyquist + 1 placeholder).
-- **Status:** Ready to execute
+- **Status:** Ready to plan
 - **Progress:** [█████████░] 85%
 
 ### Phase Map
