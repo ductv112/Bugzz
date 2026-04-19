@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: Completed 03-02-PLAN.md
-last_updated: "2026-04-19T16:18:34.341Z"
+stopped_at: Completed 03-03-PLAN.md
+last_updated: "2026-04-19T16:43:01Z"
 progress:
   total_phases: 7
   completed_phases: 2
   total_plans: 18
-  completed_plans: 15
-  percent: 83
+  completed_plans: 16
+  percent: 89
 ---
 
 # State: Bugzz
@@ -28,13 +28,13 @@ progress:
 ## Current Position
 
 Phase: 03 (First Filter End-to-End + Photo Capture) — EXECUTING
-Plan: 1 of 5
+Plan: 4 of 5
 
 - **Phase:** 3
 - **Plan:** Not started
 - **Previous plan:** 05 complete — CameraViewModel + CameraScreen Compose UI landed: CameraUiState (5-field D-14 data class) + PermissionState sealed interface + OneShotEvent sealed interface for toasts; @HiltViewModel CameraViewModel @Inject(CameraController) exposing uiState:StateFlow + surfaceRequest reshared + events:Flow via Channel(BUFFERED).receiveAsFlow, with onFlipLens (CameraLensProvider.next), onTestRecord (delay(5_000L) auto-stop per D-04, no audio path per D-05), and orientationListener (quadrant-thresholded Surface.ROTATION_{0/90/180/270} emit per D-08); CameraScreen @Composable rendering CameraXViewfinder(ImplementationMode.EXTERNAL) fullscreen + OutlinedButton { Text("Flip") } Alignment.TopEnd (D-24 — text fallback, material-icons-extended not on classpath) + BuildConfig.DEBUG-gated Button { Text("TEST RECORD 5s" | "REC...") } Alignment.BottomCenter (D-04); CAMERA-only permission gate with rationale + Settings CTA reusing Phase 1 StubScreens pattern (D-26/27); DisposableEffect enables/disables OrientationEventListener (D-08). BugzzApp.kt CameraRoute import rewired to com.bugzz.filter.camera.ui.camera.CameraScreen (Phase 1 ui/screens stub orphaned but file retained for other routes). 4 Rule 3 auto-fixes: (1) Hilt cannot synthesize a binding for Kotlin @Inject constructor default-value Function2 param — split CameraController into internal primary constructor (test seam) + secondary @Inject constructor (production factory inlined), (2) ImplementationMode lives in androidx.camera.viewfinder.core NOT .surface — research §Open Questions #1 resolved with AAR class dump (EXTERNAL enum confirmed — no fallback to PERFORMANCE needed), (3) Icons.Default.Cameraswitch not on classpath — OutlinedButton { Text("Flip") } per plan's explicit fallback + CLAUDE.md D-24 icon polish deferred to Phase 6, (4) MutableCoordinateTransformer import dropped (unused in body). APK assembles (79 MB); 10 unit tests GREEN (9 Phase 2 Nyquist + 1 placeholder).
 - **Status:** Executing Phase 03
-- **Progress:** [████████░░] 83%
+- **Progress:** [█████████░] 89%
 
 ### Phase Map
 
@@ -65,6 +65,7 @@ Phase 7: Performance & Device Matrix                      [ pending ]
 | Phase 02 Pgaps-01 | 18m | 3 tasks | 6 files |
 | Phase 03 P01 | 1178s | 2 tasks | 24 files |
 | Phase 03 P02 | 482 | 2 tasks | 7 files |
+| Phase 03 P03 | session-continuation | 5 tasks | 13 files |
 
 ## Accumulated Context
 
@@ -78,6 +79,11 @@ Phase 7: Performance & Device Matrix                      [ pending ]
 6. **Persistence:** MediaStore for captures, DataStore for prefs — no Room DB for MVP.
 
 ### Key Decisions During Execution
+
+19. **[Phase 03-03] Flipbook uses absolute timestampNanos (not relative to setFilter):** `frameIdx = (tsNanos / frameDurationNanos) % frameCount`. Deterministic, stable phase; eliminates start-time sentinel 0L collision issue. (03-03-SUMMARY.md)
+20. **[Phase 03-03] Reference APK Lottie JSON base64 extraction pattern:** Reference sprites are embedded as base64 PNGs inside Lottie JSON `"p":` fields, not standalone PNG files. Extraction requires JSON parse + base64 decode (Node.js script). Ant = 35 frames from `home_lottie.json` InsectFilter layer; Spider = 23 frames from `spider_prankfilter.json`. (03-03-SUMMARY.md)
+21. **[Phase 03-03] FilterEngine draw order in OverlayEffectBuilder — Claude's Discretion (D-27):** FilterEngine.onDraw called FIRST; DebugOverlayRenderer.draw second. Sprite renders under debug bbox/contour grid in DEBUG builds; in release DebugOverlayRenderer is a no-op so only order matters for sprite z-order. (03-03-SUMMARY.md)
+22. **[Phase 03-03] Robolectric asset serving requires isIncludeAndroidResources=true + fixtures in src/main/assets:** ShadowArscAssetManager10 cannot serve `src/test/resources/` via `AssetManager.open()` even with `includeAndroidResources=true`. Fixtures must be in `src/main/assets/` so AGP merges them into the test asset bundle. (03-03-SUMMARY.md)
 
 17. **[Phase 03-02] TrackerResult return type over drainRemovedIds():** `assign()` returns `TrackerResult(tracked, removedIds)` atomically — FaceDetectorClient gets both tracked faces and dropped IDs from one call. No side-channel drain needed; cleaner contract per Research §Open Questions Q1 resolution. (03-02-SUMMARY.md)
 18. **[Phase 03-02] FaceDetectorClientTest MlKitContext limitation — tracker contract tested directly:** `FaceDetectorClient` cannot be unit-constructed (calls `FaceDetection.getClient()` → `MlKitContext.getInstance()` → `IllegalStateException`). Test verifies `BboxIouTracker.assign()` contract directly; structural ordering (tracker before smoother) enforced by sequential consumer body + compile-time Hilt codegen. Pattern: ML Kit SDK wrapper classes cannot be unit-constructed without full Android runtime; test the algorithm contract instead. (03-02-SUMMARY.md Deviation 1)
@@ -125,12 +131,12 @@ None.
 
 ## Session Continuity
 
-**Last agent:** gsd-execute-phase (Plan 03-02 executor, sequential mode)
-**Last action:** Completed 03-02-PLAN.md — ADR-01 follow-ups #1/#2/#3 closed. Two atomic commits: (1) `d5d33d0` feat(03-02-01) BboxIouTracker full greedy IoU production body (TrackerResult API, constants 0.3f/5/2, monotonic IDs) + LandmarkSmoother.onFaceLost real body (iterator.remove on "$id:" prefix); all 10 BboxIouTrackerTest + 3 LandmarkSmootherTest un-Ignored and GREEN; (2) `7139e23` feat(03-02-02) FaceDetectorClient gains tracker: BboxIouTracker as second @Inject param; createAnalyzer consumer rewritten: tracker.assign(faces) → removedIds.forEach { smoother.onFaceLost(it) } → trackerResult.tracked.map { smoothFace(tf, tNanos) }; smoothFace(tf: TrackedFace) uses tf.id (never face.trackingId sentinel); Timber format id=%d; SMOOTHED_CONTOUR_TYPES reordered with LEFT_EYEBROW_TOP + RIGHT_EYEBROW_TOP after FACE; FaceSnapshot.kt KDoc updated; FaceDetectorClientTest un-Ignored with tracker contract assertions. 1 Rule 1 auto-fix: FaceDetectorClient cannot be unit-constructed (MlKitContext required) — test verifies BboxIouTracker.assign() contract directly instead. 74 tests / 0 failures / 31 @Ignored (Wave 2/3). APK assembles; Hilt auto-resolves BboxIouTracker.
+**Last agent:** gsd-execute-phase (Plan 03-03 executor, sequential mode)
+**Last action:** Completed 03-03-PLAN.md — full production filter stack: 35-frame ant + 23-frame spider sprites extracted from reference APK Lottie JSON (Node.js base64 decode); FilterCatalog 2 real entries; AssetLoader LruCache full body (min(32MB, maxMemory/8), decode error normalization for T-03-02); FaceLandmarkMapper 7-anchor ladder (NOSE_TIP/FOREHEAD/LEFT_CHEEK/RIGHT_CHEEK/CHIN/LEFT_EYE/RIGHT_EYE) all returning non-null when bbox present; FilterEngine flipbook (absolute timestampNanos / frameDurationNanos % frameCount) + BugBehavior.Static.tick + canvas draw; OverlayEffectBuilder wired with FilterEngine (D-27 draw order). 5 commits: 2efdc6e, 266a519, 55fb79f, cab4b69, 7527d24. All tests GREEN: 8 FilterEngineTest + 10 FaceLandmarkMapperTest + 5 AssetLoaderTest + 1 FilterCatalogTest un-Ignored. 5 Rule 1/3 auto-fixes. APK assembles (BUILD SUCCESSFUL).
 
-**Stopped at:** Completed 03-02-PLAN.md
+**Stopped at:** Completed 03-03-PLAN.md
 
-**Next expected action:** Execute 03-03-PLAN.md (Wave 2 — FilterEngine + AssetLoader + FaceLandmarkMapper production impl; un-Ignores FilterEngineTest + FaceLandmarkMapperTest + FilterCatalogTest + AssetLoaderTest).
+**Next expected action:** Execute 03-04-PLAN.md (photo capture + MediaStore save).
 
 **Files modified this session (Plan 03-02):**
 

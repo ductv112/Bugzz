@@ -74,7 +74,7 @@ Plans:
 Plans:
 - [x] 03-01-PLAN.md — Nyquist Wave 0 test scaffolds (BboxIouTracker, LandmarkSmoother, FaceDetectorClient, FaceLandmarkMapper, FilterCatalog, AssetLoader, FilterEngine, BugBehavior, CameraController.capturePhoto) (Wave 0)
 - [x] 03-02-PLAN.md — ADR-01 closure — BboxIouTracker impl + LandmarkSmoother.onFaceLost + FaceDetectorClient tracker wiring + SMOOTHED_CONTOUR_TYPES extension (Wave 1)
-- [ ] 03-03-PLAN.md — Filter render stack — APK asset extract + FilterDefinition/FilterCatalog/AssetLoader + BugBehavior + FaceLandmarkMapper production + FilterEngine + OverlayEffectBuilder extension (Wave 2)
+- [x] 03-03-PLAN.md — Filter render stack — APK asset extract + FilterDefinition/FilterCatalog/AssetLoader + BugBehavior + FaceLandmarkMapper production + FilterEngine + OverlayEffectBuilder extension (Wave 2)
 - [ ] 03-04-PLAN.md — Shutter + capture UX — CameraController.capturePhoto + OneShotEvent.PhotoSaved/Error + CameraViewModel.onShutterTapped/onCycleFilter + CameraScreen shutter button + Cycle Filter debug button + capture-flash (Wave 3)
 - [ ] 03-05-PLAN.md — Clean build + 03-HANDOFF.md Xiaomi 13T runbook + CAM-08 re-verify (ADR-01 #4 documentation close) (Wave 4)
 
