@@ -55,7 +55,7 @@ Plans:
 - [x] 02-04-PLAN.md — Render + Controller: DebugOverlayRenderer + OverlayEffectBuilder + CameraController + CameraControllerTest un-Ignore (Wave 3)
 - [x] 02-05-PLAN.md — Compose UI: CameraScreen + CameraViewModel + CameraUiState + OneShotEvent + BugzzApp CameraRoute rewire (Wave 4)
 - [x] 02-06-PLAN.md — Clean debug build + 02-HANDOFF.md Xiaomi 13T device runbook + user sign-off checkpoint (Wave 5)
-- [ ] 02-gaps-01-PLAN.md — GAP-02-A detector + research amendment (remove .enableTracking() under contour; ADR-01) (Gap Wave 1)
+- [x] 02-gaps-01-PLAN.md — GAP-02-A detector + research amendment (remove .enableTracking() under contour; ADR-01) (Gap Wave 1)
 - [ ] 02-gaps-02-PLAN.md — GAP-02-B renderer matrix-scale compensation + centroid dot reduction + device re-verification (Gap Wave 2)
 - [ ] 02-gaps-03-PLAN.md — GAP-02-C MP4 frame extraction + Phase 2 final sign-off (Gap Wave 3)
 
