@@ -3,6 +3,11 @@ reference/*.apk
 reference/*.xapk
 *.xapk
 
+# Reference APK extraction output — do not commit (large, auto-generated)
+reference/extracted/
+reference/xapk_extracted/
+reference/raw_extract/
+
 # Android build output
 /build/
 */build/
