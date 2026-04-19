@@ -12,8 +12,10 @@ coreKtx = "1.15.0"
 activityCompose = "1.10.1"
 lifecycle = "2.9.0"
 
-# Compose
-composeBom = "2026.04.00"
+# Compose — Phase 2 intended bump to 2026.04.00, but that BOM is not yet published
+# on Google Maven as of 2026-04-19 execution time. Keep 2026.03.00 (Phase 1 working value);
+# revisit when 2026.04.00 ships. Deviation logged in 02-02-SUMMARY.md (Rule 1 auto-fix).
+composeBom = "2026.03.00"
 
 # CameraX family (uniform 1.6.0 — Phase 2)
 camerax = "1.6.0"

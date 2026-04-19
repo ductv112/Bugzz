@@ -9,7 +9,9 @@ plugins {
 
 android {
     namespace = "com.bugzz.filter.camera"
-    compileSdk = 35  // Fallback: 36 if API 35 platform not installed (see gradle.properties suppressUnsupportedCompileSdk=36)
+    compileSdk = 36  // Bumped 35 -> 36 in Phase 02-02: CameraX 1.6.0 requires compileSdk >= 36.
+                     // targetSdk stays 35 (locked by CLAUDE.md to match reference app 1:1).
+                     // android.suppressUnsupportedCompileSdk=36 in gradle.properties is pre-armed from Phase 1.
 
     defaultConfig {
         applicationId = "com.bugzz.filter.camera"
