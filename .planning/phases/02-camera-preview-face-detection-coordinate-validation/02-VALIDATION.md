@@ -48,7 +48,8 @@ Filled by planner. Each task in each PLAN.md links into this table via `<automat
 | 02-01-02 | 02-01 | 0 | CAM-04 | — | N/A | unit | `./gradlew :app:testDebugUnitTest --tests "*FaceDetectorOptionsTest*"` | ✅ | ❌ red (intentional — SUT lands in Plan 02-03) |
 | 02-01-02 | 02-01 | 0 | CAM-06 | — | N/A | unit | `./gradlew :app:testDebugUnitTest --tests "*OverlayEffectBuilderTest*"` | ✅ | ❌ red (intentional — SUT lands in Plan 02-04) |
 | 02-01-03 | 02-01 | 0 | CAM-03, CAM-05 | — | N/A | unit | `./gradlew :app:testDebugUnitTest --tests "*CameraControllerTest*"` | ✅ | ❌ red (intentional — SUT lands in Plan 02-04; mockito-kotlin added in Plan 02-02) |
-| 02-XX-YY | — | later | CAM-01, CAM-02, CAM-07, CAM-08 | — | N/A | manual-only | device runbook 02-HANDOFF.md on Xiaomi 13T | ❌ manual | ⬜ pending |
+| 02-XX-YY | — | later | CAM-01, CAM-02, CAM-07 | — | N/A | manual-only | device runbook 02-HANDOFF.md on Xiaomi 13T | ❌ manual | ⬜ pending |
+| 02-gap-01 | 02-gaps-01 | 1 | CAM-08 (relaxed) | — | N/A | manual-only | adb logcat grep `FaceTracker` — trackingId may be null under contour mode (ML Kit limitation, ADR-01); acceptance = boundingBox centerX/centerY stable across consecutive frames on still head | ❌ manual | ⬜ pending |
 
 *Status: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky*
 
@@ -66,7 +67,7 @@ Four unit test files must exist before ANY `feat(02-...)` implementation commit 
 - [x] `app/src/test/java/com/bugzz/filter/camera/detector/FaceDetectorOptionsTest.kt` — covers CAM-04 + CAM-15. Assert `FaceDetectorClient.buildOptions()` produces:
    - `performanceMode == PERFORMANCE_MODE_FAST`
    - `contourMode == CONTOUR_MODE_ALL`
-   - `isTrackingEnabled == true`
+   - `isTrackingEnabled == false` (updated 2026-04-19 per GAP-02-A / ADR-01 — ML Kit silently ignores .enableTracking() under CONTOUR_MODE_ALL)
    - `minFaceSize == 0.15f`
    - `landmarkMode == LANDMARK_MODE_NONE`
    - `classificationMode == CLASSIFICATION_MODE_NONE`
@@ -88,7 +89,7 @@ Four unit test files must exist before ANY `feat(02-...)` implementation commit 
 | `CameraXViewfinder` renders live preview | CAM-01 | Real camera hardware required | 02-HANDOFF.md step 1 — install debug APK on Xiaomi 13T, launch, verify preview in CameraScreen |
 | Front/back lens flip <500ms, 10× no error | CAM-02 | Hardware + timing + logcat | 02-HANDOFF.md step 2 — tap flip button 10×, grep logcat for `CameraInUseException`; expect zero |
 | Overlay pixel-perfect across 4 device rotations × 2 lenses | CAM-07 | Physical device rotation required | 02-HANDOFF.md step 3 — rotate Xiaomi 13T portrait → landscape → reverse-portrait → reverse-landscape on both front and back lens; red rect + landmark dots must stay aligned |
-| trackingId stability 60+ consecutive frames | CAM-08 | Runtime logcat inspection | 02-HANDOFF.md step 4 — grep Timber `FaceTracker` output for 60s of session, verify trackingId value remains constant while one face present |
+| boundingBox centerX/centerY stable on still head 60+ consecutive frames (trackingId expected null — ADR-01) | CAM-08 (relaxed post-GAP-02-A) | Runtime logcat inspection + ML Kit contour-mode limitation | 02-HANDOFF.md step 10 (re-verify) — adb logcat grep `FaceTracker`, confirm `id=null` (expected), confirm `bb=X,Y` centerX/Y vary <10px across 60 consecutive frames while head held still. Full bbox-IoU tracking deferred to Phase 3 per ADR-01. |
 | 5-second test recording bakes overlay into MP4 | CAM-06 (end-to-end) | MediaStore write + video playback | 02-HANDOFF.md step 5 — tap TEST RECORD button, open saved MP4 in Google Photos, verify red rect + landmark dots visible in every frame |
 
 ---
