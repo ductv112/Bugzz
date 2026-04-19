@@ -48,6 +48,7 @@ androidxTestExtJunit = "1.3.0"
 espressoCore = "3.7.0"
 mockito = "5.11.0"
 mockitoKotlin = "5.2.1"
+robolectric = "4.13"
 
 [libraries]
 # Core
@@ -106,6 +107,11 @@ guava = { module = "com.google.guava:guava", version.ref = "guava" }
 # Test — Mockito (for CameraControllerTest ProcessCameraProvider mock)
 mockito-core   = { module = "org.mockito:mockito-core",          version.ref = "mockito" }
 mockito-kotlin = { module = "org.mockito.kotlin:mockito-kotlin", version.ref = "mockitoKotlin" }
+
+# Robolectric — runs Android framework code on JVM so CameraControllerTest can construct
+# Preview.Builder (Plan 02-04 Task 3). Without it, CameraX 1.6 internals trip on
+# android.util.ArrayMap stubs (Rule 3 auto-fix; Plan 01 assumed Mockito-only would suffice).
+robolectric = { module = "org.robolectric:robolectric", version.ref = "robolectric" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

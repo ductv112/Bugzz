@@ -52,6 +52,18 @@ android {
             excludes += "/META-INF/{AL2.0,LGPL2.1}"
         }
     }
+
+    testOptions {
+        unitTests {
+            // Rule 3 auto-fix (Plan 02-04 Task 3): CameraControllerTest constructs Preview.Builder()
+            // via CameraController.bind(); Preview.Builder internally calls android.util.ArrayMap.put,
+            // which throws "not mocked" on the JVM stub android.jar. Returning default values lets
+            // stub framework calls no-op (null/0/false) so Mockito-only testing works without
+            // pulling in Robolectric. Safe because CameraControllerTest only inspects the UseCaseGroup
+            // composition, not framework interactions.
+            isReturnDefaultValues = true
+        }
+    }
 }
 
 dependencies {
@@ -115,4 +127,11 @@ dependencies {
     // Test — Mockito for CameraControllerTest (ProcessCameraProvider mocking)
     testImplementation(libs.mockito.core)
     testImplementation(libs.mockito.kotlin)
+
+    // Robolectric — JVM-side implementation of android.util.ArrayMap + Looper + Handler so
+    // CameraX Preview.Builder / ImageAnalysis.Builder can be constructed inside unit tests.
+    // Plan 02-04 Task 3 Rule 3 auto-fix: CameraControllerTest invokes controller.bind(),
+    // which calls Preview.Builder() → OptionsBundle.from() → ArrayMap.keySet(). The JVM
+    // android.jar has ArrayMap stubbed; Robolectric provides a real shadow impl.
+    testImplementation(libs.robolectric)
 }
