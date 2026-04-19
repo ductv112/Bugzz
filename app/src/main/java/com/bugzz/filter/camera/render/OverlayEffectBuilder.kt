@@ -34,6 +34,7 @@ import javax.inject.Singleton
 class OverlayEffectBuilder @Inject constructor(
     private val faceDetector: FaceDetectorClient,
     private val renderer: DebugOverlayRenderer,
+    private val filterEngine: FilterEngine,
 ) {
     private lateinit var renderThread: HandlerThread
     private lateinit var renderHandler: Handler
@@ -69,6 +70,11 @@ class OverlayEffectBuilder @Inject constructor(
                 logDiagnostic(frame.sensorToBufferTransform, snapshot.faces.first().boundingBox)
             }
 
+            // D-27 draw order (Claude's Discretion): FilterEngine draws the bug sprite FIRST so
+            // DebugOverlayRenderer's diagnostic overlay (bbox, contours) appears on top during
+            // development. In release builds the debug renderer is a no-op, so draw order only
+            // matters for correctness — sprites under the diagnostic grid is the right layering.
+            filterEngine.onDraw(canvas, frame, snapshot.faces.firstOrNull())
             renderer.draw(canvas, snapshot, frame.timestampNanos)
             true  // = "I drew something; present this frame"
         }
