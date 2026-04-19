@@ -271,5 +271,54 @@ After filling in PASS/FAIL:
 
 ***
 
+## Actual Sign-Off (Xiaomi 13T Pro, HyperOS — verified 2026-04-19 via adb terminal + screenshots)
+
+Runbook executed via adb/scrcpy-less terminal session (user plugged in device, Claude ran `adb install` + `adb shell input tap` + `adb logcat` + `adb pull` + `screencap` + `ffprobe`). Evidence captured in `.tmp-shots/` (screenshots + MP4) and inline logcat greps.
+
+- [x] Step 1: APK exists — PASS (`app/build/outputs/apk/debug/app-debug.apk` 82,124,007 bytes)
+- [x] Step 2: Device detected via adb — PASS (`XSLFAIQCWSLZBITS` product `aristotle_global` model `2306EPN60G`)
+- [x] Step 3: APK installed — PASS (`Success` via `adb install -r`)
+- [x] Step 4: App launched + logcat capturing — PASS (no `AndroidRuntime E` / `FATAL EXCEPTION` in 3s window after launch)
+- [x] Step 5: CAMERA permission granted; NO RECORD_AUDIO prompt — PASS (granted via `pm grant`; RECORD_AUDIO never requested — D-05/D-26 preserved)
+- [x] Step 6 / CAM-01: Live preview renders — PASS (screenshot `.tmp-shots/bugzz03-camera.png` shows live feed of user's room; subsequent frames show face)
+- [x] Step 7 / CAM-02: 10× flip, zero CameraInUseException — PASS (`logcat -d | grep -iE "CameraInUseException|Camera is in use|Image already closed"` returned 0 matches)
+- [ ] Step 8 / CAM-01+09: Red rect + dots track still head — **FAIL** (see CAM-07 finding; rendering over-draws so tracking quality not visually assessable)
+- [ ] Step 9 / CAM-07: Alignment holds across 4 rotations × 2 lenses — **FAIL** (pre-rotation screenshot `.tmp-shots/bugzz05-final.png` shows `DebugOverlayRenderer` saturating the entire preview with red; 4-rotation × 2-lens test not performed because baseline alignment failed)
+- [ ] Step 10 / CAM-08: trackingId stable 60+ frames — **FAIL** (20s face-hold: 459 `FaceTracker` log lines, **0 non-null trackingId** — every frame shows `id=null`. Root cause: Google ML Kit documented limitation — `.enableTracking()` is silently ignored when `CONTOUR_MODE_ALL` is enabled)
+- [x] Step 11 / CAM-06 (architecture): TEST RECORD MP4 saves — PASS (ffprobe confirms `duration=4.965s / h264 / 720×1280 / zero audio streams`; file `/sdcard/DCIM/Bugzz/bugzz_test_1776602104294.mp4` 6,005,094 bytes). *Visual confirmation of overlay-baked-into-MP4 NOT possible until CAM-07 rendering bug fixed.*
+
+### OEM Quirks Observed
+MIUI/HyperOS HAL shows expected `MizoneSdk.cpp` interaction with `applicationName:com.bugzz.filter.camera` — no Xiaomi-specific blockers. CameraX 1.6 + ML Kit 16.1.7 integration clean on this device.
+
+### Result
+**7/11 PASS, 3 BLOCKERS, 1 BLOCKED-BY-DEPENDENCY.** Phase 2 does NOT reach exit gate. Advancing to `/gsd-plan-phase 2 --gaps` for structured gap closure.
+
+#### Blocker detail
+
+**GAP-02-A (CAM-08): trackingId always null**
+- Symptom: `enableTracking()` has no runtime effect when `CONTOUR_MODE_ALL` is set.
+- Evidence: 459/459 FaceTracker frames show `id=null` over 20s continuous face hold.
+- Root cause: Documented ML Kit limitation — tracking and contour-mode-all are mutually exclusive at runtime. Research (`.planning/research/PITFALLS.md` §3 line 110) incorrectly recommended `.enableTracking()` without noting this.
+- Fix options:
+  - (a) Accept limitation; remove `.enableTracking()` from D-15; update CAM-08 acceptance to "multi-frame face identity via boundingBox-IoU heuristic (implemented in Phase 3 before filter-state keying)".
+  - (b) Replace `CONTOUR_MODE_ALL` with `LANDMARK_MODE_ALL` and tracking — but loses contour detail needed for Phase 4 CRAWL behavior along face contour.
+  - Recommendation: (a) for Phase 2 close; (b) rejected because contour is core to Phase 3/4 plan.
+
+**GAP-02-B (CAM-07): DebugOverlayRenderer over-draws**
+- Symptom: Red overlay saturates entire preview area instead of thin-stroked boundingBox + small orange landmark dots.
+- Evidence: Screenshot `.tmp-shots/bugzz05-final.png` shows face barely visible through red saturation.
+- Root cause (hypotheses, not yet isolated):
+  - H1: ~97 contour dots × 4f radius clustered in face region produce dense coverage.
+  - H2: `canvas.setMatrix(frame.sensorToBufferTransform)` scale factor multiplies 4f strokeWidth/radius to screen-saturating size.
+  - H3: boundingBox coords produce an oversized rect that visually dominates.
+- Fix direction: Reduce dot density (draw one dot per contour *type* centerpoint, not every contour point); explicitly set `strokeWidth` in device-pixel units post-matrix; or bypass matrix and map coords manually for the overlay.
+- Recommendation: Investigation + minimal-rendering rewrite in gap-closure plan.
+
+**GAP-02-C (CAM-06 visual verification): MP4 overlay baking unverified**
+- Symptom: Architecture correct (MP4 saves with OverlayEffect attached to VIDEO_CAPTURE target per `OverlayEffectBuilderTest`) but CANNOT confirm overlay is visible in video frames until GAP-02-B is fixed (the on-preview overlay is unusable).
+- Fix: unblock by resolving GAP-02-B, then re-record TEST, confirm visually.
+
+***
+
 *Runbook for Phase 2. Analogous to Phase 1's `01-04-HANDOFF.md` (format reference).*
 *Phase 2 acceptance gate: 12/12 PASS on Xiaomi 13T.*

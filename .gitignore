@@ -29,3 +29,4 @@ signing.properties
 .DS_Store
 Thumbs.db
 *.swp
+.tmp-shots/
