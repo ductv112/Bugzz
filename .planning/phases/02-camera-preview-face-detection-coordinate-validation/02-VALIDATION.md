@@ -1,0 +1,106 @@
+---
+phase: 02
+slug: camera-preview-face-detection-coordinate-validation
+status: draft
+nyquist_compliant: false
+wave_0_complete: false
+created: 2026-04-19
+---
+
+# Phase 02 — Validation Strategy
+
+> Per-phase validation contract for feedback sampling during execution.
+> Derived from 02-RESEARCH.md §Validation Architecture.
+
+---
+
+## Test Infrastructure
+
+| Property | Value |
+|----------|-------|
+| **Framework** | JUnit 4 (`junit:junit:4.13.2`) — established Phase 1 D-19 |
+| **Instrumented framework** | `androidx.test.ext:junit:1.3.0` + `espresso-core:3.7.0` — Phase 1 D-20 |
+| **Config file** | none beyond `app/build.gradle.kts` `testImplementation`/`androidTestImplementation` already in place |
+| **Quick run command** | `./gradlew :app:testDebugUnitTest --tests "com.bugzz.filter.camera.detector.*"` |
+| **Full suite command** | `./gradlew :app:testDebugUnitTest :app:lintDebug` |
+| **Instrumented (optional)** | `./gradlew :app:connectedDebugAndroidTest` — requires physical Xiaomi 13T, not blocking |
+| **Estimated runtime (quick)** | ~10 seconds (pure-Kotlin unit tests only) |
+| **Estimated runtime (full)** | ~40-60 seconds (adds lint pass) |
+
+---
+
+## Sampling Rate
+
+- **After every task commit:** Run `./gradlew :app:testDebugUnitTest --tests "com.bugzz.filter.camera.detector.*"` (quick — pure-Kotlin logic only)
+- **After every plan wave:** Run `./gradlew :app:assembleDebug :app:testDebugUnitTest :app:lintDebug` (full debug build + unit tests + lint)
+- **Before `/gsd-verify-work`:** Full suite must be green AND `02-HANDOFF.md` device runbook executed on Xiaomi 13T
+- **Max feedback latency:** 10 seconds (quick run); 60 seconds (full run)
+
+---
+
+## Per-Task Verification Map
+
+Filled by planner. Each task in each PLAN.md links into this table via `<automated>` block or Wave 0 dependency. Columns mirror the research Phase Requirements → Test Map.
+
+| Task ID | Plan | Wave | Requirement | Threat Ref | Secure Behavior | Test Type | Automated Command | File Exists | Status |
+|---------|------|------|-------------|------------|-----------------|-----------|-------------------|-------------|--------|
+| 02-XX-YY | — | 0 | CAM-09 | — | N/A (math) | unit | `./gradlew :app:testDebugUnitTest --tests "*OneEuroFilterTest*"` | ❌ W0 | ⬜ pending |
+| 02-XX-YY | — | 0 | CAM-04 | — | N/A | unit | `./gradlew :app:testDebugUnitTest --tests "*FaceDetectorOptionsTest*"` | ❌ W0 | ⬜ pending |
+| 02-XX-YY | — | 0 | CAM-06 | — | N/A | unit | `./gradlew :app:testDebugUnitTest --tests "*OverlayEffectBuilderTest*"` | ❌ W0 | ⬜ pending |
+| 02-XX-YY | — | 0 | CAM-03, CAM-05 | — | N/A | unit | `./gradlew :app:testDebugUnitTest --tests "*CameraControllerTest*"` | ❌ W0 | ⬜ pending |
+| 02-XX-YY | — | later | CAM-01, CAM-02, CAM-07, CAM-08 | — | N/A | manual-only | device runbook 02-HANDOFF.md on Xiaomi 13T | ❌ manual | ⬜ pending |
+
+*Status: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky*
+
+---
+
+## Wave 0 Requirements
+
+Four unit test files must exist before ANY `feat(02-...)` implementation commit that writes the code under test. This is the Nyquist gate — no code without a failing test.
+
+- [ ] `app/src/test/java/com/bugzz/filter/camera/detector/OneEuroFilterTest.kt` — covers CAM-09. Cases:
+   1. Constant input → output equals input within ε=1e-6.
+   2. Step input (jump from 0 to 100 at t=1.0) → output smoothly approaches 100 over 5+ samples.
+   3. Sine-wave jitter on stationary base → output shows measurable attenuation (RMS output < RMS input).
+   4. First sample initializes without division-by-zero (`tPrev` defaults handled).
+- [ ] `app/src/test/java/com/bugzz/filter/camera/detector/FaceDetectorOptionsTest.kt` — covers CAM-04 + CAM-15. Assert `FaceDetectorClient.buildOptions()` produces:
+   - `performanceMode == PERFORMANCE_MODE_FAST`
+   - `contourMode == CONTOUR_MODE_ALL`
+   - `isTrackingEnabled == true`
+   - `minFaceSize == 0.15f`
+   - `landmarkMode == LANDMARK_MODE_NONE`
+   - `classificationMode == CLASSIFICATION_MODE_NONE`
+- [ ] `app/src/test/java/com/bugzz/filter/camera/render/OverlayEffectBuilderTest.kt` — covers CAM-06. Assert:
+   - Target mask equals `CameraEffect.PREVIEW or CameraEffect.VIDEO_CAPTURE or CameraEffect.IMAGE_CAPTURE`
+   - `queueDepth == 0`
+- [ ] `app/src/test/java/com/bugzz/filter/camera/camera/CameraControllerTest.kt` — covers CAM-03 + CAM-05. Mock `ProcessCameraProvider`. Assert:
+   - After `bind()`, `UseCaseGroup` includes exactly 4 use cases (Preview + ImageAnalysis + ImageCapture + VideoCapture)
+   - After `bind()`, `UseCaseGroup` has 1 effect attached
+   - `ImageAnalysis` backpressure strategy equals `STRATEGY_KEEP_ONLY_LATEST`
+- [ ] (optional, not blocking) `app/src/androidTest/java/com/bugzz/filter/camera/camera/CameraControllerInstrumentedTest.kt` — smoke test bind → flip lens → unbind cycle does not leak the test Activity (LeakCanary will flag).
+
+---
+
+## Manual-Only Verifications
+
+| Behavior | Requirement | Why Manual | Test Instructions |
+|----------|-------------|------------|-------------------|
+| `CameraXViewfinder` renders live preview | CAM-01 | Real camera hardware required | 02-HANDOFF.md step 1 — install debug APK on Xiaomi 13T, launch, verify preview in CameraScreen |
+| Front/back lens flip <500ms, 10× no error | CAM-02 | Hardware + timing + logcat | 02-HANDOFF.md step 2 — tap flip button 10×, grep logcat for `CameraInUseException`; expect zero |
+| Overlay pixel-perfect across 4 device rotations × 2 lenses | CAM-07 | Physical device rotation required | 02-HANDOFF.md step 3 — rotate Xiaomi 13T portrait → landscape → reverse-portrait → reverse-landscape on both front and back lens; red rect + landmark dots must stay aligned |
+| trackingId stability 60+ consecutive frames | CAM-08 | Runtime logcat inspection | 02-HANDOFF.md step 4 — grep Timber `FaceTracker` output for 60s of session, verify trackingId value remains constant while one face present |
+| 5-second test recording bakes overlay into MP4 | CAM-06 (end-to-end) | MediaStore write + video playback | 02-HANDOFF.md step 5 — tap TEST RECORD button, open saved MP4 in Google Photos, verify red rect + landmark dots visible in every frame |
+
+---
+
+## Validation Sign-Off
+
+- [ ] All tasks have `<automated>` verify or Wave 0 dependencies
+- [ ] Sampling continuity: no 3 consecutive tasks without automated verify
+- [ ] Wave 0 covers all MISSING references (4 unit test files minimum)
+- [ ] No watch-mode flags
+- [ ] Feedback latency < 10s (quick) / < 60s (full)
+- [ ] `nyquist_compliant: true` set in frontmatter (after planner assigns all Task IDs)
+- [ ] `02-HANDOFF.md` device runbook executed on Xiaomi 13T (user sign-off — pastes 12/12 PASS result into STATE.md)
+
+**Approval:** pending (planner will populate Per-Task Verification Map and flip `nyquist_compliant: true` when all tasks have verification hooks)
