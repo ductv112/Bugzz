@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: Completed 02-04-PLAN.md — render + camera lifecycle layer landed; OverlayEffectBuilderTest (2/2) + CameraControllerTest (2/2) GREEN; all 9 Phase 2 Nyquist tests GREEN
-last_updated: "2026-04-19T09:31:53.031Z"
+stopped_at: Completed 02-05-PLAN.md — CameraViewModel + CameraScreen wired; CameraXViewfinder(ImplementationMode.EXTERNAL) renders live preview; Flip button + debug TEST RECORD button in place; BugzzApp rewired to ui/camera/CameraScreen; 10 unit tests remain GREEN
+last_updated: "2026-04-19T09:43:13Z"
 progress:
   total_phases: 7
   completed_phases: 1
   total_plans: 10
-  completed_plans: 8
-  percent: 80
+  completed_plans: 9
+  percent: 90
 ---
 
 # State: Bugzz
@@ -28,18 +28,18 @@ progress:
 ## Current Position
 
 Phase: 02 (Camera Preview + Face Detection + Coordinate Validation) — EXECUTING
-Plan: 5 of 6
+Plan: 6 of 6
 
 - **Phase:** 2
-- **Plan:** 04 complete — render + camera lifecycle layer landed: DebugOverlayRenderer (BuildConfig.DEBUG-gated multi-face Canvas drawer) + OverlayEffectBuilder (real TARGETS=PREVIEW|VIDEO|IMAGE + QUEUE_DEPTH=0 + HandlerThread + setMatrix(frame.sensorToBufferTransform) pairing) + CameraController (UseCaseGroup of 4 use cases + 1 effect + STRATEGY_KEEP_ONLY_LATEST + Size(720,1280) + providerFactory seam + flipLens/setTargetRotation/startTestRecording — no .withAudioEnabled()). OverlayEffectBuilderTest (2/2) + CameraControllerTest (2/2) GREEN; all 9 Phase 2 Nyquist tests GREEN. Five Rule 3 auto-fixes: CameraX 1.6.0 does not ship awaitInstance (→ manual ListenableFuture.await() bridge), MIRROR_MODE_ON_FRONT_ONLY lives on MirrorMode not VideoCapture, listenablefuture stub jar is rewritten by Gradle (→ full guava dep), Mockito cannot construct CameraX Preview.Builder (→ Robolectric 4.13 + @RunWith(RobolectricTestRunner) + @Config(sdk=[34])), mock OverlayEffect.getTargets=0 rejected by UseCaseGroup.Builder (→ stub `on { targets } doReturn PREVIEW|VIDEO|IMAGE`).
+- **Plan:** 05 complete — CameraViewModel + CameraScreen Compose UI landed: CameraUiState (5-field D-14 data class) + PermissionState sealed interface + OneShotEvent sealed interface for toasts; @HiltViewModel CameraViewModel @Inject(CameraController) exposing uiState:StateFlow + surfaceRequest reshared + events:Flow via Channel(BUFFERED).receiveAsFlow, with onFlipLens (CameraLensProvider.next), onTestRecord (delay(5_000L) auto-stop per D-04, no audio path per D-05), and orientationListener (quadrant-thresholded Surface.ROTATION_{0/90/180/270} emit per D-08); CameraScreen @Composable rendering CameraXViewfinder(ImplementationMode.EXTERNAL) fullscreen + OutlinedButton { Text("Flip") } Alignment.TopEnd (D-24 — text fallback, material-icons-extended not on classpath) + BuildConfig.DEBUG-gated Button { Text("TEST RECORD 5s" | "REC...") } Alignment.BottomCenter (D-04); CAMERA-only permission gate with rationale + Settings CTA reusing Phase 1 StubScreens pattern (D-26/27); DisposableEffect enables/disables OrientationEventListener (D-08). BugzzApp.kt CameraRoute import rewired to com.bugzz.filter.camera.ui.camera.CameraScreen (Phase 1 ui/screens stub orphaned but file retained for other routes). 4 Rule 3 auto-fixes: (1) Hilt cannot synthesize a binding for Kotlin @Inject constructor default-value Function2 param — split CameraController into internal primary constructor (test seam) + secondary @Inject constructor (production factory inlined), (2) ImplementationMode lives in androidx.camera.viewfinder.core NOT .surface — research §Open Questions #1 resolved with AAR class dump (EXTERNAL enum confirmed — no fallback to PERFORMANCE needed), (3) Icons.Default.Cameraswitch not on classpath — OutlinedButton { Text("Flip") } per plan's explicit fallback + CLAUDE.md D-24 icon polish deferred to Phase 6, (4) MutableCoordinateTransformer import dropped (unused in body). APK assembles (79 MB); 10 unit tests GREEN (9 Phase 2 Nyquist + 1 placeholder).
 - **Status:** Executing Phase 02
-- **Progress:** [████████░░] 80%
+- **Progress:** [█████████░] 90%
 
 ### Phase Map
 
 ```
 Phase 1: Foundation & Skeleton                            [ complete ]
-Phase 2: Camera + Face Detection + Coord Validation       [ executing — 4/6 plans done ]
+Phase 2: Camera + Face Detection + Coord Validation       [ executing — 5/6 plans done ]
 Phase 3: First Filter End-to-End + Photo Capture          [ pending ]
 Phase 4: Filter Catalog + Picker + Face Filter Mode       [ pending ]
 Phase 5: Video Recording + Audio + Insect Filter Mode     [ pending ]
@@ -60,6 +60,7 @@ Phase 7: Performance & Device Matrix                      [ pending ]
 | Phase 02 P02 | 10m 13s | 3 tasks | 5 files |
 | Phase 02 P03 | 8m 07s | 3 tasks | 7 files |
 | Phase 02 P04 | 14m 56s | 3 tasks | 7 files |
+| Phase 02 P05 | 5m 39s | 3 tasks | 7 files |
 
 ## Accumulated Context
 
@@ -86,6 +87,9 @@ Phase 7: Performance & Device Matrix                      [ pending ]
 10. **[Phase 02-04] Render + camera lifecycle layer landed:** DebugOverlayRenderer (@Singleton Canvas drawer, FIRST line `if (!BuildConfig.DEBUG) return` per D-02/T-02-02, iterates ALL faces per D-23/PITFALLS #13) + OverlayEffectBuilder (@Singleton @Inject(faceDetector, renderer); real TARGETS=PREVIEW|VIDEO|IMAGE + QUEUE_DEPTH=0; dedicated HandlerThread("BugzzRenderThread"); setOnDrawListener body calls `canvas.setMatrix(frame.sensorToBufferTransform)` BEFORE `renderer.draw` per CAM-07/PITFALLS #5) + CameraController (@Singleton @Inject; `overlayEffect = overlayEffectBuilder.build()` ONCE in property init per D-25; bind() builds UseCaseGroup with EXACTLY 4 use cases + 1 effect per CAM-03/CAM-06; ImageAnalysis with STRATEGY_KEEP_ONLY_LATEST + ResolutionSelector preferred Size(720,1280) + FALLBACK_RULE_CLOSEST_HIGHER_THEN_LOWER per CAM-05/D-16; VideoCapture with MirrorMode.MIRROR_MODE_ON_FRONT_ONLY + Quality.HD; flipLens calls faceDetector.onLensFlipped() BEFORE bind per PITFALLS #6; setTargetRotation updates all 4 use cases per D-08; startTestRecording saves MP4 to DCIM/Bugzz — NO `.withAudioEnabled()` per D-05/T-02-06 strict grep-verified). All 9 Phase 2 Nyquist unit tests GREEN. (02-04-SUMMARY.md)
 11. **[Phase 02-04] CameraX 1.6.0 research-drift Rule 3 auto-fixes:** (a) `ProcessCameraProvider.awaitInstance(ctx)` does not exist in published CameraX 1.6.0 AAR (research §A5 was wrong); only static `getInstance(ctx): ListenableFuture<ProcessCameraProvider>`. Added minimal private `suspend fun <T> ListenableFuture<T>.await(): T` extension using suspendCancellableCoroutine + addListener(Runnable::run). (b) `VideoCapture.MIRROR_MODE_ON_FRONT_ONLY` does not exist; constants live on `androidx.camera.core.MirrorMode`. (c) Guava's `listenablefuture:1.0` stub jar is rewritten by Gradle to `9999.0-empty-to-avoid-conflict-with-guava` whenever guava is transitively present (camera-core brings it); must depend on full `com.google.guava:guava:33.3.1-android` directly for ListenableFuture compile-time type resolution. (02-04-SUMMARY.md Deviations 1-3)
 12. **[Phase 02-04] Robolectric required for CameraX-SUT unit tests:** Plan 02-01's assumption that Mockito-only would suffice was wrong for CameraController. CameraX `Preview.Builder().build()` internally calls `android.util.ArrayMap.put` (JVM android.jar stubs it to throw) and `Collections.unmodifiableSet(arraymap.keySet())` (returns NPE with `returnDefaultValues=true`). Added `org.robolectric:robolectric:4.13` as `testImplementation`; `@RunWith(RobolectricTestRunner::class) @Config(sdk = [34])` on `CameraControllerTest`. Also had to stub `mockEffect.targets doReturn PREVIEW|VIDEO|IMAGE` because `UseCaseGroup.Builder.checkEffectTargets` rejects Mockito's default 0. **Pattern for future: any SUT test that constructs CameraX UseCase builders in the test body needs Robolectric + stubbed CameraEffect.targets.** (02-04-SUMMARY.md Deviations 4-5)
+13. **[Phase 02-05] CameraViewModel + CameraScreen Compose UI landed:** @HiltViewModel CameraViewModel @Inject(CameraController) exposes uiState:StateFlow<CameraUiState(5 fields per D-14 + isRecording)> + surfaceRequest reshared from controller + events:Flow<OneShotEvent> via Channel(BUFFERED).receiveAsFlow; onFlipLens uses CameraLensProvider.next; onTestRecord launches delay(5_000L) auto-stop (D-04, no audio path D-05); orientationListener is a quadrant-thresholded OrientationEventListener (D-08). CameraScreen @Composable renders CameraXViewfinder(ImplementationMode.EXTERNAL) fullscreen + OutlinedButton {Text("Flip")} Alignment.TopEnd (D-24 — text fallback since material-icons-extended not on classpath) + BuildConfig.DEBUG-gated Button {Text("TEST RECORD 5s" | "REC...")} Alignment.BottomCenter (D-04); CAMERA-only permission gate with rationale + Settings CTA reuses Phase 1 StubScreens pattern (D-26/27); DisposableEffect(lifecycleOwner) enable/disable OrientationEventListener. BugzzApp CameraRoute rewired to ui/camera/CameraScreen (ui/screens/StubScreens.kt retained unchanged — other routes still use it). 10 unit tests GREEN (9 Phase 2 Nyquist + 1 placeholder). (02-05-SUMMARY.md)
+14. **[Phase 02-05] Hilt ↔ Kotlin default-parameter incompatibility — constructor split pattern (Rule 3):** Plan 02-04 shipped `CameraController @Inject constructor(..., providerFactory: suspend (Context) -> ProcessCameraProvider = { default })`. The test seam works (CameraControllerTest GREEN) but Plan 02-05's first Hilt-graph consumer (CameraViewModel) forces Hilt KSP-codegen to synthesize a binding for the `Function2<Context, Continuation, ProcessCameraProvider>` parameter — Dagger does not invoke Kotlin's synthetic `$default` method and has no `@Provides` for the lambda. Fix: SPLIT the constructor. Primary `internal constructor(..., providerFactory: T)` — no @Inject, no default — test entry point. Secondary `@Inject constructor(...)` — omits the seam, delegates `: this(..., providerFactory = { ctx -> ProcessCameraProvider.getInstance(ctx).await() })` to primary. Production Hilt graph now builds; tests unchanged. **Canonical pattern for all future @Singleton @Inject classes with test-substitutable factory/strategy parameters.** (02-05-SUMMARY.md Deviation 1)
+15. **[Phase 02-05] ImplementationMode package canonicalized — research §Open Questions #1 resolved (Rule 3):** Sketch G import path was `androidx.camera.viewfinder.surface.ImplementationMode`; AAR class dump of `viewfinder-core-1.6.0.aar` confirmed the correct path is `androidx.camera.viewfinder.core.ImplementationMode`. Enum values `EXTERNAL` (SurfaceView) and `EMBEDDED` (TextureView); `PERFORMANCE` does not exist. No fallback needed — `ImplementationMode.EXTERNAL` compiled cleanly. Documented for Phase 3+ sprite work. (02-05-SUMMARY.md Deviation 2)
 
 ### Architectural Gates
 
@@ -113,26 +117,24 @@ None.
 
 ## Session Continuity
 
-**Last agent:** gsd-execute-phase (Plan 02-04 executor)
-**Last action:** Completed 02-04-PLAN.md — render + camera lifecycle layer landed. Plan 02-03 compile-unblock stubs fully REPLACED by production implementations. DebugOverlayRenderer (@Singleton Canvas renderer; BuildConfig.DEBUG first-line gate; multi-face iteration with red stroked boundingBox + orange-red contour/landmark dots). OverlayEffectBuilder (@Singleton @Inject; real TARGETS=PREVIEW|VIDEO|IMAGE companion + QUEUE_DEPTH=0; HandlerThread("BugzzRenderThread"); setOnDrawListener body runs `canvas.setMatrix(frame.sensorToBufferTransform)` FIRST then `renderer.draw(canvas, faceDetector.latestSnapshot.get(), frame.timestampNanos)`). CameraController (@Singleton @Inject; overlayEffect = overlayEffectBuilder.build() ONCE in property init per D-25; bind() produces UseCaseGroup with EXACTLY 4 use cases + 1 effect; ImageAnalysis STRATEGY_KEEP_ONLY_LATEST + Size(720,1280); VideoCapture MirrorMode.MIRROR_MODE_ON_FRONT_ONLY + Quality.HD; providerFactory seam with default `getInstance(ctx).await()`; flipLens calls faceDetector.onLensFlipped() BEFORE bind; startTestRecording MediaStoreOutputOptions DCIM/Bugzz — NO `.withAudioEnabled()` grep-verified). Five Rule 3 auto-fixes logged in 02-04-SUMMARY.md Deviations (research §A5 awaitInstance drift, MIRROR_MODE location, listenablefuture stub rewrite + guava direct dep, Robolectric required for CameraX builder tests, mockEffect.targets stub for UseCaseGroup validation). All 9 Phase 2 Nyquist unit tests GREEN: OneEuroFilterTest (4/4) + FaceDetectorOptionsTest (1/1) + OverlayEffectBuilderTest (2/2) + CameraControllerTest (2/2). `./gradlew :app:testDebugUnitTest` exits 0 with 10 tests / 0 failures / 0 skipped. `./gradlew :app:assembleDebug` exits 0.
+**Last agent:** gsd-execute-phase (Plan 02-05 executor)
+**Last action:** Completed 02-05-PLAN.md — CameraViewModel + CameraScreen Compose UI landed. Four new files in `ui/camera/` + 1-line import rewire in `ui/BugzzApp.kt` + Rule 3 CameraController constructor split. CameraUiState (5 fields per D-14 + isRecording) + PermissionState sealed interface + OneShotEvent sealed interface. @HiltViewModel CameraViewModel @Inject(CameraController) exposes uiState:StateFlow + surfaceRequest reshared + events:Flow via Channel(BUFFERED).receiveAsFlow; onFlipLens uses CameraLensProvider.next (D-24); onTestRecord launches delay(5_000L) auto-stop (D-04) with no audio path (D-05); orientationListener is a quadrant-thresholded OrientationEventListener (D-08). CameraScreen @Composable: CameraXViewfinder(ImplementationMode.EXTERNAL) fullscreen + OutlinedButton {Text("Flip")} Alignment.TopEnd (D-24 — text fallback since material-icons-extended not on classpath per CLAUDE.md D-24 icon polish deferred to Phase 6) + BuildConfig.DEBUG-gated Button {Text("TEST RECORD 5s" | "REC...")} Alignment.BottomCenter (D-04); CAMERA-only permission gate with rationale + Settings CTA (D-26/27) reuses Phase 1 pattern verbatim; DisposableEffect(lifecycleOwner) enable/disable OrientationEventListener; LaunchedEffect collects vm.events and emits Toast per OneShotEvent variant. BugzzApp CameraRoute rewired via 1-line import swap to `ui.camera.CameraScreen`. CameraController constructor split (Rule 3 Hilt fix): primary `internal constructor(..., providerFactory: T)` preserves test seam; secondary `@Inject constructor(...)` hard-codes production factory so Hilt graph can satisfy CameraController without providing a Function2 binding — this is the canonical pattern for all future @Singleton @Inject classes with test seams. 4 Rule 3 auto-fixes total: (1) Hilt constructor split, (2) ImplementationMode package `androidx.camera.viewfinder.core` not `.surface` (research §Open Questions #1 resolved — EXTERNAL enum confirmed via AAR class dump), (3) Icons.Default.Cameraswitch → `OutlinedButton { Text("Flip") }` fallback (plan explicitly anticipated), (4) MutableCoordinateTransformer import dropped (unused). `./gradlew :app:assembleDebug` exits 0 (79 MB APK). `./gradlew :app:testDebugUnitTest` exits 0 with 10 tests / 0 failures / 0 skipped (9 Phase 2 Nyquist still GREEN: OneEuroFilterTest 4/4 + FaceDetectorOptionsTest 1/1 + OverlayEffectBuilderTest 2/2 + CameraControllerTest 2/2). CAM-01 (Compose CameraXViewfinder preview) + CAM-02 (lens flip via button) source-level complete; device verification is Plan 02-06's runbook on Xiaomi 13T.
 
-**Stopped at:** Completed 02-04-PLAN.md — render + camera lifecycle layer landed; OverlayEffectBuilderTest (2/2) + CameraControllerTest (2/2) GREEN; all 9 Phase 2 Nyquist tests GREEN
+**Stopped at:** Completed 02-05-PLAN.md — CameraViewModel + CameraScreen wired; CameraXViewfinder(ImplementationMode.EXTERNAL) renders live preview; Flip button + debug TEST RECORD button in place; BugzzApp rewired to ui/camera/CameraScreen; 10 unit tests remain GREEN
 
-**Next expected action:** Execute 02-05-PLAN.md (CameraViewModel + CameraScreen Compose UI — consumes `CameraController.surfaceRequest: StateFlow<SurfaceRequest?>` + `bind(owner, lens, rotation)` + `flipLens` + `setTargetRotation` + `startTestRecording` / `stopTestRecording`; `CameraLensProvider.next(current)` from Plan 02-03 drives toggle logic; gates TEST RECORD button behind `BuildConfig.DEBUG`).
+**Next expected action:** Execute 02-06-PLAN.md (device handoff runbook — `adb install` debug APK on Xiaomi 13T, walk through 5-point on-device verification: CAM-01 live preview with red rect overlay on face, CAM-02 lens flip 10 taps under 500ms each, D-08 rotation alignment across 4 orientations × 2 lenses, D-04 TEST RECORD MP4 playback in Google Photos with overlay baked in, FaceTracker logcat trackingId stability 60+ frames).
 
-**Files modified this session (Plan 02-04):**
+**Files modified this session (Plan 02-05):**
 
-- `app/src/main/java/com/bugzz/filter/camera/render/DebugOverlayRenderer.kt` (created — 64 LOC; @Singleton Canvas renderer, BuildConfig.DEBUG first-line gate, multi-face iteration)
-- `app/src/main/java/com/bugzz/filter/camera/render/OverlayEffectBuilder.kt` (REPLACED — 67 LOC; real TARGETS companion + QUEUE_DEPTH=0 + HandlerThread + setMatrix pairing)
-- `app/src/main/java/com/bugzz/filter/camera/camera/CameraController.kt` (REPLACED — ~245 LOC including ListenableFuture.await() extension; 4 use cases + 1 effect + providerFactory seam + flipLens + setTargetRotation + startTestRecording + NO .withAudioEnabled)
-- `app/src/test/java/com/bugzz/filter/camera/camera/CameraControllerTest.kt` (un-@Ignore'd; @RunWith(RobolectricTestRunner) + @Config(sdk=[34]); argumentCaptor UseCaseGroup; mockEffect.targets stubbed)
-- `app/build.gradle.kts` (added testOptions.unitTests.isReturnDefaultValues; implementation libs.guava; testImplementation libs.robolectric)
-- `gradle/libs.versions.toml` (added guava=33.3.1-android + robolectric=4.13 version refs + library entries)
-- `.planning/phases/02-camera-preview-face-detection-coordinate-validation/02-04-SUMMARY.md` (created)
+- `app/src/main/java/com/bugzz/filter/camera/ui/camera/CameraUiState.kt` (created — 26 LOC; data class + PermissionState sealed interface)
+- `app/src/main/java/com/bugzz/filter/camera/ui/camera/OneShotEvent.kt` (created — 13 LOC; sealed interface for toast channel)
+- `app/src/main/java/com/bugzz/filter/camera/ui/camera/CameraViewModel.kt` (created — 124 LOC; @HiltViewModel @Inject(CameraController) + Channel events + quadrant rotation listener)
+- `app/src/main/java/com/bugzz/filter/camera/ui/camera/CameraScreen.kt` (created — 161 LOC; CameraXViewfinder + flip + debug TEST RECORD + permission gate + DisposableEffect orientation wiring)
+- `app/src/main/java/com/bugzz/filter/camera/ui/BugzzApp.kt` (1-line import rewire to ui.camera.CameraScreen)
+- `app/src/main/java/com/bugzz/filter/camera/camera/CameraController.kt` (Rule 3 constructor split — internal primary with providerFactory seam + secondary @Inject with production factory inlined)
+- `.planning/phases/02-camera-preview-face-detection-coordinate-validation/02-05-SUMMARY.md` (created)
 - `.planning/STATE.md` (updated — this file)
-- `.planning/ROADMAP.md` (updated via roadmap update-plan-progress)
-- `.planning/phases/02-camera-preview-face-detection-coordinate-validation/02-03-SUMMARY.md` (created)
-- `.planning/STATE.md` (updated)
+- `.planning/ROADMAP.md` (updated via roadmap update-plan-progress 02)
 
 ---
 *State initialized: 2026-04-18*

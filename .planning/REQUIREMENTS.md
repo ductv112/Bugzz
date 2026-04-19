@@ -20,8 +20,8 @@ Feature-parity clone of reference app (`com.insect.filters.funny.prank.bug.filte
 
 ### Camera & Face Detection
 
-- [ ] **CAM-01**: Live CameraX preview renders on `CameraXViewfinder` composable in CameraScreen
-- [ ] **CAM-02**: User can flip between front and back camera via on-screen button
+- [x] **CAM-01**: Live CameraX preview renders on `CameraXViewfinder` composable in CameraScreen
+- [x] **CAM-02**: User can flip between front and back camera via on-screen button
 - [x] **CAM-03**: CameraX `UseCaseGroup` binds Preview + ImageCapture + VideoCapture + ImageAnalysis under one lifecycle
 - [x] **CAM-04**: ML Kit Face Detection (contour mode, bundled model) runs on preview frames via `MlKitAnalyzer(COORDINATE_SYSTEM_SENSOR)`
 - [x] **CAM-05**: ImageAnalysis backpressure set to `STRATEGY_KEEP_ONLY_LATEST`; preview does not stall when detection is slow
@@ -169,8 +169,8 @@ Final mapping locked by roadmap (2026-04-18). Every v1 requirement is assigned t
 | FND-06 | Phase 1 | Pending |
 | FND-07 | Phase 1 | Pending |
 | FND-08 | Phase 1 | Pending |
-| CAM-01 | Phase 2 | Pending |
-| CAM-02 | Phase 2 | Pending |
+| CAM-01 | Phase 2 | Complete |
+| CAM-02 | Phase 2 | Complete |
 | CAM-03 | Phase 2 | Complete |
 | CAM-04 | Phase 2 | Complete |
 | CAM-05 | Phase 2 | Complete |
