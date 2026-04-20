@@ -88,7 +88,7 @@ sealed interface BugBehavior {
 
             // On first tick: spawn all instances at random bbox-edge points
             if (s.instances.isEmpty()) {
-                repeat(SWARM_INSTANCE_COUNT_DEFAULT) {
+                repeat(s.targetCount) {
                     s.instances.add(
                         BugInstance(
                             position = randomBboxEdgePoint(bboxF),
@@ -135,10 +135,10 @@ sealed interface BugBehavior {
         ) {
             val s = state as? BehaviorState.Fall ?: return
             val dtSec = dtMs / 1000f
-            val gravityPxSec = FALL_GRAVITY_FACTOR_DEFAULT * previewHeight
+            val gravityPxSec = s.gravityFactor * previewHeight
 
             // Spawn a new bug if interval has elapsed and cap not hit
-            if (tsNanos >= s.nextSpawnNanos && s.instances.size < FALL_MAX_INSTANCES_DEFAULT) {
+            if (tsNanos >= s.nextSpawnNanos && s.instances.size < s.maxInstances) {
                 val x = Random.nextFloat() * previewWidth
                 s.instances.add(
                     FallingBug(
@@ -147,8 +147,9 @@ sealed interface BugBehavior {
                         spawnNanos = tsNanos,
                     )
                 )
-                val intervalMs = FALL_SPAWN_INTERVAL_MIN_MS +
-                    Random.nextInt(FALL_SPAWN_INTERVAL_MAX_MS - FALL_SPAWN_INTERVAL_MIN_MS)
+                val intervalRange = s.spawnIntervalMaxMs - s.spawnIntervalMinMs
+                val intervalMs = s.spawnIntervalMinMs +
+                    if (intervalRange > 0) Random.nextInt(intervalRange) else 0
                 s.nextSpawnNanos = tsNanos + intervalMs * 1_000_000L
             }
 

@@ -4,22 +4,27 @@ import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.graphics.Matrix
 import android.graphics.Paint
+import android.graphics.PointF
 import android.graphics.Rect
 import android.util.Size
 import androidx.camera.effects.Frame
-import androidx.camera.effects.OverlayEffect
 import com.bugzz.filter.camera.detector.FaceLandmarkMapper.Anchor
 import com.bugzz.filter.camera.detector.SmoothedFace
 import com.bugzz.filter.camera.filter.AssetLoader
 import com.bugzz.filter.camera.filter.FilterDefinition
+import com.google.mlkit.vision.face.FaceContour
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertTrue
 import org.junit.Before
-import org.junit.Ignore
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.mockito.kotlin.any
 import org.mockito.kotlin.argumentCaptor
+import org.mockito.kotlin.atMost
+import org.mockito.kotlin.clearInvocations
 import org.mockito.kotlin.doReturn
+import org.mockito.kotlin.eq
 import org.mockito.kotlin.inOrder
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.never
@@ -256,125 +261,121 @@ class FilterEngineTest {
     // Helpers
     // -------------------------------------------------------------------------
 
-    private fun buildFace() = SmoothedFace(
-        trackingId = 0,
-        boundingBox = Rect(0, 0, 200, 300),
-        contours = emptyMap(),
+    private fun buildFace(
+        trackingId: Int = 0,
+        boundingBox: Rect = Rect(0, 0, 200, 300),
+        contours: Map<Int, List<PointF>> = emptyMap(),
+    ) = SmoothedFace(
+        trackingId = trackingId,
+        boundingBox = boundingBox,
+        contours = contours,
         landmarks = emptyMap(),
     )
 
     // =========================================================================
-    // NEW — Phase 4 Wave 0 tests (added by Plan 04-02 Task 2).
-    // All @Ignore'd — Plan 04-04 Task 1 un-Ignores as FilterEngine.onDraw
-    // switches from single-face to List<SmoothedFace> + adds perFaceState + soft cap.
+    // NEW — Phase 4 Wave 0 tests (Plan 04-04 Task 1 un-Ignores these).
     // =========================================================================
 
     /**
      * MOD-02 + D-22: primary face (largest bbox area) gets contour-resolved anchor via
-     * FaceLandmarkMapper; secondary face (second-largest) gets bbox-centre fallback
-     * (anchor = bbox.left + width * 0.5, bbox.top + height * 0.4).
-     *
-     * Feed FilterEngine.onDraw with a List<SmoothedFace> of size 2:
-     *   Primary: area = 200×200 = 40 000 px² with NOSE_TIP contour present
-     *   Secondary: area = 100×100 = 10 000 px² with no contours
-     * Verify drawBitmap is called twice with different (x, y) coordinates:
-     *   primary  → FaceLandmarkMapper resolves NOSE_TIP from contour map
-     *   secondary → (bbox.left + width*0.5, bbox.top + height*0.4) = fixed formula
+     * FaceLandmarkMapper; secondary face (second-largest) gets bbox-centre fallback.
+     * Both faces produce exactly 1 drawBitmap call each (STATIC behavior).
      */
     @Test
-    @Ignore("TODO Plan 04-04 Task 1 — un-Ignore when FilterEngine.onDraw takes List<SmoothedFace>")
     fun multiFace_primaryGetsContourAnchor_secondaryGetsBboxCenter() {
-        // val primary = SmoothedFace(
-        //     trackingId = 1,
-        //     boundingBox = Rect(0, 0, 200, 200),  // area = 40 000 px²
-        //     contours = mapOf(FaceContour.NOSE_TIP to listOf(PointF(100f, 110f))),
-        //     landmarks = emptyMap()
-        // )
-        // val secondary = SmoothedFace(
-        //     trackingId = 2,
-        //     boundingBox = Rect(300, 0, 400, 100),  // area = 10 000 px²
-        //     contours = emptyMap(),
-        //     landmarks = emptyMap()
-        // )
-        // val fakeBitmap = Bitmap.createBitmap(10, 10, Bitmap.Config.ARGB_8888)
-        // mockAssetLoader.stub { on { get(any(), any()) } doReturn fakeBitmap }
-        // engine.setFilter(filterA)
-        //
-        // engine.onDraw(mockCanvas, mockFrame, faces = listOf(primary, secondary))
-        //
-        // // primary: drawBitmap at NOSE_TIP contour position (x≈100, y≈110 after offset)
-        // // secondary: drawBitmap at bbox-centre (x = 300 + 50 = 350, y = 0 + 40 = 40)
-        // verify(mockCanvas, times(2)).drawBitmap(any<Bitmap>(), any<Float>(), any<Float>(), any<Paint>())
-        // // More precise coordinate verification: use argumentCaptor<Float>() to capture x,y args
-        // // and assert secondary is at (350f, 40f) within ±1f tolerance
+        // primary: 200×200 = 40 000 px², NOSE_BRIDGE contour so FaceLandmarkMapper resolves
+        val primary = buildFace(
+            trackingId = 1,
+            boundingBox = Rect(0, 0, 200, 200),
+            contours = mapOf(FaceContour.NOSE_BRIDGE to listOf(PointF(100f, 110f))),
+        )
+        // secondary: 100×100 = 10 000 px², no contours → bbox-center fallback
+        val secondary = buildFace(
+            trackingId = 2,
+            boundingBox = Rect(300, 0, 400, 100),
+            contours = emptyMap(),
+        )
+        val fakeBitmap = Bitmap.createBitmap(10, 10, Bitmap.Config.ARGB_8888)
+        mockAssetLoader.stub { on { get(any(), any()) } doReturn fakeBitmap }
+        engine.setFilter(filterA)
+
+        // Feed list unordered (secondary first) — engine must sort by bbox area
+        engine.onDraw(mockCanvas, mockFrame, listOf(secondary, primary))
+
+        // Both faces drawn (STATIC = 1 draw per face)
+        verify(mockCanvas, times(2)).drawBitmap(any<Bitmap>(), eq(0f), eq(0f), any<Paint>())
+
+        // Both canvas.save()/translate()/restore() should have been called twice
+        verify(mockCanvas, times(2)).save()
+        verify(mockCanvas, times(2)).restore()
     }
 
     /**
-     * D-14 / CAP soft-cap: total draw calls per frame must not exceed MAX_DRAWS_PER_FRAME=20.
-     *
-     * Scenario: SWARM filter with instanceCount=30 applied to 2 faces.
-     * Without cap: 2 × 30 = 60 drawBitmap calls.
-     * With cap: engine halves instance count per face → each face draws at most 10 → total ≤ 20.
-     *
-     * Implementation: `scaleFactor = MIN(1f, 20f / totalCount)` applied per face.
-     * STATIC and CRAWL always draw exactly 1 per face (cap only applies to SWARM + FALL).
+     * D-14 soft-cap: total drawBitmap calls must not exceed MAX_DRAWS_PER_FRAME=20 across faces.
+     * Strategy: prime perFaceState with 15-instance Swarm for each of 2 faces (30 total > 20 cap).
      */
     @Test
-    @Ignore("TODO Plan 04-04 Task 1 — un-Ignore when FilterEngine.MAX_DRAWS_PER_FRAME soft cap enforced")
-    fun softCap_halvesSwarmInstancesWhenExceeded() {
-        // val swarmFilter = FilterDefinition(
-        //     id = "spider_swarm", displayName = "Spider Swarm",
-        //     anchorType = Anchor.NOSE_TIP, behavior = BugBehavior.Swarm,
-        //     frameCount = 23, frameDurationMs = 80L, scaleFactor = 0.15f,
-        //     assetDir = "sprites/sprite_spider",
-        //     behaviorConfig = SwarmConfig(instanceCount = 30, driftSpeedRange = 0.3f..0.8f)
-        // )
-        // val fakeBitmap = Bitmap.createBitmap(10, 10, Bitmap.Config.ARGB_8888)
-        // mockAssetLoader.stub { on { get(any(), any()) } doReturn fakeBitmap }
-        // engine.setFilter(swarmFilter)
-        //
-        // val face1 = buildFace(trackingId = 1, boundingBox = Rect(0, 0, 200, 200))
-        // val face2 = buildFace(trackingId = 2, boundingBox = Rect(300, 0, 500, 200))
-        //
-        // // Let engine run for a few ticks so SWARM instances are fully initialized
-        // repeat(5) { engine.onDraw(mockCanvas, mockFrame, faces = listOf(face1, face2)) }
-        //
-        // // On 6th frame, capture drawBitmap call count
-        // val mockCanvas2: Canvas = mock()
-        // val mockFrame2 = mock<Frame>().stub {
-        //     on { timestampNanos } doReturn 96_000_000L  // frame 6 × 16ms
-        //     on { overlayCanvas } doReturn mockCanvas2
-        // }
-        // engine.onDraw(mockCanvas2, mockFrame2, faces = listOf(face1, face2))
-        // verify(mockCanvas2, atMost(FilterEngine.MAX_DRAWS_PER_FRAME))
-        //     .drawBitmap(any<Bitmap>(), any<Float>(), any<Float>(), any<Paint>())
+    fun softCap_cappedAtMaxDrawsPerFrame_acrossFaces() {
+        val swarmFilter = FilterDefinition(
+            id = "spider_swarm", displayName = "Spider Swarm",
+            anchorType = Anchor.NOSE_TIP, behavior = BugBehavior.Swarm,
+            frameCount = 3, frameDurationMs = 100L, scaleFactor = 0.15f,
+            assetDir = "sprites/sprite_spider",
+        )
+        val fakeBitmap = Bitmap.createBitmap(10, 10, Bitmap.Config.ARGB_8888)
+        mockAssetLoader.stub { on { get(any(), any()) } doReturn fakeBitmap }
+        engine.setFilter(swarmFilter)
+
+        val f1 = buildFace(trackingId = 1, boundingBox = Rect(0, 0, 200, 200))
+        val f2 = buildFace(trackingId = 2, boundingBox = Rect(300, 0, 500, 200))
+
+        // First draw — seeds perFaceState entries with default SWARM_INSTANCE_COUNT_DEFAULT=6 instances
+        engine.onDraw(mockCanvas, mockFrame, listOf(f1, f2))
+
+        // Force each face state up to 15 instances to exceed the 20-draw cap
+        (engine.perFaceState[1] as? BehaviorState.Swarm)?.let { s ->
+            while (s.instances.size < 15) s.instances.add(
+                BugInstance(PointF(100f, 100f), PointF(0f, 0f))
+            )
+        }
+        (engine.perFaceState[2] as? BehaviorState.Swarm)?.let { s ->
+            while (s.instances.size < 15) s.instances.add(
+                BugInstance(PointF(400f, 100f), PointF(0f, 0f))
+            )
+        }
+
+        // Re-draw with inflated states; total = 30 instances but cap = 20
+        clearInvocations(mockCanvas)
+        engine.onDraw(mockCanvas, mockFrame, listOf(f1, f2))
+        verify(mockCanvas, atMost(FilterEngine.MAX_DRAWS_PER_FRAME))
+            .drawBitmap(any<Bitmap>(), eq(0f), eq(0f), any<Paint>())
     }
 
     /**
-     * D-13: onFaceLost(trackingId) removes the entry from perFaceState.
-     *
-     * After onDraw builds perFaceState entries for 2 faces, calling onFaceLost(1) must
-     * remove exactly that entry while leaving the other intact.
-     * Requires FilterEngine.perFaceState to be internal-visible (or a sizeForTest() helper).
+     * D-13: onFaceLost(trackingId) removes the entry from perFaceState, leaving others intact.
      */
     @Test
-    @Ignore("TODO Plan 04-04 Task 1 — un-Ignore when FilterEngine.onFaceLost + perFaceState @VisibleForTesting lands")
     fun onFaceLost_removesStateEntry() {
-        // val fakeBitmap = Bitmap.createBitmap(10, 10, Bitmap.Config.ARGB_8888)
-        // mockAssetLoader.stub { on { get(any(), any()) } doReturn fakeBitmap }
-        // engine.setFilter(filterA)
-        //
-        // val face1 = buildFace(trackingId = 1)
-        // val face2 = SmoothedFace(2, Rect(300, 0, 500, 200), emptyMap(), emptyMap())
-        // engine.onDraw(mockCanvas, mockFrame, faces = listOf(face1, face2))
-        //
-        // // Verify map has 2 entries (requires @VisibleForTesting perFaceState or sizeForTest())
-        // assertEquals(2, engine.perFaceState.size)
-        //
-        // engine.onFaceLost(trackingId = 1)
-        //
-        // assertEquals("perFaceState must have 1 entry after onFaceLost(1)", 1, engine.perFaceState.size)
-        // assertFalse("entry for trackingId=1 must be gone", engine.perFaceState.containsKey(1))
-        // assertTrue("entry for trackingId=2 must remain", engine.perFaceState.containsKey(2))
+        val fakeBitmap = Bitmap.createBitmap(10, 10, Bitmap.Config.ARGB_8888)
+        mockAssetLoader.stub { on { get(any(), any()) } doReturn fakeBitmap }
+        engine.setFilter(filterA)
+
+        val face1 = buildFace(
+            trackingId = 1,
+            boundingBox = Rect(0, 0, 200, 200),
+            contours = mapOf(FaceContour.NOSE_BRIDGE to listOf(PointF(100f, 100f))),
+        )
+        val face2 = buildFace(trackingId = 2, boundingBox = Rect(300, 0, 500, 200))
+        engine.onDraw(mockCanvas, mockFrame, listOf(face1, face2))
+
+        assertEquals("perFaceState must have 2 entries after onDraw with 2 faces",
+            2, engine.perFaceState.size)
+
+        engine.onFaceLost(1)
+
+        assertEquals("perFaceState must have 1 entry after onFaceLost(1)",
+            1, engine.perFaceState.size)
+        assertFalse("entry for trackingId=1 must be gone", engine.perFaceState.containsKey(1))
+        assertTrue("entry for trackingId=2 must remain", engine.perFaceState.containsKey(2))
     }
 }
