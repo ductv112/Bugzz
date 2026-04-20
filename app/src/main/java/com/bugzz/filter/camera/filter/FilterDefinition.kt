@@ -28,4 +28,8 @@ data class FilterDefinition(
     val scaleFactor: Float,
     val assetDir: String,
     val mirrorable: Boolean = true,
-)
+) {
+    init {
+        require(frameCount > 0) { "frameCount must be > 0, got $frameCount for filter '$id'" }
+    }
+}

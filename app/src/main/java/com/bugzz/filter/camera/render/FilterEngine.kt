@@ -74,7 +74,7 @@ class FilterEngine @Inject constructor(
         // phase is stable and deterministic given the sensor clock.
         val tsNanos = frame.timestampNanos
         val frameDurationNanos = filter.frameDurationMs * 1_000_000L
-        val frameIdx = if (frameDurationNanos > 0L) {
+        val frameIdx = if (frameDurationNanos > 0L && filter.frameCount > 0) {
             ((tsNanos / frameDurationNanos) % filter.frameCount).toInt()
         } else {
             0
