@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: planning
-stopped_at: Phase 4 context gathered
-last_updated: "2026-04-20T15:49:55.644Z"
+status: executing
+stopped_at: Completed 04-01-PLAN.md — Task 1+2 done; bc26ab2+554c9f6
+last_updated: "2026-04-20T17:07:21.411Z"
 progress:
   total_phases: 7
-  completed_phases: 2
-  total_plans: 19
-  completed_plans: 18
-  percent: 95
+  completed_phases: 3
+  total_plans: 27
+  completed_plans: 20
+  percent: 74
 ---
 
 # State: Bugzz
@@ -21,20 +21,20 @@ progress:
 
 **Core Value:** Smooth live AR preview with bug sprites tracking face landmarks. If the live preview stutters or bugs don't stick to the face, everything else is meaningless.
 
-**Current Focus:** Phase 03 — First Filter End-to-End + Photo Capture
+**Current Focus:** Phase 04 — Filter Catalog + Picker + Face Filter Mode
 
 **Milestone:** v1 — feature-parity clone of `com.insect.filters.funny.prank.bug.filter.face.camera` v1.2.7, MINUS monetization and i18n.
 
 ## Current Position
 
-Phase: 03 (First Filter End-to-End + Photo Capture) — EXECUTING
-Plan: 5 of 5 (complete)
+Phase: 04 (Filter Catalog + Picker + Face Filter Mode) — EXECUTING
+Plan: 1 of 8
 
 - **Phase:** 4
 - **Plan:** Not started
 - **Previous plan:** 05 complete — CameraViewModel + CameraScreen Compose UI landed: CameraUiState (5-field D-14 data class) + PermissionState sealed interface + OneShotEvent sealed interface for toasts; @HiltViewModel CameraViewModel @Inject(CameraController) exposing uiState:StateFlow + surfaceRequest reshared + events:Flow via Channel(BUFFERED).receiveAsFlow, with onFlipLens (CameraLensProvider.next), onTestRecord (delay(5_000L) auto-stop per D-04, no audio path per D-05), and orientationListener (quadrant-thresholded Surface.ROTATION_{0/90/180/270} emit per D-08); CameraScreen @Composable rendering CameraXViewfinder(ImplementationMode.EXTERNAL) fullscreen + OutlinedButton { Text("Flip") } Alignment.TopEnd (D-24 — text fallback, material-icons-extended not on classpath) + BuildConfig.DEBUG-gated Button { Text("TEST RECORD 5s" | "REC...") } Alignment.BottomCenter (D-04); CAMERA-only permission gate with rationale + Settings CTA reusing Phase 1 StubScreens pattern (D-26/27); DisposableEffect enables/disables OrientationEventListener (D-08). BugzzApp.kt CameraRoute import rewired to com.bugzz.filter.camera.ui.camera.CameraScreen (Phase 1 ui/screens stub orphaned but file retained for other routes). 4 Rule 3 auto-fixes: (1) Hilt cannot synthesize a binding for Kotlin @Inject constructor default-value Function2 param — split CameraController into internal primary constructor (test seam) + secondary @Inject constructor (production factory inlined), (2) ImplementationMode lives in androidx.camera.viewfinder.core NOT .surface — research §Open Questions #1 resolved with AAR class dump (EXTERNAL enum confirmed — no fallback to PERFORMANCE needed), (3) Icons.Default.Cameraswitch not on classpath — OutlinedButton { Text("Flip") } per plan's explicit fallback + CLAUDE.md D-24 icon polish deferred to Phase 6, (4) MutableCoordinateTransformer import dropped (unused in body). APK assembles (79 MB); 10 unit tests GREEN (9 Phase 2 Nyquist + 1 placeholder).
-- **Status:** Ready to plan
-- **Progress:** [█████████░] 94%
+- **Status:** Executing Phase 04
+- **Progress:** [███████░░░] 74%
 
 ### Phase Map
 
@@ -67,6 +67,7 @@ Phase 7: Performance & Device Matrix                      [ pending ]
 | Phase 03 P02 | 482 | 2 tasks | 7 files |
 | Phase 03 P03 | session-continuation | 5 tasks | 13 files |
 | Phase 03 P04 | 862 | 3 tasks | 7 files |
+| Phase 04 P01 | 720 | 2 tasks | 69 files |
 
 ## Accumulated Context
 
@@ -80,6 +81,8 @@ Phase 7: Performance & Device Matrix                      [ pending ]
 6. **Persistence:** MediaStore for captures, DataStore for prefs — no Room DB for MVP.
 
 ### Key Decisions During Execution
+
+26. **[Phase 04-01] D-05 PNG density formula incorrect — replaced with MIN_BYTES threshold:** Research formula `buf.length / (w * h * 4) > 0.10` compares compressed PNG size against uncompressed RGBA budget. Even content-rich sprites on transparent backgrounds fail (spider: 0.0007, ant: 0.023). Fix: `MIN_BYTES = 2000` absolute threshold — a fully-transparent PNG of any size compresses to <500B; any real sprite ≥2KB. All 58 frames extracted with 0 rejected. (04-01-SUMMARY.md Rule 1 deviation)
 
 23. **[Phase 03-04] imageCaptureFactory constructor-split seam in CameraController:** `imageCaptureFactory: () -> ImageCapture` added as 6th internal primary constructor param (mirrors Phase 2 `providerFactory` pattern). `@Inject` secondary constructor delegates with production `ImageCapture.Builder()`. Tests inject mock ImageCapture for takePicture stubbing. Canonical pattern for future CameraX use-case test seams. (03-04-SUMMARY.md)
 24. **[Phase 03-04] mock<Uri>() for Android Uri in plain JVM unit tests:** `Uri.parse(string)` returns null under plain JVM (no Android runtime). `OneShotEvent.PhotoSaved(uri)` has non-null `val uri: Uri` — causes NPE inside viewModelScope coroutine. Fix: use `mock<Uri>()` (Mockito mock is non-null). Pattern for all future tests that need an Android Uri without Robolectric. (03-04-SUMMARY.md)
@@ -139,7 +142,7 @@ None.
 **Last agent:** gsd-execute-phase (Plan 03-05 continuation executor, post-checkpoint Task 4)
 **Last action:** Completed 03-05-PLAN.md — Task 4: 02-VERIFICATION.md CAM-08 row updated (ADR-01 follow-up #4 closed, fd2a7ad); 03-05-SUMMARY.md written; 03-gaps-01-PLAN.md filed (spider sprite re-extraction, Phase 4 prerequisite, not executed); STATE.md + ROADMAP.md updated. Phase 3 device verification 4/4 hard gates PASS on Xiaomi 13T 2026-04-20.
 
-**Stopped at:** Phase 4 context gathered
+**Stopped at:** Completed 04-01-PLAN.md — Task 1+2 done; bc26ab2+554c9f6
 
 **Next expected action:** Orchestrator marks Phase 3 complete; planner begins Phase 4 (Filter Catalog + Picker). Phase 4 prerequisite: execute 03-gaps-01-PLAN.md (spider sprite re-extraction) as Wave 0 OR fold into Phase 4 Task 1 full-catalog sprite extraction.
 

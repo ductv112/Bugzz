@@ -88,8 +88,18 @@ Plans:
   3. Horizontal `LazyRow` filter picker renders thumbnails, highlights selected filter, scrolls smoothly, and survives mid-session rapid-tap (10 swaps in 5s) without visible stutter or CameraX rebind.
   4. Home screen's "Face Filter" button launches camera in tracked mode with last-used filter restored from DataStore; "Insect Filter" button is present (non-functional until Phase 5).
   5. Multi-face scene (2 faces in frame) does not crash; primary face receives full filter; contour-dependent behaviors fall back gracefully to boundingBox center on secondary faces.
-**Plans**: TBD
+**Plans**: 8 plans
 **UI hint**: yes
+
+Plans:
+- [x] 04-01-PLAN.md — Wave 0 infrastructure: re-extract 4 sprite groups from reference APK + add Coil/DataStore/Turbine deps + supersede 03-gaps-01 (Wave 0)
+- [ ] 04-02-PLAN.md — Wave 0 Nyquist test scaffolds: 6 new + 2 extended test files covering CAT-01..05 / MOD-02 / D-08..D-14 / T-04-01/02/05 (Wave 0)
+- [ ] 04-03-PLAN.md — BehaviorState sealed refactor + CRAWL/SWARM/FALL impls per D-08/D-09/D-10 (Wave 1)
+- [ ] 04-04-PLAN.md — FilterEngine multi-face + softCap + FilterDefinition/SpriteManifest behaviorConfig + 15-entry FilterCatalog (Wave 2)
+- [ ] 04-05-PLAN.md — FilterPrefsRepository + DataModule + FilterSummary + CameraViewModel.onSelectFilter + DataStore-aware bind (Wave 3)
+- [ ] 04-06-PLAN.md — FilterPicker LazyRow composable + CameraScreen integration + Cycle button removal (Wave 3)
+- [ ] 04-07-PLAN.md — CameraMode enum + production HomeScreen + InsectFilterStubScreen + Routes/BugzzApp rewire (Wave 3)
+- [ ] 04-08-PLAN.md — Clean debug build + 04-HANDOFF Xiaomi 13T runbook + device sign-off + VALIDATION nyquist flip (Wave 4)
 
 ### Phase 5: Video Recording + Audio + Insect Filter Free-Placement Mode
 **Goal**: Add the two features that reuse the validated render pipeline — 60s video capture with synced audio and overlay baked in, plus the free-placement Insect Filter sticker mode with drag/pinch/rotate gestures.
@@ -136,7 +146,7 @@ Plans:
 | 1. Foundation & Skeleton | 4/4 | Complete    | 2026-04-18 |
 | 2. Camera Preview + Face Detection + Coord Validation | 0/6 | Planned | - |
 | 3. First Filter End-to-End + Photo Capture | 5/5 | In Progress (awaiting phase complete) | 2026-04-20 |
-| 4. Filter Catalog + Picker + Face Filter Mode | 0/? | Not started | - |
+| 4. Filter Catalog + Picker + Face Filter Mode | 1/8 | In Progress|  |
 | 5. Video Recording + Audio + Insect Filter Mode | 0/? | Not started | - |
 | 6. UX Polish — Splash, Home, Onboarding, Preview, Collection, Share | 0/? | Not started | - |
 | 7. Performance & Device Matrix | 0/? | Not started | - |
