@@ -144,4 +144,16 @@ dependencies {
     // Rule 3 auto-fix (Plan 03-01 Task 2): CameraViewModelTest uses runTest{} which requires
     // kotlinx-coroutines-test on the test classpath. Not pulled transitively by lifecycle.
     testImplementation(libs.kotlinx.coroutines.test)
+
+    // Coil — picker thumbnail AsyncImage (04-CONTEXT D-07)
+    implementation(libs.coil.compose)
+
+    // DataStore Preferences — last-used filter persistence (04-CONTEXT D-25)
+    implementation(libs.androidx.datastore.preferences)
+
+    // Turbine — Flow testing harness for FilterPrefsRepository + CameraViewModel Flow tests (04-VALIDATION Wave 0)
+    testImplementation(libs.turbine)
+
+    // DataStore-core for InMemoryDataStore test factory (04-VALIDATION Wave 0)
+    testImplementation(libs.androidx.datastore.preferences.core)
 }
