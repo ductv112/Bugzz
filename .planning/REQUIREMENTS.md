@@ -43,8 +43,8 @@ Feature-parity clone of reference app (`com.insect.filters.funny.prank.bug.filte
 
 ### Filter Catalog
 
-- [ ] **CAT-01**: `FilterCatalog` bundles 15-25 bug filters (spider, ant, cockroach, worm, beetle, fly, scorpion, centipede, wasp, tick, caterpillar, roach, moth, mosquito, mantis, etc.)
-- [ ] **CAT-02**: Each filter has: id, display name, thumbnail, sprite atlas reference, bug behavior config, landmark anchor spec
+- [x] **CAT-01**: `FilterCatalog` bundles 15-25 bug filters (spider, ant, cockroach, worm, beetle, fly, scorpion, centipede, wasp, tick, caterpillar, roach, moth, mosquito, mantis, etc.)
+- [x] **CAT-02**: Each filter has: id, display name, thumbnail, sprite atlas reference, bug behavior config, landmark anchor spec
 - [ ] **CAT-03**: Filter picker UI (horizontal `LazyRow`) shows thumbnails, highlights selected, scrolls smoothly
 - [ ] **CAT-04**: Tapping a filter thumbnail switches active filter immediately
 - [ ] **CAT-05**: Last-used filter persisted in DataStore, restored on app relaunch
@@ -52,7 +52,7 @@ Feature-parity clone of reference app (`com.insect.filters.funny.prank.bug.filte
 ### Dual Mode (Face Filter + Insect Filter)
 
 - [ ] **MOD-01**: Home screen has two primary buttons: "Face Filter" (landmark-tracked) and "Insect Filter" (free-placement sticker)
-- [ ] **MOD-02**: Face Filter mode anchors bugs to face landmarks with real-time tracking
+- [x] **MOD-02**: Face Filter mode anchors bugs to face landmarks with real-time tracking
 - [ ] **MOD-03**: Insect Filter mode places a single bug sticker on screen without face tracking
 - [ ] **MOD-04**: Insect Filter mode supports drag gesture to move sticker
 - [ ] **MOD-05**: Insect Filter mode supports pinch-to-zoom gesture
@@ -192,13 +192,13 @@ Final mapping locked by roadmap (2026-04-18). Every v1 requirement is assigned t
 | CAP-04 | Phase 3 | Pending |
 | CAP-05 | Phase 3 | Pending |
 | CAP-06 | Phase 3 | Pending |
-| CAT-01 | Phase 4 | Pending |
-| CAT-02 | Phase 4 | Pending |
+| CAT-01 | Phase 4 | Complete |
+| CAT-02 | Phase 4 | Complete |
 | CAT-03 | Phase 4 | Pending |
 | CAT-04 | Phase 4 | Pending |
 | CAT-05 | Phase 4 | Pending |
 | MOD-01 | Phase 4 | Pending |
-| MOD-02 | Phase 4 | Pending |
+| MOD-02 | Phase 4 | Complete |
 | MOD-03 | Phase 5 | Pending |
 | MOD-04 | Phase 5 | Pending |
 | MOD-05 | Phase 5 | Pending |
