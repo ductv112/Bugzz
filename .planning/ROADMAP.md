@@ -76,7 +76,7 @@ Plans:
 - [x] 03-02-PLAN.md — ADR-01 closure — BboxIouTracker impl + LandmarkSmoother.onFaceLost + FaceDetectorClient tracker wiring + SMOOTHED_CONTOUR_TYPES extension (Wave 1)
 - [x] 03-03-PLAN.md — Filter render stack — APK asset extract + FilterDefinition/FilterCatalog/AssetLoader + BugBehavior + FaceLandmarkMapper production + FilterEngine + OverlayEffectBuilder extension (Wave 2)
 - [x] 03-04-PLAN.md — Shutter + capture UX — CameraController.capturePhoto + OneShotEvent.PhotoSaved/Error + CameraViewModel.onShutterTapped/onCycleFilter + CameraScreen shutter button + Cycle Filter debug button + capture-flash (Wave 3)
-- [ ] 03-05-PLAN.md — Clean build + 03-HANDOFF.md Xiaomi 13T runbook + CAM-08 re-verify (ADR-01 #4 documentation close) (Wave 4)
+- [x] 03-05-PLAN.md — Clean build + 03-HANDOFF.md Xiaomi 13T runbook + CAM-08 re-verify (ADR-01 #4 documentation close) (Wave 4) — completed 2026-04-20
 
 ### Phase 4: Filter Catalog + Picker + Face Filter Mode
 **Goal**: Scale from one filter to a shipping catalog (15-25 bug filters across 4 behaviors) with a polished filter picker so users can browse and switch bug effects live on-camera — delivering the Face Filter mode end-to-end.
@@ -135,7 +135,7 @@ Plans:
 |-------|----------------|--------|-----------|
 | 1. Foundation & Skeleton | 4/4 | Complete    | 2026-04-18 |
 | 2. Camera Preview + Face Detection + Coord Validation | 0/6 | Planned | - |
-| 3. First Filter End-to-End + Photo Capture | 4/5 | In Progress|  |
+| 3. First Filter End-to-End + Photo Capture | 5/5 | In Progress (awaiting phase complete) | 2026-04-20 |
 | 4. Filter Catalog + Picker + Face Filter Mode | 0/? | Not started | - |
 | 5. Video Recording + Audio + Insect Filter Mode | 0/? | Not started | - |
 | 6. UX Polish — Splash, Home, Onboarding, Preview, Collection, Share | 0/? | Not started | - |
