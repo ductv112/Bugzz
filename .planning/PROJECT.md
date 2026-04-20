@@ -14,19 +14,18 @@ Sản phẩm là **clone feature-parity** của app tham chiếu `com.insect.fil
 
 ### Validated
 
-(None yet — ship to validate)
+- [x] Live camera preview qua CameraX với face detection realtime *(Validated in Phase 2)*
+- [x] Overlay animated bug sprites bám theo face contour (ML Kit landmark) *(Validated in Phase 3 — ant-on-nose production filter tracking landmarks on Xiaomi 13T)*
+- [x] Chụp ảnh với filter đã áp → lưu vào device gallery *(Validated in Phase 3 — 31 JPEGs saved to DCIM/Bugzz/ via MediaStore, bug sprite baked in per OverlayEffect IMAGE_CAPTURE target)*
+- [x] Camera permission handling (runtime permissions, Android 9+) *(Validated in Phase 1)*
+- [x] Hỗ trợ cả camera trước và sau *(Front-cam validated Phase 2+3; back-cam binding validated Phase 2)*
 
 ### Active
 
-- [ ] Live camera preview qua CameraX với face detection realtime
-- [ ] Overlay animated bug sprites bám theo face contour (ML Kit landmark) — nhiều loại bug khác nhau
-- [ ] Danh sách filter chọn được (swipe/grid picker) — match số lượng + loại trong app reference
-- [ ] Chụp ảnh với filter đã áp → lưu vào device gallery
-- [ ] Quay video với filter + audio → lưu vào device gallery
-- [ ] Share artifact (ảnh/video) ra social app (FB, IG, TikTok, Zalo...) qua Android share intent
-- [ ] Camera permission handling (runtime permissions, Android 9+)
-- [ ] UI/UX clone y hệt reference: splash, home, camera screen, filter picker, preview & save screen
-- [ ] Hỗ trợ cả camera trước và sau (nếu reference có)
+- [ ] Danh sách filter chọn được (swipe/grid picker) — match số lượng + loại trong app reference *(Phase 4)*
+- [ ] Quay video với filter + audio → lưu vào device gallery *(Phase 5)*
+- [ ] Share artifact (ảnh/video) ra social app (FB, IG, TikTok, Zalo...) qua Android share intent *(Phase 6)*
+- [ ] UI/UX clone y hệt reference: splash, home, camera screen, filter picker, preview & save screen *(Phase 6)*
 
 ### Out of Scope (MVP)
 
@@ -92,4 +91,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-04-18 after initialization*
+*Last updated: 2026-04-20 after Phase 3 completion — render + capture pipeline validated on Xiaomi 13T with ant-on-nose production filter*
