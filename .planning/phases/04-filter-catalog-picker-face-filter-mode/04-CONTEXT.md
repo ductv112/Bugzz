@@ -16,13 +16,39 @@ Scale the Phase 3 single-filter pipeline into a shipping catalog of 15 bundled b
 ## Implementation Decisions
 
 ### Catalog Scope (gray area 1)
-- **D-01:** Ship **15 bug filters** in Phase 4 (trimmed mid-point vs reference's ~20-25). Budget math: 15 × ~500KB sprite avg = ~7-8 MB total sprite payload; keeps debug APK well under 40 MB PRF-04 ceiling. Full catalog coverage for all 4 behaviors (roughly 3-4 filters per behavior variant). Phase-extensible: later milestone can add more filters additively without catalog refactor.
-- **D-02:** Filter roster target (finalized at extraction time — if reference APK is missing one, substitute from remaining pool): `ant_on_nose`, `spider_on_forehead`, `cockroach_on_cheek`, `worm_crawl`, `beetle_swarm`, `fly_fall`, `scorpion_on_chin`, `centipede_crawl`, `wasp_swarm`, `tick_on_forehead`, `caterpillar_crawl`, `moth_fall`, `mosquito_swarm`, `mantis_on_cheek`, `roach_swarm`. Behavior distribution: ~4 STATIC, ~4 CRAWL, ~4 SWARM, ~3 FALL.
+- **D-01:** Ship **15 FilterDefinitions** in Phase 4 — all 4 behaviors (STATIC / CRAWL / SWARM / FALL) represented, compose 15 entries from the 4 extractable sprite groups. APK sprite payload ~4 × ~500KB = ~2 MB; well under 40 MB PRF-04 ceiling.
+- **D-02 (AMENDED 2026-04-20 post-research):** **Filter roster scaled to actual APK assets.** Reference APK only bundles 3 Lottie JSON files (`spider_prankfilter.json` + `home_lottie.json`); remaining reference filters are downloaded at runtime from Firebase Storage (verified in 04-RESEARCH.md §Sprite Extraction). Bugzz is **fully offline** per PROJECT.md — cannot Firebase-download. Extractable sprite groups from APK:
+  - **sprite_spider** (23 frames, 1500×1500, from `spider_prankfilter.json`)
+  - **sprite_bugA** (7 frames, 360×360, from `home_lottie.json` asset group A)
+  - **sprite_bugB** (12 frames, 360×360, from `home_lottie.json` asset group B)
+  - **sprite_bugC** (16 frames, 300×300, from `home_lottie.json` asset group C)
+
+  15 FilterDefinitions produced by **sprite × behavior × anchor** composition:
+  | # | Filter id | Sprite | Anchor | Behavior |
+  |---|-----------|--------|--------|----------|
+  | 1 | `spider_nose_static` | spider | NOSE_TIP | STATIC |
+  | 2 | `spider_forehead_static` | spider | FOREHEAD | STATIC |
+  | 3 | `spider_jawline_crawl` | spider | (contour) | CRAWL |
+  | 4 | `spider_swarm` | spider | NOSE_TIP | SWARM |
+  | 5 | `bugA_forehead_static` | bugA | FOREHEAD | STATIC |
+  | 6 | `bugA_cheek_static` | bugA | LEFT_CHEEK | STATIC |
+  | 7 | `bugA_swarm` | bugA | NOSE_TIP | SWARM |
+  | 8 | `bugA_fall` | bugA | — | FALL |
+  | 9 | `bugB_nose_static` | bugB | NOSE_TIP | STATIC |
+  | 10 | `bugB_crawl` | bugB | (contour) | CRAWL |
+  | 11 | `bugB_swarm` | bugB | FOREHEAD | SWARM |
+  | 12 | `bugB_fall` | bugB | — | FALL |
+  | 13 | `bugC_chin_static` | bugC | CHIN | STATIC |
+  | 14 | `bugC_crawl` | bugC | (contour) | CRAWL |
+  | 15 | `bugC_fall` | bugC | — | FALL |
+
+  Behavior coverage: 6 STATIC + 3 CRAWL + 3 SWARM + 3 FALL = 15 total. Each behavior has ≥3 entries for picker variety.
 
 ### Sprite Extraction (gray area 1)
-- **D-03:** **Re-extract all 15 filters from reference APK uniformly** in Phase 4 Wave 0. **This supersedes `03-gaps-01-PLAN.md`** (spider sprite fix becomes a subset of the catalog extraction pass). The existing working `ant_on_nose_v1` sprite set is re-extracted with the corrected Lottie layer detection for consistency — if the layer is unchanged, asset bytes are identical. Phase 3 PLan `03-gaps-01` is marked superseded, not executed.
-- **D-04:** **Extraction strategy per Lottie file:** inspect `*_prankfilter.json` under `reference/extracted/assets/`, enumerate all `data.layers[*].nm` (layer names), identify the FILL/BODY layer (highest non-alpha pixel count) vs OUTLINE/STROKE layer, target the fill layer's `"p":` base64 PNG entries. Fallback if fill layer is vector-only (no embedded raster): render Lottie via `lottie-render` npm or `rlottie` CLI. Document each filter's resolved layer name in Wave 0 SUMMARY.
-- **D-05:** **Extraction validation:** each extracted `frame_00.png` must have >10% non-alpha pixels (guard against Phase 3's spider silhouette bug). If a filter fails the validation, log the failure, skip the filter from catalog, substitute from the remaining roster pool; Phase 4 ships whatever 15 extract successfully (target 15; minimum 12 acceptable).
+- **D-03 (AMENDED):** **Re-extract 4 sprite groups from reference APK in Wave 0** (not 15 — corrected). **This supersedes `03-gaps-01-PLAN.md`** — spider fix = re-extract `spider_prankfilter.json` correctly alongside the 3 `home_lottie.json` groups. Wave 0 tasks: (a) unpack APK to `reference/extracted/`, (b) parse `spider_prankfilter.json` and `home_lottie.json` with Node.js script, (c) extract each `data.assets[*].p` base64 PNG to `app/src/main/assets/sprites/<sprite_id>/frame_NN.png`, (d) write `manifest.json` per sprite group, (e) visually verify groups bugA/bugB/bugC are distinct (may collapse to 2 if duplicate).
+- **D-04 (AMENDED):** **Extraction strategy:** flat `data.assets[]` traversal — the Phase 3 spider bug was NOT wrong-layer selection but wrong-source-file. Correct pattern: `data.assets.filter(a => a.p).map(a => base64decode(a.p))` produces the frame PNGs. Output: 4 sprite-id directories under `app/src/main/assets/sprites/` each containing `frame_00.png..frame_NN.png` + `manifest.json` (frameCount, frameDurationMs, sourceGroup).
+- **D-05:** **Extraction validation:** each extracted `frame_00.png` must have >10% non-alpha pixels. If a sprite group fails validation (unlikely given research confirmed all 4 work), log failure + drop the sprite group + collapse FilterDefinitions referencing it to substitute another group.
+- **D-30 (NEW):** **FilterDefinition references shared sprite group by `assetDir`** (not per-filter directory). 15 FilterDefinitions → 4 sprite directories. `FilterDefinition.assetDir` = one of `sprites/spider`, `sprites/bugA`, `sprites/bugB`, `sprites/bugC`. `AssetLoader.LruCache` key remains `"$assetDir/frame_$idx"` — shared cache across filters that use the same sprite. Dramatically reduces eviction pressure (4 sprite groups × ~15 frames avg × ~200KB = ~12 MB vs D-09 32MB cap → no eviction during normal picker use).
 
 ### Thumbnail Source (gray area 1)
 - **D-06:** **Picker thumbnail = first frame of flipbook** (`assets/sprites/<filterId>/frame_00.png`), loaded via **Coil 2.7** (research STACK.md prescribed, Phase 3 deferred) at runtime with `AsyncImage(model = "file:///android_asset/sprites/$id/frame_00.png", modifier = Modifier.size(72.dp))`. Zero extra asset bytes. Coil internal memory cache does not collide with `AssetLoader.LruCache` (FilterEngine render-thread cache) — different scope.
