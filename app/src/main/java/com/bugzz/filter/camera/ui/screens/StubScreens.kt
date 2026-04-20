@@ -32,12 +32,6 @@ fun SplashScreen(onContinue: () -> Unit) = StubContent("Splash") {
 }
 
 @Composable
-fun HomeScreen(onOpenCamera: () -> Unit, onOpenCollection: () -> Unit) = StubContent("Home") {
-    Button(onClick = onOpenCamera) { Text("Open Camera") }
-    Button(onClick = onOpenCollection) { Text("My Collection") }
-}
-
-@Composable
 fun CameraScreen(onOpenPreview: () -> Unit) {
     val context = LocalContext.current
     var hasCameraPermission by remember {
