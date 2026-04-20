@@ -53,7 +53,7 @@ import com.bugzz.filter.camera.BuildConfig
  *  - Shutter button (72dp circle, white fill, gray stroke 2dp) — Alignment.BottomCenter,
  *    24dp bottom padding (D-13/D-15). Tap fires HapticFeedback + vm.onShutterTapped().
  *  - TEST RECORD button moved from BottomCenter → BottomStart (D-14, still DEBUG-only).
- *  - Cycle Filter button (OutlinedButton {Text("Cycle")}) — Alignment.BottomEnd, DEBUG-only (D-10).
+ *  - Cycle Filter button (OutlinedButton {Text("Cycle")}) — removed in Phase 4 (D-18; superseded by picker strip).
  *  - Capture-flash AnimatedVisibility overlay — 150ms white alpha fade on captureFlashVisible (D-16).
  *  - LaunchedEffect Toast for OneShotEvent.PhotoSaved ("Saved to gallery") + PhotoError (D-12/D-35).
  *
@@ -154,6 +154,18 @@ fun CameraScreen(
                     }
                 }
 
+                // Filter picker strip — Phase 4 D-15/D-16/D-17/D-18 (04-UI-SPEC §Component Specs §2).
+                // Positioned 104dp from bottom: shutter 72dp + 24dp bottom-padding + 8dp gap = 104dp
+                // (04-UI-SPEC §Implementation Notes #2). Renders ABOVE shutter in z-order.
+                FilterPicker(
+                    filters = uiState.filters,
+                    selectedId = uiState.selectedFilterId,
+                    onSelect = { id -> vm.onSelectFilter(id) },
+                    modifier = Modifier
+                        .align(Alignment.BottomCenter)
+                        .padding(bottom = 104.dp),
+                )
+
                 // Shutter — Phase 3 D-13/D-15 — 72dp circle, white fill, gray stroke 2dp, BottomCenter.
                 val hapticView = LocalView.current
                 Box(
@@ -169,19 +181,6 @@ fun CameraScreen(
                             vm.onShutterTapped()
                         }
                 )
-
-                // Cycle Filter — Phase 3 D-10 — debug-only, BottomEnd.
-                // OutlinedButton text fallback (matches Phase 2 D-24 icon-fallback pattern).
-                if (BuildConfig.DEBUG) {
-                    OutlinedButton(
-                        onClick = { vm.onCycleFilter() },
-                        modifier = Modifier
-                            .align(Alignment.BottomEnd)
-                            .padding(end = 16.dp, bottom = 24.dp),
-                    ) {
-                        Text("Cycle")
-                    }
-                }
 
                 // Capture flash — Phase 3 D-16 — 150ms white alpha fade overlay.
                 AnimatedVisibility(
