@@ -1,0 +1,10 @@
+{
+  "id": "sprite_spider",
+  "displayName": "Spider",
+  "frameCount": 23,
+  "frameDurationMs": 42,
+  "anchorType": "FOREHEAD",
+  "behavior": "STATIC",
+  "scaleFactor": 0.3,
+  "mirrorable": true
+}

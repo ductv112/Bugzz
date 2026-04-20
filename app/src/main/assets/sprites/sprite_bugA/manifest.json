@@ -1,0 +1,10 @@
+{
+  "id": "sprite_bugA",
+  "displayName": "Bug A",
+  "frameCount": 7,
+  "frameDurationMs": 67,
+  "anchorType": "NOSE_TIP",
+  "behavior": "CRAWL",
+  "scaleFactor": 0.22,
+  "mirrorable": true
+}
