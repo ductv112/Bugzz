@@ -8,6 +8,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.bugzz.filter.camera.camera.CameraController
 import com.bugzz.filter.camera.camera.CameraLensProvider
+import com.bugzz.filter.camera.data.FilterPrefsRepository
 import com.bugzz.filter.camera.filter.AssetLoader
 import com.bugzz.filter.camera.filter.FilterCatalog
 import com.bugzz.filter.camera.filter.FilterDefinition
@@ -19,9 +20,11 @@ import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import timber.log.Timber
 import java.util.concurrent.Executor
 import javax.inject.Inject
 import javax.inject.Named
@@ -32,12 +35,20 @@ import javax.inject.Named
  * Phase 3 additions (Plan 03-04):
  *   - Constructor adds FilterEngine, AssetLoader, @Named("cameraExecutor") Executor.
  *   - bind(owner) extended: after controller.bind succeeds, preloads + activates the first
- *     catalog filter (ant_on_nose_v1) on cameraExecutor dispatcher (no main-thread I/O).
+ *     catalog filter on cameraExecutor dispatcher (no main-thread I/O).
  *   - onShutterTapped(): delegates to controller.capturePhoto; on success emits
  *     OneShotEvent.PhotoSaved; on failure emits OneShotEvent.PhotoError. Also toggles
  *     captureFlashVisible true → false for the 150ms capture-flash overlay (D-16).
  *   - onCycleFilter(): advances activeFilterId through FilterCatalog.all (mod size); preloads
  *     + calls filterEngine.setFilter. Debug-only trigger from CameraScreen (D-10).
+ *
+ * Phase 4 additions (Plan 04-05):
+ *   - Constructor gains FilterPrefsRepository (5th arg).
+ *   - bind() extended: populates uiState.filters from FilterCatalog.all on first call;
+ *     reads lastUsedFilterId from DataStore to restore previous selection (CAT-05 / D-25).
+ *   - onSelectFilter(id): CAT-04 picker tap handler — optimistic UI update + async preload
+ *     + DataStore write (no debounce per D-27 implementation note).
+ *   - onCycleFilter() marked @Deprecated (superseded by picker / onSelectFilter).
  *
  * Contracts (D-13 / D-14):
  *   - Exposes `uiState: StateFlow<CameraUiState>` — collected via collectAsStateWithLifecycle.
@@ -58,6 +69,7 @@ class CameraViewModel @Inject constructor(
     private val filterEngine: FilterEngine,
     private val assetLoader: AssetLoader,
     @Named("cameraExecutor") private val cameraExecutor: Executor,
+    private val filterPrefsRepository: FilterPrefsRepository,  // Phase 4 — CAT-05 / D-25
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(CameraUiState())
@@ -76,11 +88,17 @@ class CameraViewModel @Inject constructor(
 
     /**
      * Invoked from CameraScreen LaunchedEffect when permission granted or lens changes.
+     *
      * Phase 3: after bind succeeds, preloads + activates the first filter on first call.
-     * WR-03: cancels any in-flight bind before starting a new one to avoid concurrent bindToLifecycle races.
+     * Phase 4: on first invocation, populates uiState.filters from FilterCatalog.all and
+     *   restores the last-used filter from DataStore (CAT-05). Falls back to catalog.first()
+     *   if stored id is unknown (stale catalog — T-04-01 post-catalog-update scenario).
+     *
+     * WR-03: cancels any in-flight bind before starting a new one to avoid concurrent
+     *   bindToLifecycle races.
      */
     fun bind(owner: LifecycleOwner) {
-        bindJob?.cancel()
+        bindJob?.cancel()   // WR-03 preserved
         bindJob = viewModelScope.launch {
             runCatching { controller.bind(owner, _uiState.value.lens, currentRotation) }
                 .onFailure {
@@ -88,15 +106,34 @@ class CameraViewModel @Inject constructor(
                     return@launch
                 }
 
-            // Phase 3 D-01 — activate the first production filter on first bind.
+            // Phase 4 — populate filter list on first bind (idempotent via isEmpty guard).
+            if (_uiState.value.filters.isEmpty()) {
+                val summaries = FilterCatalog.all.map { FilterSummary(it.id, it.displayName, it.assetDir) }
+                _uiState.value = _uiState.value.copy(filters = summaries)
+            }
+
+            // Phase 3/4 — activate initial filter on first bind (idempotent via activeFilterId guard).
             if (_uiState.value.activeFilterId == null) {
-                val initial = FilterCatalog.all.firstOrNull() ?: return@launch
+                // Phase 4: read last-used id from DataStore; fall back to catalog first if unknown.
+                val storedId = try {
+                    filterPrefsRepository.lastUsedFilterId.first()
+                } catch (e: Exception) {
+                    FilterPrefsRepository.DEFAULT_FILTER_ID
+                }
+                val resolved = FilterCatalog.byId(storedId) ?: FilterCatalog.all.firstOrNull()
+                if (resolved == null) {
+                    _events.send(OneShotEvent.FilterLoadError("No filters in catalog"))
+                    return@launch
+                }
                 try {
                     withContext(cameraExecutor.asCoroutineDispatcher()) {
-                        assetLoader.preload(initial.id)
+                        assetLoader.preload(resolved.id)
                     }
-                    filterEngine.setFilter(initial)
-                    _uiState.value = _uiState.value.copy(activeFilterId = initial.id)
+                    filterEngine.setFilter(resolved)
+                    _uiState.value = _uiState.value.copy(
+                        activeFilterId = resolved.id,
+                        selectedFilterId = resolved.id,
+                    )
                 } catch (e: Exception) {
                     _events.send(OneShotEvent.FilterLoadError("Filter load failed: ${e.message ?: "unknown"}"))
                 }
@@ -168,10 +205,56 @@ class CameraViewModel @Inject constructor(
     }
 
     /**
-     * D-10/D-11 — debug-only filter swap. Production catalog UX lands in Phase 4.
+     * CAT-04 / CAT-05 — picker tap handler.
+     *
+     * Optimistic UI: uiState.selectedFilterId + activeFilterId flip immediately before preload
+     * completes so the picker highlight responds on the same frame as the tap.
+     *
+     * Two async coroutines launched independently:
+     *   (a) DataStore write — viewModelScope default dispatcher; DataStore handles its own IO.
+     *   (b) Preload + setFilter — cameraExecutor dispatcher (render/asset thread).
+     *
+     * Guard: re-tap on the already-selected filter is a no-op (dedupe, T-04-05).
+     * Unknown id: emits FilterLoadError event (no crash).
+     */
+    fun onSelectFilter(id: String) {
+        if (id == _uiState.value.selectedFilterId) return  // dedupe re-tap on same filter (T-04-05)
+        val def: FilterDefinition = FilterCatalog.byId(id) ?: run {
+            viewModelScope.launch { _events.send(OneShotEvent.FilterLoadError("Unknown filter: $id")) }
+            return
+        }
+        // Optimistic highlight — picker reflects selection immediately.
+        _uiState.value = _uiState.value.copy(selectedFilterId = id, activeFilterId = id)
+
+        // (a) DataStore write — async, non-blocking (D-27 no debounce).
+        viewModelScope.launch {
+            try {
+                filterPrefsRepository.setLastUsedFilter(id)
+            } catch (e: Exception) {
+                Timber.tag("CameraVM").w(e, "DataStore write failed for filter: $id")
+            }
+        }
+
+        // (b) Preload + set on cameraExecutor (render/asset thread).
+        viewModelScope.launch(cameraExecutor.asCoroutineDispatcher()) {
+            try {
+                assetLoader.preload(def.id)
+                filterEngine.setFilter(def)
+            } catch (e: Exception) {
+                _events.send(OneShotEvent.FilterLoadError("Filter load failed: ${e.message ?: "unknown"}"))
+            }
+        }
+    }
+
+    /**
+     * D-10/D-11 — debug-only filter swap. Production catalog UX uses [onSelectFilter].
      * Advances activeFilterId index through FilterCatalog.all (mod size).
      * Preload runs on cameraExecutor dispatcher — never blocks main thread.
+     *
+     * @Deprecated — replaced by [onSelectFilter] picker tap in Phase 4 (04-UI-SPEC Impl Notes #3).
+     *               Retained for Phase 3 test compatibility (CameraViewModelTest.onCycleFilter_*).
      */
+    @Deprecated("Replaced by onSelectFilter in Phase 4; retained for Phase 3 test compat")
     fun onCycleFilter() {
         val all = FilterCatalog.all
         if (all.isEmpty()) return
