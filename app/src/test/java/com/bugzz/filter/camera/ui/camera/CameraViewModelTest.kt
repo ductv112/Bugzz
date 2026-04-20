@@ -153,31 +153,31 @@ class CameraViewModelTest {
 
         val vm = buildVm()
 
-        // Starting from null → first cycle: index = (-1 + 1) % 2 = 0 → all[0] (ant)
+        // Starting from null → first cycle: index = (-1 + 1) % 15 = 0 → all[0] (spider_nose_static)
         vm.onCycleFilter()
         advanceUntilIdle()
 
         verify(mockFilterEngine).setFilter(FilterCatalog.all[0])
         assertEquals(FilterCatalog.all[0].id, vm.uiState.value.activeFilterId)
 
-        // Second cycle: (0 + 1) % 2 = 1 → all[1] (spider)
+        // Second cycle: (0 + 1) % 15 = 1 → all[1] (spider_forehead_static)
         vm.onCycleFilter()
         advanceUntilIdle()
 
         verify(mockFilterEngine).setFilter(FilterCatalog.all[1])
         assertEquals(FilterCatalog.all[1].id, vm.uiState.value.activeFilterId)
 
-        // Third cycle wraps: (1 + 1) % 2 = 0 → back to all[0] (ant)
+        // Third cycle: (1 + 1) % 15 = 2 → all[2] (spider_jawline_crawl)
         vm.onCycleFilter()
         advanceUntilIdle()
 
-        // 2 invocations with all[0] total (first + third call)
+        // Verify strict ordering: all[0] → all[1] → all[2]
         org.mockito.kotlin.inOrder(mockFilterEngine).also { inOrder ->
             inOrder.verify(mockFilterEngine).setFilter(FilterCatalog.all[0])
             inOrder.verify(mockFilterEngine).setFilter(FilterCatalog.all[1])
-            inOrder.verify(mockFilterEngine).setFilter(FilterCatalog.all[0])
+            inOrder.verify(mockFilterEngine).setFilter(FilterCatalog.all[2])
         }
-        assertEquals(FilterCatalog.all[0].id, vm.uiState.value.activeFilterId)
+        assertEquals(FilterCatalog.all[2].id, vm.uiState.value.activeFilterId)
     }
 
     // =========================================================================
