@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: Completed 04-01-PLAN.md — Task 1+2 done; bc26ab2+554c9f6
-last_updated: "2026-04-20T17:07:21.411Z"
+stopped_at: Completed 04-02-PLAN.md — Task 1+2 done; f14ecde+0d959b3
+last_updated: "2026-04-20T17:20:12.877Z"
 progress:
   total_phases: 7
   completed_phases: 3
   total_plans: 27
-  completed_plans: 20
-  percent: 74
+  completed_plans: 21
+  percent: 78
 ---
 
 # State: Bugzz
@@ -34,7 +34,7 @@ Plan: 1 of 8
 - **Plan:** Not started
 - **Previous plan:** 05 complete — CameraViewModel + CameraScreen Compose UI landed: CameraUiState (5-field D-14 data class) + PermissionState sealed interface + OneShotEvent sealed interface for toasts; @HiltViewModel CameraViewModel @Inject(CameraController) exposing uiState:StateFlow + surfaceRequest reshared + events:Flow via Channel(BUFFERED).receiveAsFlow, with onFlipLens (CameraLensProvider.next), onTestRecord (delay(5_000L) auto-stop per D-04, no audio path per D-05), and orientationListener (quadrant-thresholded Surface.ROTATION_{0/90/180/270} emit per D-08); CameraScreen @Composable rendering CameraXViewfinder(ImplementationMode.EXTERNAL) fullscreen + OutlinedButton { Text("Flip") } Alignment.TopEnd (D-24 — text fallback, material-icons-extended not on classpath) + BuildConfig.DEBUG-gated Button { Text("TEST RECORD 5s" | "REC...") } Alignment.BottomCenter (D-04); CAMERA-only permission gate with rationale + Settings CTA reusing Phase 1 StubScreens pattern (D-26/27); DisposableEffect enables/disables OrientationEventListener (D-08). BugzzApp.kt CameraRoute import rewired to com.bugzz.filter.camera.ui.camera.CameraScreen (Phase 1 ui/screens stub orphaned but file retained for other routes). 4 Rule 3 auto-fixes: (1) Hilt cannot synthesize a binding for Kotlin @Inject constructor default-value Function2 param — split CameraController into internal primary constructor (test seam) + secondary @Inject constructor (production factory inlined), (2) ImplementationMode lives in androidx.camera.viewfinder.core NOT .surface — research §Open Questions #1 resolved with AAR class dump (EXTERNAL enum confirmed — no fallback to PERFORMANCE needed), (3) Icons.Default.Cameraswitch not on classpath — OutlinedButton { Text("Flip") } per plan's explicit fallback + CLAUDE.md D-24 icon polish deferred to Phase 6, (4) MutableCoordinateTransformer import dropped (unused in body). APK assembles (79 MB); 10 unit tests GREEN (9 Phase 2 Nyquist + 1 placeholder).
 - **Status:** Executing Phase 04
-- **Progress:** [███████░░░] 74%
+- **Progress:** [████████░░] 78%
 
 ### Phase Map
 
@@ -68,6 +68,7 @@ Phase 7: Performance & Device Matrix                      [ pending ]
 | Phase 03 P03 | session-continuation | 5 tasks | 13 files |
 | Phase 03 P04 | 862 | 3 tasks | 7 files |
 | Phase 04 P01 | 720 | 2 tasks | 69 files |
+| Phase 04 P02 | 600 | 2 tasks | 8 files |
 
 ## Accumulated Context
 
@@ -142,7 +143,7 @@ None.
 **Last agent:** gsd-execute-phase (Plan 03-05 continuation executor, post-checkpoint Task 4)
 **Last action:** Completed 03-05-PLAN.md — Task 4: 02-VERIFICATION.md CAM-08 row updated (ADR-01 follow-up #4 closed, fd2a7ad); 03-05-SUMMARY.md written; 03-gaps-01-PLAN.md filed (spider sprite re-extraction, Phase 4 prerequisite, not executed); STATE.md + ROADMAP.md updated. Phase 3 device verification 4/4 hard gates PASS on Xiaomi 13T 2026-04-20.
 
-**Stopped at:** Completed 04-01-PLAN.md — Task 1+2 done; bc26ab2+554c9f6
+**Stopped at:** Completed 04-02-PLAN.md — Task 1+2 done; f14ecde+0d959b3
 
 **Next expected action:** Orchestrator marks Phase 3 complete; planner begins Phase 4 (Filter Catalog + Picker). Phase 4 prerequisite: execute 03-gaps-01-PLAN.md (spider sprite re-extraction) as Wave 0 OR fold into Phase 4 Task 1 full-catalog sprite extraction.
 
