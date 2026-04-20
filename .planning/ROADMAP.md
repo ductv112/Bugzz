@@ -97,7 +97,7 @@ Plans:
 - [x] 04-03-PLAN.md — BehaviorState sealed refactor + CRAWL/SWARM/FALL impls per D-08/D-09/D-10 (Wave 1) — completed 2026-04-20
 - [x] 04-04-PLAN.md — FilterEngine multi-face + softCap + FilterDefinition/SpriteManifest behaviorConfig + 15-entry FilterCatalog (Wave 2)
 - [x] 04-05-PLAN.md — FilterPrefsRepository + DataModule + FilterSummary + CameraViewModel.onSelectFilter + DataStore-aware bind (Wave 3)
-- [ ] 04-06-PLAN.md — FilterPicker LazyRow composable + CameraScreen integration + Cycle button removal (Wave 3)
+- [x] 04-06-PLAN.md — FilterPicker LazyRow composable + CameraScreen integration + Cycle button removal (Wave 3)
 - [ ] 04-07-PLAN.md — CameraMode enum + production HomeScreen + InsectFilterStubScreen + Routes/BugzzApp rewire (Wave 3)
 - [ ] 04-08-PLAN.md — Clean debug build + 04-HANDOFF Xiaomi 13T runbook + device sign-off + VALIDATION nyquist flip (Wave 4)
 

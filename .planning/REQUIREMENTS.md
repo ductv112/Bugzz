@@ -45,7 +45,7 @@ Feature-parity clone of reference app (`com.insect.filters.funny.prank.bug.filte
 
 - [x] **CAT-01**: `FilterCatalog` bundles 15-25 bug filters (spider, ant, cockroach, worm, beetle, fly, scorpion, centipede, wasp, tick, caterpillar, roach, moth, mosquito, mantis, etc.)
 - [x] **CAT-02**: Each filter has: id, display name, thumbnail, sprite atlas reference, bug behavior config, landmark anchor spec
-- [ ] **CAT-03**: Filter picker UI (horizontal `LazyRow`) shows thumbnails, highlights selected, scrolls smoothly
+- [x] **CAT-03**: Filter picker UI (horizontal `LazyRow`) shows thumbnails, highlights selected, scrolls smoothly
 - [x] **CAT-04**: Tapping a filter thumbnail switches active filter immediately
 - [x] **CAT-05**: Last-used filter persisted in DataStore, restored on app relaunch
 
@@ -194,7 +194,7 @@ Final mapping locked by roadmap (2026-04-18). Every v1 requirement is assigned t
 | CAP-06 | Phase 3 | Pending |
 | CAT-01 | Phase 4 | Complete |
 | CAT-02 | Phase 4 | Complete |
-| CAT-03 | Phase 4 | Pending |
+| CAT-03 | Phase 4 | Complete |
 | CAT-04 | Phase 4 | Complete |
 | CAT-05 | Phase 4 | Complete |
 | MOD-01 | Phase 4 | Pending |
