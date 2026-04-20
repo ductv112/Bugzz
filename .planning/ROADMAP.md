@@ -94,7 +94,7 @@ Plans:
 Plans:
 - [x] 04-01-PLAN.md — Wave 0 infrastructure: re-extract 4 sprite groups from reference APK + add Coil/DataStore/Turbine deps + supersede 03-gaps-01 (Wave 0)
 - [x] 04-02-PLAN.md — Wave 0 Nyquist test scaffolds: 6 new + 2 extended test files covering CAT-01..05 / MOD-02 / D-08..D-14 / T-04-01/02/05 (Wave 0)
-- [ ] 04-03-PLAN.md — BehaviorState sealed refactor + CRAWL/SWARM/FALL impls per D-08/D-09/D-10 (Wave 1)
+- [x] 04-03-PLAN.md — BehaviorState sealed refactor + CRAWL/SWARM/FALL impls per D-08/D-09/D-10 (Wave 1) — completed 2026-04-20
 - [ ] 04-04-PLAN.md — FilterEngine multi-face + softCap + FilterDefinition/SpriteManifest behaviorConfig + 15-entry FilterCatalog (Wave 2)
 - [ ] 04-05-PLAN.md — FilterPrefsRepository + DataModule + FilterSummary + CameraViewModel.onSelectFilter + DataStore-aware bind (Wave 3)
 - [ ] 04-06-PLAN.md — FilterPicker LazyRow composable + CameraScreen integration + Cycle button removal (Wave 3)

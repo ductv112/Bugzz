@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: Completed 04-02-PLAN.md — Task 1+2 done; f14ecde+0d959b3
-last_updated: "2026-04-20T17:20:12.877Z"
+stopped_at: Completed 04-03-PLAN.md — Task 1 done; aa4a950
+last_updated: "2026-04-20T17:30:36Z"
 progress:
   total_phases: 7
   completed_phases: 3
   total_plans: 27
-  completed_plans: 21
-  percent: 78
+  completed_plans: 22
+  percent: 81
 ---
 
 # State: Bugzz
@@ -28,13 +28,13 @@ progress:
 ## Current Position
 
 Phase: 04 (Filter Catalog + Picker + Face Filter Mode) — EXECUTING
-Plan: 1 of 8
+Plan: 3 of 8
 
 - **Phase:** 4
-- **Plan:** Not started
+- **Plan:** 3 complete (04-03)
 - **Previous plan:** 05 complete — CameraViewModel + CameraScreen Compose UI landed: CameraUiState (5-field D-14 data class) + PermissionState sealed interface + OneShotEvent sealed interface for toasts; @HiltViewModel CameraViewModel @Inject(CameraController) exposing uiState:StateFlow + surfaceRequest reshared + events:Flow via Channel(BUFFERED).receiveAsFlow, with onFlipLens (CameraLensProvider.next), onTestRecord (delay(5_000L) auto-stop per D-04, no audio path per D-05), and orientationListener (quadrant-thresholded Surface.ROTATION_{0/90/180/270} emit per D-08); CameraScreen @Composable rendering CameraXViewfinder(ImplementationMode.EXTERNAL) fullscreen + OutlinedButton { Text("Flip") } Alignment.TopEnd (D-24 — text fallback, material-icons-extended not on classpath) + BuildConfig.DEBUG-gated Button { Text("TEST RECORD 5s" | "REC...") } Alignment.BottomCenter (D-04); CAMERA-only permission gate with rationale + Settings CTA reusing Phase 1 StubScreens pattern (D-26/27); DisposableEffect enables/disables OrientationEventListener (D-08). BugzzApp.kt CameraRoute import rewired to com.bugzz.filter.camera.ui.camera.CameraScreen (Phase 1 ui/screens stub orphaned but file retained for other routes). 4 Rule 3 auto-fixes: (1) Hilt cannot synthesize a binding for Kotlin @Inject constructor default-value Function2 param — split CameraController into internal primary constructor (test seam) + secondary @Inject constructor (production factory inlined), (2) ImplementationMode lives in androidx.camera.viewfinder.core NOT .surface — research §Open Questions #1 resolved with AAR class dump (EXTERNAL enum confirmed — no fallback to PERFORMANCE needed), (3) Icons.Default.Cameraswitch not on classpath — OutlinedButton { Text("Flip") } per plan's explicit fallback + CLAUDE.md D-24 icon polish deferred to Phase 6, (4) MutableCoordinateTransformer import dropped (unused in body). APK assembles (79 MB); 10 unit tests GREEN (9 Phase 2 Nyquist + 1 placeholder).
 - **Status:** Executing Phase 04
-- **Progress:** [████████░░] 78%
+- **Progress:** [████████░░] 81%
 
 ### Phase Map
 
@@ -69,6 +69,7 @@ Phase 7: Performance & Device Matrix                      [ pending ]
 | Phase 03 P04 | 862 | 3 tasks | 7 files |
 | Phase 04 P01 | 720 | 2 tasks | 69 files |
 | Phase 04 P02 | 600 | 2 tasks | 8 files |
+| Phase 04 P03 | 480 | 1 task | 9 files |
 
 ## Accumulated Context
 
