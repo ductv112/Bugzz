@@ -140,19 +140,28 @@ class CameraViewModel @Inject constructor(
     /**
      * D-13/D-15/D-35 — production shutter.
      * Haptic fires in Compose layer (RESEARCH §Example 8 — LocalView.current.performHapticFeedback).
-     * captureFlashVisible toggled true immediately, then false after callback (D-16).
+     * captureFlashVisible toggled true only on success, then false after callback (D-16).
+     * WR-04: flash is deferred to the success branch so a "camera not bound" synchronous failure
+     * never shows a white flash before the error toast.
      *
      * T-03-04: onResult lambda is a one-shot callback; viewModelScope.launch captures no Activity ref.
      */
     fun onShutterTapped() {
         if (_uiState.value.isCapturing) return  // re-entrance guard (WR-02)
-        _uiState.value = _uiState.value.copy(isCapturing = true, captureFlashVisible = true)
+        _uiState.value = _uiState.value.copy(isCapturing = true)
         controller.capturePhoto { result ->
             viewModelScope.launch {
-                _uiState.value = _uiState.value.copy(isCapturing = false, captureFlashVisible = false)
                 result.fold(
-                    onSuccess = { uri -> _events.send(OneShotEvent.PhotoSaved(uri)) },
-                    onFailure = { exc -> _events.send(OneShotEvent.PhotoError(exc.message ?: "capture failed")) },
+                    onSuccess = { uri ->
+                        // Show capture flash only when photo actually saved (WR-04).
+                        _uiState.value = _uiState.value.copy(captureFlashVisible = true)
+                        _uiState.value = _uiState.value.copy(isCapturing = false, captureFlashVisible = false)
+                        _events.send(OneShotEvent.PhotoSaved(uri))
+                    },
+                    onFailure = { exc ->
+                        _uiState.value = _uiState.value.copy(isCapturing = false)
+                        _events.send(OneShotEvent.PhotoError(exc.message ?: "capture failed"))
+                    },
                 )
             }
         }
