@@ -196,6 +196,17 @@ None — no production code changes in this plan. All stubs from prior plans tra
 
 **Phase 6 follow-up:** CAP-04 front-camera mirror convention — compare against reference app once full APK bundle is obtainable.
 
+## Self-Check: PASSED
+
+- FOUND: `.planning/phases/02-camera-preview-face-detection-coordinate-validation/02-VERIFICATION.md`
+- FOUND: `.planning/phases/03-first-filter-end-to-end-photo-capture/03-05-SUMMARY.md`
+- FOUND: `.planning/phases/03-first-filter-end-to-end-photo-capture/03-gaps-01-PLAN.md`
+- FOUND commit `fd2a7ad` — docs(02-verification): close ADR-01 follow-up #4
+- FOUND commit `d113b81` — docs(03-05): complete photo capture phase plan
+- FOUND commit `e118b6c` — docs(03-gaps-01): file spider sprite re-extraction gap plan
+- 02-VERIFICATION.md contains 9 occurrences of "BboxIouTracker" (>= 1 required)
+- CAM-08 row status: ✅ Complete
+
 ---
 *Phase: 03-first-filter-end-to-end-photo-capture*
 *Completed: 2026-04-20*
