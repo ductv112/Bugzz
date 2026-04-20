@@ -5,6 +5,7 @@ import android.graphics.Canvas
 import android.graphics.Matrix
 import android.graphics.Paint
 import android.graphics.Rect
+import android.util.Size
 import androidx.camera.effects.Frame
 import androidx.camera.effects.OverlayEffect
 import com.bugzz.filter.camera.detector.FaceLandmarkMapper.Anchor
@@ -53,6 +54,7 @@ class FilterEngineTest {
         mockFrame = mock<Frame>().stub {
             on { timestampNanos } doReturn 0L
             on { overlayCanvas } doReturn mockCanvas
+            on { size } doReturn Size(640, 480)
         }
         mockAssetLoader = mock()
         engine = FilterEngine(mockAssetLoader)
@@ -164,6 +166,7 @@ class FilterEngineTest {
             val frame = mock<Frame>().stub {
                 on { timestampNanos } doReturn ts
                 on { overlayCanvas } doReturn mockCanvas
+                on { size } doReturn Size(640, 480)
             }
             engine.onDraw(mockCanvas, frame, face = buildFace())
         }
@@ -228,6 +231,7 @@ class FilterEngineTest {
         val frame220ms = mock<Frame>().stub {
             on { timestampNanos } doReturn 220_000_000L  // t=220ms → filterA idx=2
             on { overlayCanvas } doReturn mockCanvas
+            on { size } doReturn Size(640, 480)
         }
         engine.onDraw(mockCanvas, frame220ms, face = buildFace())
 
@@ -237,6 +241,7 @@ class FilterEngineTest {
         val frame0 = mock<Frame>().stub {
             on { timestampNanos } doReturn 0L
             on { overlayCanvas } doReturn mockCanvas
+            on { size } doReturn Size(640, 480)
         }
         engine.onDraw(mockCanvas, frame0, face = buildFace())
 

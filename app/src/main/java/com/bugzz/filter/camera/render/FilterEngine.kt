@@ -24,6 +24,9 @@ import javax.inject.Singleton
  *   - no active filter ([setFilter] never called or called with null)
  *   - [AssetLoader.get] returns null (preload not yet complete)
  *
+ * Phase 04-03: BugState replaced by sealed BehaviorState (D-12). Single-face bugState field
+ * retained for compatibility — Plan 04-04 converts to ConcurrentHashMap<Int, BehaviorState>.
+ *
  * Logging policy (T-03-05): only logs filterId + frameIndex — NEVER PointF landmark coords.
  */
 @Singleton
@@ -32,22 +35,27 @@ class FilterEngine @Inject constructor(
 ) {
     private val activeFilter = AtomicReference<FilterDefinition?>(null)
 
-    /** Single BugState instance — re-used per frame to avoid allocation in draw loop. */
-    private val bugState = BugState()
+    // Plan 04-03: single-face Static state; Plan 04-04 replaces with ConcurrentHashMap<Int, BehaviorState>.
+    private var bugState: BehaviorState = BehaviorState.Static()
+    private var lastFrameAdvanceTsNanos: Long = 0L
 
     private val spritePaint = Paint(Paint.ANTI_ALIAS_FLAG)
 
     /**
      * Set the active filter. Pass null to disable filter rendering.
      *
-     * Resets per-bug state so the new filter always starts at frame 0 (REN-07).
-     * Triggers [AssetLoader.preload] asynchronously on the caller's thread if not already cached.
+     * Resets per-bug state so the new filter always starts fresh (REN-07).
+     * Initialises BehaviorState variant matching the new filter's behavior.
      */
     fun setFilter(definition: FilterDefinition?) {
         activeFilter.set(definition)
-        // Reset flipbook state so the new filter starts at frame 0 (REN-07).
-        bugState.lastFrameIndex = -1
-        bugState.lastFrameAdvanceTimestampNanos = 0L
+        bugState = when (definition?.behavior) {
+            BugBehavior.Crawl -> BehaviorState.Crawl()
+            BugBehavior.Swarm -> BehaviorState.Swarm()
+            BugBehavior.Fall  -> BehaviorState.Fall()
+            else              -> BehaviorState.Static()
+        }
+        lastFrameAdvanceTsNanos = 0L
     }
 
     /**
@@ -70,8 +78,6 @@ class FilterEngine @Inject constructor(
         val anchor = FaceLandmarkMapper.anchorPoint(face, filter.anchorType) ?: return
 
         // Flipbook frame index: absolute timestamp / duration per frame, wrapped to frameCount.
-        // Using absolute timestampNanos (not relative to setFilter time) so the animation
-        // phase is stable and deterministic given the sensor clock.
         val tsNanos = frame.timestampNanos
         val frameDurationNanos = filter.frameDurationMs * 1_000_000L
         val frameIdx = if (frameDurationNanos > 0L && filter.frameCount > 0) {
@@ -83,20 +89,25 @@ class FilterEngine @Inject constructor(
         // D-11 no-ghost: skip draw if bitmap not yet cached (preload incomplete).
         val bitmap = assetLoader.get(filter.id, frameIdx) ?: return
 
-        // Advance BugBehavior state (Static pins position = anchor, velocity = 0).
-        val dtMs = if (bugState.lastFrameAdvanceTimestampNanos == 0L) 0L
-                   else (tsNanos - bugState.lastFrameAdvanceTimestampNanos) / 1_000_000L
-        filter.behavior.tick(bugState, face, anchor, dtMs)
-        bugState.lastFrameIndex = frameIdx
-        bugState.lastFrameAdvanceTimestampNanos = tsNanos
+        // Advance BugBehavior state.
+        val dtMs = if (lastFrameAdvanceTsNanos == 0L) 0L
+                   else (tsNanos - lastFrameAdvanceTsNanos) / 1_000_000L
+        val previewWidth  = frame.size.width.toFloat()
+        val previewHeight = frame.size.height.toFloat()
+        filter.behavior.tick(bugState, face, anchor, previewWidth, previewHeight, tsNanos, dtMs)
+        lastFrameAdvanceTsNanos = tsNanos
 
         // Compute sprite dimensions: scaleFactor * face bbox width, maintaining aspect ratio.
         val spriteW = face.boundingBox.width() * filter.scaleFactor
         val spriteH = spriteW * bitmap.height.toFloat() / bitmap.width.toFloat()
 
-        // Draw sprite centred on the resolved anchor/position.
-        val left = bugState.position.x - spriteW / 2f
-        val top  = bugState.position.y - spriteH / 2f
+        // Resolve draw position from behavior state (Plan 04-04 handles Crawl/Swarm/Fall properly).
+        val spritePos = when (val s = bugState) {
+            is BehaviorState.Static -> s.pos
+            else -> anchor  // Plan 04-04 adds multi-instance rendering for Crawl/Swarm/Fall
+        }
+        val left = spritePos.x - spriteW / 2f
+        val top  = spritePos.y - spriteH / 2f
 
         canvas.save()
         canvas.translate(left, top)
