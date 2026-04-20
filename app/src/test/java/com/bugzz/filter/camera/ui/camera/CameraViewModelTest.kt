@@ -18,6 +18,7 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Before
+import org.junit.Ignore
 import org.junit.Test
 import org.mockito.kotlin.any
 import org.mockito.kotlin.doAnswer
@@ -177,5 +178,108 @@ class CameraViewModelTest {
             inOrder.verify(mockFilterEngine).setFilter(FilterCatalog.all[0])
         }
         assertEquals(FilterCatalog.all[0].id, vm.uiState.value.activeFilterId)
+    }
+
+    // =========================================================================
+    // NEW — Phase 4 Wave 0 tests (added by Plan 04-02 Task 2).
+    // These tests reference FilterPrefsRepository (lands Plan 04-05 Task 1) and the
+    // onSelectFilter() method + initialBind DataStore read (lands Plan 04-05 Task 3).
+    // All @Ignore'd until those plans land.
+    //
+    // Note: existing Phase 3 tests above (onShutterTapped_*, onCycleFilter_*) are
+    // UNCHANGED — 03-REVIEW-FIX commits (isCapturing guard, bindJob.cancel,
+    // FilterLoadError emission, flash deferred to success) must not be reverted.
+    // =========================================================================
+
+    /**
+     * CAT-04: vm.onSelectFilter("bugC_fall") must:
+     *   1. Call filterEngine.setFilter() with the FilterDefinition whose id == "bugC_fall"
+     *   2. Call filterPrefsRepository.setLastUsedFilter("bugC_fall")
+     *   3. Update uiState.selectedFilterId to "bugC_fall"
+     *
+     * Both engine update and DataStore write happen within the same coroutine launch.
+     * T-04-05 mitigation: rapid-select does NOT trigger camera rebind.
+     */
+    @Test
+    @Ignore("TODO Plan 04-05 Task 3 — un-Ignore when CameraViewModel.onSelectFilter lands")
+    fun onSelectFilter_callsEngineAndWritesDataStore() = runTest(testDispatcher) {
+        // val mockPrefsRepo: FilterPrefsRepository = mock()
+        // mockPrefsRepo.stub {
+        //     on { lastUsedFilterId } doReturn flowOf(FilterPrefsRepository.DEFAULT_FILTER_ID)
+        // }
+        // val vm = CameraViewModel(mockController, mockFilterEngine, mockAssetLoader,
+        //     syncExecutor, mockPrefsRepo)
+        //
+        // vm.onSelectFilter("bugC_fall")
+        // advanceUntilIdle()
+        //
+        // verify(mockFilterEngine).setFilter(argThat { id == "bugC_fall" })
+        // verify(mockPrefsRepo).setLastUsedFilter("bugC_fall")
+        // assertEquals("uiState.selectedFilterId must reflect selected filter",
+        //     "bugC_fall", vm.uiState.value.selectedFilterId)
+    }
+
+    /**
+     * CAT-05: on initial bind(), CameraViewModel must read lastUsedFilterId from DataStore
+     * and apply it — calling filterEngine.setFilter() + updating uiState.selectedFilterId.
+     *
+     * Scenario: DataStore returns "bugB_crawl" from lastUsedFilterId flow.
+     * Expected: bind() reads that value, calls setFilter with bugB_crawl FilterDefinition,
+     * and sets uiState.selectedFilterId = "bugB_crawl".
+     */
+    @Test
+    @Ignore("TODO Plan 04-05 Task 3 — un-Ignore when CameraViewModel.bind reads DataStore initial value")
+    fun initialBind_readsLastUsedFromDataStore() = runTest(testDispatcher) {
+        // val mockPrefsRepo: FilterPrefsRepository = mock()
+        // mockPrefsRepo.stub {
+        //     on { lastUsedFilterId } doReturn flowOf("bugB_crawl")
+        // }
+        // mockAssetLoader.stub { onBlocking { preload(any()) } doReturn Unit }
+        //
+        // val vm = CameraViewModel(mockController, mockFilterEngine, mockAssetLoader,
+        //     syncExecutor, mockPrefsRepo)
+        // val mockOwner: LifecycleOwner = mock()
+        // vm.bind(mockOwner)
+        // advanceUntilIdle()
+        //
+        // verify(mockFilterEngine).setFilter(argThat { id == "bugB_crawl" })
+        // assertEquals("uiState.selectedFilterId must reflect DataStore-loaded filter",
+        //     "bugB_crawl", vm.uiState.value.selectedFilterId)
+    }
+
+    /**
+     * T-04-05 mitigation + CAT-03: 10 rapid onSelectFilter calls in quick succession must NOT
+     * trigger a camera rebind (controller.bind() called again after the initial bind).
+     *
+     * Invariant: filter selection only calls filterEngine.setFilter + DataStore write.
+     * CameraController.bind() fires ONLY once during initial bind() — never on filter swap.
+     * This prevents "Camera in use" errors during rapid picker taps.
+     */
+    @Test
+    @Ignore("TODO Plan 04-05 Task 3 + 04-06 Task 2 — un-Ignore when rapid-tap no-rebind flow is stable; T-04-05 mitigation")
+    fun rapidSelectFilter_noCameraRebind() = runTest(testDispatcher) {
+        // val mockPrefsRepo: FilterPrefsRepository = mock()
+        // mockPrefsRepo.stub {
+        //     on { lastUsedFilterId } doReturn flowOf(FilterPrefsRepository.DEFAULT_FILTER_ID)
+        // }
+        // mockAssetLoader.stub { onBlocking { preload(any()) } doReturn Unit }
+        //
+        // val vm = CameraViewModel(mockController, mockFilterEngine, mockAssetLoader,
+        //     syncExecutor, mockPrefsRepo)
+        // val mockOwner: LifecycleOwner = mock()
+        //
+        // // Initial bind — fires controller.bind once
+        // vm.bind(mockOwner)
+        // advanceUntilIdle()
+        //
+        // // Reset bind call count tracking so rapid-taps start from a clean slate
+        // clearInvocations(mockController)
+        //
+        // // 10 rapid filter swaps
+        // repeat(10) { vm.onSelectFilter("spider_nose_static") }
+        // advanceUntilIdle()
+        //
+        // // controller.bind must NEVER fire again — only filter engine + DataStore updated
+        // verify(mockController, never()).bind(any(), any(), any())
     }
 }
