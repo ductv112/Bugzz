@@ -51,7 +51,7 @@ Feature-parity clone of reference app (`com.insect.filters.funny.prank.bug.filte
 
 ### Dual Mode (Face Filter + Insect Filter)
 
-- [ ] **MOD-01**: Home screen has two primary buttons: "Face Filter" (landmark-tracked) and "Insect Filter" (free-placement sticker)
+- [x] **MOD-01**: Home screen has two primary buttons: "Face Filter" (landmark-tracked) and "Insect Filter" (free-placement sticker)
 - [x] **MOD-02**: Face Filter mode anchors bugs to face landmarks with real-time tracking
 - [ ] **MOD-03**: Insect Filter mode places a single bug sticker on screen without face tracking
 - [ ] **MOD-04**: Insect Filter mode supports drag gesture to move sticker
@@ -197,7 +197,7 @@ Final mapping locked by roadmap (2026-04-18). Every v1 requirement is assigned t
 | CAT-03 | Phase 4 | Complete |
 | CAT-04 | Phase 4 | Complete |
 | CAT-05 | Phase 4 | Complete |
-| MOD-01 | Phase 4 | Pending |
+| MOD-01 | Phase 4 | Complete |
 | MOD-02 | Phase 4 | Complete |
 | MOD-03 | Phase 5 | Pending |
 | MOD-04 | Phase 5 | Pending |
