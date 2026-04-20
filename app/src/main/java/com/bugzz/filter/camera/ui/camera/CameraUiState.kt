@@ -15,6 +15,8 @@ data class CameraUiState(
     // Phase 3
     val activeFilterId: String? = null,
     val captureFlashVisible: Boolean = false,
+    /** True while a capturePhoto call is in-flight; prevents re-entrance on rapid double-tap (WR-02). */
+    val isCapturing: Boolean = false,
 )
 
 /**

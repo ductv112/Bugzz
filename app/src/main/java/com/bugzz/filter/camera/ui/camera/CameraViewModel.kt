@@ -139,10 +139,11 @@ class CameraViewModel @Inject constructor(
      * T-03-04: onResult lambda is a one-shot callback; viewModelScope.launch captures no Activity ref.
      */
     fun onShutterTapped() {
-        _uiState.value = _uiState.value.copy(captureFlashVisible = true)
+        if (_uiState.value.isCapturing) return  // re-entrance guard (WR-02)
+        _uiState.value = _uiState.value.copy(isCapturing = true, captureFlashVisible = true)
         controller.capturePhoto { result ->
             viewModelScope.launch {
-                _uiState.value = _uiState.value.copy(captureFlashVisible = false)
+                _uiState.value = _uiState.value.copy(isCapturing = false, captureFlashVisible = false)
                 result.fold(
                     onSuccess = { uri -> _events.send(OneShotEvent.PhotoSaved(uri)) },
                     onFailure = { exc -> _events.send(OneShotEvent.PhotoError(exc.message ?: "capture failed")) },
