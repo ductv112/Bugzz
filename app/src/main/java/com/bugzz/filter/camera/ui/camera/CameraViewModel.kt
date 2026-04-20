@@ -13,6 +13,7 @@ import com.bugzz.filter.camera.filter.FilterCatalog
 import com.bugzz.filter.camera.filter.FilterDefinition
 import com.bugzz.filter.camera.render.FilterEngine
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.asCoroutineDispatcher
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.delay
@@ -70,12 +71,17 @@ class CameraViewModel @Inject constructor(
 
     private var currentRotation: Int = Surface.ROTATION_0
 
+    /** Tracks the active bind coroutine so concurrent lens-flip recompositions cancel the prior one (WR-03). */
+    private var bindJob: Job? = null
+
     /**
      * Invoked from CameraScreen LaunchedEffect when permission granted or lens changes.
      * Phase 3: after bind succeeds, preloads + activates the first filter on first call.
+     * WR-03: cancels any in-flight bind before starting a new one to avoid concurrent bindToLifecycle races.
      */
     fun bind(owner: LifecycleOwner) {
-        viewModelScope.launch {
+        bindJob?.cancel()
+        bindJob = viewModelScope.launch {
             runCatching { controller.bind(owner, _uiState.value.lens, currentRotation) }
                 .onFailure {
                     _events.send(OneShotEvent.CameraError(it.message ?: "bind failed"))
