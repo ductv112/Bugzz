@@ -35,3 +35,6 @@ signing.properties
 Thumbs.db
 *.swp
 .tmp-shots/
+
+# Dev-only device-test artifacts (screenshots, logcat, UI dumps from ADB runs)
+.device-test/
