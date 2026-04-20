@@ -116,6 +116,8 @@ fun CameraScreen(
                     Toast.makeText(context, "Saved to gallery", Toast.LENGTH_SHORT).show()
                 is OneShotEvent.PhotoError ->
                     Toast.makeText(context, "Photo error: ${event.message}", Toast.LENGTH_LONG).show()
+                is OneShotEvent.FilterLoadError ->
+                    Toast.makeText(context, "Filter error: ${event.message}", Toast.LENGTH_LONG).show()
             }
         }
     }

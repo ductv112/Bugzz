@@ -98,7 +98,7 @@ class CameraViewModel @Inject constructor(
                     filterEngine.setFilter(initial)
                     _uiState.value = _uiState.value.copy(activeFilterId = initial.id)
                 } catch (e: Exception) {
-                    _events.send(OneShotEvent.PhotoError("Filter load failed: ${e.message ?: "unknown"}"))
+                    _events.send(OneShotEvent.FilterLoadError("Filter load failed: ${e.message ?: "unknown"}"))
                 }
             }
         }
@@ -186,7 +186,7 @@ class CameraViewModel @Inject constructor(
                 filterEngine.setFilter(next)
                 _uiState.value = _uiState.value.copy(activeFilterId = next.id)
             } catch (e: Exception) {
-                _events.send(OneShotEvent.PhotoError("Filter load failed: ${e.message ?: "unknown"}"))
+                _events.send(OneShotEvent.FilterLoadError("Filter load failed: ${e.message ?: "unknown"}"))
             }
         }
     }
