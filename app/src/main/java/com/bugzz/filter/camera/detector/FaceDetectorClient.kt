@@ -8,6 +8,7 @@ import com.google.mlkit.vision.face.FaceContour
 import com.google.mlkit.vision.face.FaceDetection
 import com.google.mlkit.vision.face.FaceDetector
 import com.google.mlkit.vision.face.FaceDetectorOptions
+import com.bugzz.filter.camera.thermal.ThermalMonitor
 import timber.log.Timber
 import java.util.concurrent.Executor
 import java.util.concurrent.atomic.AtomicReference
@@ -27,6 +28,8 @@ import javax.inject.Singleton
  * Runtime face identity comes from [BboxIouTracker] (Plan 03-02). ML Kit's own trackingId is
  * always null under CONTOUR_MODE_ALL — see ADR-01.
  *
+ * Phase 5: constructor gains [thermalMonitor] for D-14 frame-skip throttle.
+ *
  * @see .planning/phases/02-camera-preview-face-detection-coordinate-validation/02-CONTEXT.md D-15..D-22
  * @see .planning/phases/02-camera-preview-face-detection-coordinate-validation/02-ADR-01-no-ml-kit-tracking-with-contour.md
  */
@@ -34,7 +37,10 @@ import javax.inject.Singleton
 class FaceDetectorClient @Inject constructor(
     @Named("cameraExecutor") private val cameraExecutor: Executor,
     private val tracker: BboxIouTracker,   // ADR-01 #3 — Phase 3 bbox-IoU tracker
+    private val thermalMonitor: ThermalMonitor,  // D-14 Phase 5 frame-skip throttle
 ) {
+    /** Incremented each time the MlKitAnalyzer consumer fires; used by shouldSkipFrame. */
+    private var frameCounter = 0
     private val options = buildOptions()
     private val detector: FaceDetector = FaceDetection.getClient(options)
     private val smoother = LandmarkSmoother(minCutoff = 1.0, beta = 0.007, dCutoff = 1.0)
@@ -49,6 +55,18 @@ class FaceDetectorClient @Inject constructor(
             /* targetCoordinateSystem = */ COORDINATE_SYSTEM_SENSOR,
             /* executor = */ cameraExecutor,
         ) { result ->
+            // D-14 Phase 5: thermal frame-skip — when device is Moderate or hotter,
+            // skip every other ML Kit invocation to reduce sustained CPU load.
+            frameCounter++
+            if (thermalMonitor.shouldSkipFrame(frameCounter)) {
+                Timber.tag("FaceTracker").v(
+                    "skip frame=%d thermal=%s",
+                    frameCounter,
+                    thermalMonitor.status.value,
+                )
+                return@MlKitAnalyzer
+            }
+
             val faces: List<Face> = result.getValue(detector) ?: emptyList()
             val tNanos = System.nanoTime()
 

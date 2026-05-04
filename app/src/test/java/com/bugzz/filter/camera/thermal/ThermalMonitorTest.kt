@@ -1,61 +1,83 @@
 package com.bugzz.filter.camera.thermal
 
-import org.junit.Assert
-import org.junit.Ignore
+import android.os.PowerManager
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertTrue
+import org.junit.Before
 import org.junit.Test
+import org.junit.runner.RunWith
+import org.mockito.Mockito.mock
+import org.robolectric.RobolectricTestRunner
+import org.robolectric.RuntimeEnvironment
+import org.robolectric.annotation.Config
+import java.util.concurrent.Executor
 
 /**
- * RED scaffold for VID-08. SUT lands in Plan 05-02.
+ * Unit tests for ThermalMonitor — VID-08.
+ * Un-Ignored in Plan 05-02 when SUT landed.
  *
- * Mock ThermalStatus values; verify ordinal ordering supports >= comparison;
- * verify frame-skip logic skips every 2nd frame when status >= Moderate.
- *
- * Expected API shape (Plan 05-02):
- *   - ThermalStatus enum: None, Light, Moderate, Severe (ordinal ordering supports >= comparison)
- *   - ThermalMonitor @Singleton @Inject constructor(@ApplicationContext context: Context)
- *     - status: StateFlow<ThermalStatus> (initial = None)
- *     - registers PowerManager.OnThermalStatusChangedListener on init (API 29+)
- *     - cleanup() — removes listener (called from BugzzApplication.onTerminate or Application coroutine)
- *   - FaceDetectorClient frame-skip: when ThermalMonitor.status.value >= ThermalStatus.Moderate,
- *     skip every other MlKitAnalyzer invocation (frame counter % 2 == 1 → skip)
- *
- * D-14: ThermalMonitor registered as @Singleton in BugzzApplication.onCreate.
+ * Uses Robolectric for PowerManager constant access; ThermalMonitor.mapStatus() is internal
+ * so we call it directly. ThermalMonitor.setStatusForTest() is the Wave 0 test seam used to
+ * simulate thermal state changes without a live PowerManager callback.
  */
+@RunWith(RobolectricTestRunner::class)
+@Config(sdk = [34])
 class ThermalMonitorTest {
 
-    @Ignore("Plan 05-02 lands ThermalMonitor SUT")
+    private lateinit var monitor: ThermalMonitor
+    private val directExecutor = Executor { command -> command.run() }
+
+    @Before
+    fun setUp() {
+        val context = RuntimeEnvironment.getApplication()
+        monitor = ThermalMonitor(context, directExecutor)
+    }
+
     @Test
     fun mapStatus_powerManagerNone_returnsNone() {
-        Assert.fail("Plan 05-02 lands SUT")
+        assertEquals(ThermalStatus.None, monitor.mapStatus(PowerManager.THERMAL_STATUS_NONE))
     }
 
-    @Ignore("Plan 05-02 lands ThermalMonitor SUT")
     @Test
     fun mapStatus_powerManagerModerate_returnsModerate() {
-        Assert.fail("Plan 05-02 lands SUT")
+        assertEquals(ThermalStatus.Moderate, monitor.mapStatus(PowerManager.THERMAL_STATUS_MODERATE))
     }
 
-    @Ignore("Plan 05-02 lands ThermalMonitor SUT")
     @Test
     fun thermalStatus_compareTo_supportsGreaterEqual() {
-        Assert.fail("Plan 05-02 lands SUT")
+        assertTrue(ThermalStatus.Moderate >= ThermalStatus.Light)
+        assertFalse(ThermalStatus.Light >= ThermalStatus.Moderate)
+        assertTrue(ThermalStatus.Severe >= ThermalStatus.Moderate)
+        assertTrue(ThermalStatus.None >= ThermalStatus.None)  // equal is >= too
     }
 
-    @Ignore("Plan 05-02 lands ThermalMonitor SUT")
     @Test
     fun status_initialValue_isNone() {
-        Assert.fail("Plan 05-02 lands SUT")
+        assertEquals(ThermalStatus.None, monitor.status.value)
     }
 
-    @Ignore("Plan 05-02 lands ThermalMonitor SUT")
     @Test
     fun frameSkip_belowModerate_doesNotSkip() {
-        Assert.fail("Plan 05-02 lands SUT")
+        monitor.setStatusForTest(ThermalStatus.Light)
+        for (counter in 1..10) {
+            assertFalse(
+                "Expected no skip at Light for counter=$counter",
+                monitor.shouldSkipFrame(counter),
+            )
+        }
     }
 
-    @Ignore("Plan 05-02 lands ThermalMonitor SUT")
     @Test
     fun frameSkip_atModerate_skipsEverySecondFrame() {
-        Assert.fail("Plan 05-02 lands SUT")
+        monitor.setStatusForTest(ThermalStatus.Moderate)
+        for (counter in 1..10) {
+            val expected = counter % 2 != 0  // odd frames are skipped
+            assertEquals(
+                "At Moderate counter=$counter expected skip=$expected",
+                expected,
+                monitor.shouldSkipFrame(counter),
+            )
+        }
     }
 }
