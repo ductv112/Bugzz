@@ -118,6 +118,11 @@ fun CameraScreen(
                     Toast.makeText(context, "Photo error: ${event.message}", Toast.LENGTH_LONG).show()
                 is OneShotEvent.FilterLoadError ->
                     Toast.makeText(context, "Filter error: ${event.message}", Toast.LENGTH_LONG).show()
+                // Phase 5 (Plan 05-03) — video recording outcomes
+                is OneShotEvent.VideoSaved ->
+                    Toast.makeText(context, "Video saved to gallery", Toast.LENGTH_SHORT).show()
+                is OneShotEvent.VideoError ->
+                    Toast.makeText(context, "Video error: ${event.message}", Toast.LENGTH_LONG).show()
             }
         }
     }

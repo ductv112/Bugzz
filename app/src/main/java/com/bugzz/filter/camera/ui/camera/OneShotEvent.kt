@@ -15,4 +15,7 @@ sealed interface OneShotEvent {
     data class PhotoError(val message: String) : OneShotEvent
     /** Filter asset preload failure — distinct from PhotoError so Toasts read "Filter error: …" not "Photo error: …" (WR-05). */
     data class FilterLoadError(val message: String) : OneShotEvent
+    // Phase 5 (Plan 05-03) — video recording outcomes
+    data class VideoSaved(val uri: android.net.Uri) : OneShotEvent
+    data class VideoError(val message: String) : OneShotEvent
 }

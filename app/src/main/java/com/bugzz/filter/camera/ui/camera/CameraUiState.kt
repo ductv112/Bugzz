@@ -6,6 +6,7 @@ import com.bugzz.filter.camera.camera.CameraLens
  * Phase 2 UI state. Fields match D-14 exactly plus `isRecording` for TEST RECORD UX (D-04).
  * Phase 3 additions: activeFilterId, captureFlashVisible, isCapturing.
  * Phase 4 additions (Plan 04-05): filters + selectedFilterId for picker strip (D-15/D-17).
+ * Phase 5 additions (Plan 05-03): recordingState from canonical RecordingState (D-22).
  *
  * `activeFilterId` vs `selectedFilterId`:
  *   - `selectedFilterId` = optimistic selection set on picker tap (responds instantly).
@@ -29,7 +30,13 @@ data class CameraUiState(
     val filters: List<FilterSummary> = emptyList(),
     /** Optimistic selection id — set immediately on picker tap before preload completes (D-17). */
     val selectedFilterId: String = "",
-)
+    // Phase 5 additions (Plan 05-03)
+    /** Rich recording state machine (D-22). Canonical type from Plan 05-02 ui/camera/RecordingState.kt. */
+    val recordingState: RecordingState = RecordingState.Idle,
+) {
+    /** True when a production recording is actively in progress (D-23 lock-during-record). */
+    val isActivelyRecording: Boolean get() = recordingState is RecordingState.Active
+}
 
 /**
  * Runtime CAMERA permission state (D-26/27 — Phase 2 requests ONLY Manifest.permission.CAMERA).

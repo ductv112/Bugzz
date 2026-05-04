@@ -3,6 +3,7 @@ package com.bugzz.filter.camera.ui.camera
 import android.content.Context
 import android.view.OrientationEventListener
 import android.view.Surface
+import androidx.camera.video.VideoRecordEvent
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -204,6 +205,121 @@ class CameraViewModel @Inject constructor(
         }
     }
 
+    // -------------------------------------------------------------------------
+    // Phase 5: Production recording lifecycle (D-21/D-22/D-26/T-05-03/T-05-07)
+    // -------------------------------------------------------------------------
+
+    /** Set to true by onDiscardRecording() so the Finalize handler deletes the pending URI. */
+    @Volatile private var pendingDiscardFlag: Boolean = false
+
+    /**
+     * Starts or stops recording depending on current [RecordingState] (D-22 toggle behavior).
+     *
+     * D-26 isRecording guard: early-return when recordingState != Idle (analogous to
+     * isCapturing guard in onShutterTapped — prevents concurrent recording on double-tap).
+     * T-05-03: backed by check(activeRecording == null) inside VideoRecorder.startRecording.
+     *
+     * @param audioEnabled true if RECORD_AUDIO permission has been granted (D-12).
+     */
+    fun onRecordTapped(audioEnabled: Boolean) {
+        if (_uiState.value.recordingState !is RecordingState.Idle) return  // D-26 isRecording guard
+        viewModelScope.launch {
+            try {
+                _uiState.value = _uiState.value.copy(
+                    recordingState = RecordingState.Active(0L, audioEnabled)
+                )
+                controller.startRecording(audioEnabled, ::handleVideoEvent)
+            } catch (t: Throwable) {
+                Timber.tag("CameraVM").e(t, "startRecording failed")
+                _uiState.value = _uiState.value.copy(recordingState = RecordingState.Idle)
+                _events.send(OneShotEvent.VideoError("Failed to start: ${t.message}"))
+            }
+        }
+    }
+
+    /**
+     * Stops an active recording. Recorder fires VideoRecordEvent.Finalize asynchronously,
+     * which transitions state to Idle and emits VideoSaved or VideoError.
+     */
+    fun onStopRecording() {
+        if (_uiState.value.recordingState !is RecordingState.Active) return
+        _uiState.value = _uiState.value.copy(recordingState = RecordingState.Stopping)
+        controller.stopRecording()
+    }
+
+    /**
+     * D-10 / T-05-07: discard an in-progress recording. Sets pendingDiscardFlag so the
+     * Finalize handler deletes the pending MediaStore URI instead of emitting VideoSaved.
+     */
+    fun onDiscardRecording() {
+        pendingDiscardFlag = true
+        if (_uiState.value.recordingState is RecordingState.Active) {
+            _uiState.value = _uiState.value.copy(recordingState = RecordingState.Stopping)
+            controller.stopRecording()
+        }
+    }
+
+    /**
+     * Dispatched on cameraExecutor from VideoRecorder.startRecording() callback.
+     * Marshals state transitions + one-shot events back to main via viewModelScope.launch.
+     */
+    private fun handleVideoEvent(event: VideoRecordEvent) {
+        viewModelScope.launch {
+            when (event) {
+                is VideoRecordEvent.Start -> {
+                    // Confirm Active state (already set optimistically in onRecordTapped).
+                    val current = _uiState.value.recordingState
+                    if (current !is RecordingState.Active) {
+                        _uiState.value = _uiState.value.copy(
+                            recordingState = RecordingState.Active(0L, hasAudio = false)
+                        )
+                    }
+                }
+                is VideoRecordEvent.Status -> {
+                    val active = _uiState.value.recordingState as? RecordingState.Active
+                        ?: return@launch
+                    val elapsedMs = event.recordingStats.recordedDurationNanos / 1_000_000L
+                    _uiState.value = _uiState.value.copy(
+                        recordingState = active.copy(elapsedMs = elapsedMs)
+                    )
+                }
+                is VideoRecordEvent.Finalize -> {
+                    controller.clearActiveRecording()
+                    val outputUri = event.outputResults.outputUri
+
+                    if (pendingDiscardFlag) {
+                        // T-05-07: user discarded — delete pending MediaStore entry.
+                        pendingDiscardFlag = false
+                        try {
+                            controller.contentResolver.delete(outputUri, null, null)
+                            Timber.tag("CameraVM").i("discarded pending uri=%s", outputUri)
+                        } catch (t: Throwable) {
+                            Timber.tag("CameraVM").e(t, "delete pending failed uri=%s", outputUri)
+                        }
+                        _uiState.value = _uiState.value.copy(recordingState = RecordingState.Idle)
+                        return@launch
+                    }
+
+                    // ERROR_DURATION_LIMIT_REACHED is not an error — treat same as manual stop (D-09).
+                    // Rule 3 auto-fix: constant name is ERROR_DURATION_LIMIT_REACHED in CameraX 1.6
+                    // (plan spec said ERROR_DURATION_REACHED which does not exist).
+                    if (event.hasError() &&
+                        event.error != VideoRecordEvent.Finalize.ERROR_DURATION_LIMIT_REACHED
+                    ) {
+                        val errMsg = "code=${event.error}: ${event.cause?.message ?: "unknown"}"
+                        Timber.tag("CameraVM").e(event.cause, "Finalize error: %s", errMsg)
+                        _uiState.value = _uiState.value.copy(recordingState = RecordingState.Idle)
+                        _events.send(OneShotEvent.VideoError(errMsg))
+                    } else {
+                        _uiState.value = _uiState.value.copy(recordingState = RecordingState.Idle)
+                        _events.send(OneShotEvent.VideoSaved(outputUri))
+                    }
+                }
+                else -> Unit
+            }
+        }
+    }
+
     /**
      * CAT-04 / CAT-05 — picker tap handler.
      *
@@ -298,5 +414,9 @@ class CameraViewModel @Inject constructor(
     override fun onCleared() {
         super.onCleared()
         controller.stopTestRecording()
+        // Also stop any active production recording to avoid orphan MediaStore entries.
+        if (_uiState.value.recordingState is RecordingState.Active) {
+            controller.stopRecording()
+        }
     }
 }

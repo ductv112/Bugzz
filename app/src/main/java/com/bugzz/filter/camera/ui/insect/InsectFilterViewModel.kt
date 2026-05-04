@@ -2,6 +2,7 @@ package com.bugzz.filter.camera.ui.insect
 
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.unit.IntSize
+import androidx.camera.video.VideoRecordEvent
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -12,11 +13,15 @@ import com.bugzz.filter.camera.data.FilterPrefsRepository
 import com.bugzz.filter.camera.filter.FilterCatalog
 import com.bugzz.filter.camera.filter.FilterDefinition
 import com.bugzz.filter.camera.render.StickerRenderer
+import com.bugzz.filter.camera.ui.camera.OneShotEvent
+import com.bugzz.filter.camera.ui.camera.RecordingState
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
 import timber.log.Timber
 import javax.inject.Inject
@@ -47,6 +52,11 @@ class InsectFilterViewModel @Inject constructor(
 
     /** Reshared from CameraController (same pattern as CameraViewModel D-13). */
     val surfaceRequest = controller.surfaceRequest
+
+    private val _events = Channel<OneShotEvent>(Channel.BUFFERED)
+    val events = _events.receiveAsFlow()
+
+    @Volatile private var pendingDiscardFlag: Boolean = false
 
     init {
         // CAT-05 reuse: restore last-used filter from DataStore on VM creation.
@@ -131,6 +141,94 @@ class InsectFilterViewModel @Inject constructor(
         _uiState.value = _uiState.value.copy(lens = newLens)
         // Plan 05-03 will wire actual flipLens() on CameraController with lifecycleOwner.
         // Wave 1 placeholder: lens state updated in VM; rebind happens when Plan 05-03 lands.
+    }
+
+    // -------------------------------------------------------------------------
+    // Phase 5: Recording lifecycle — mirrors CameraViewModel pattern (Plan 05-03)
+    // -------------------------------------------------------------------------
+
+    /**
+     * Starts production recording. D-26 isRecording guard prevents double-tap re-entrance.
+     * T-05-03: backed by check(activeRecording == null) inside VideoRecorder.
+     */
+    fun onRecordTapped(audioEnabled: Boolean) {
+        if (_uiState.value.recordingState !is RecordingState.Idle) return
+        viewModelScope.launch {
+            try {
+                _uiState.value = _uiState.value.copy(
+                    recordingState = RecordingState.Active(0L, audioEnabled)
+                )
+                controller.startRecording(audioEnabled, ::handleVideoEvent)
+            } catch (t: Throwable) {
+                Timber.tag("InsectVM").e(t, "startRecording failed")
+                _uiState.value = _uiState.value.copy(recordingState = RecordingState.Idle)
+                _events.send(OneShotEvent.VideoError("Failed to start: ${t.message}"))
+            }
+        }
+    }
+
+    /** Stops an active recording; Finalize fires asynchronously. */
+    fun onStopRecording() {
+        if (_uiState.value.recordingState !is RecordingState.Active) return
+        _uiState.value = _uiState.value.copy(recordingState = RecordingState.Stopping)
+        controller.stopRecording()
+    }
+
+    /** D-10 / T-05-07: discard pending recording and delete MediaStore entry. */
+    fun onDiscardRecording() {
+        pendingDiscardFlag = true
+        if (_uiState.value.recordingState is RecordingState.Active) {
+            _uiState.value = _uiState.value.copy(recordingState = RecordingState.Stopping)
+            controller.stopRecording()
+        }
+    }
+
+    private fun handleVideoEvent(event: VideoRecordEvent) {
+        viewModelScope.launch {
+            when (event) {
+                is VideoRecordEvent.Start -> {
+                    val current = _uiState.value.recordingState
+                    if (current !is RecordingState.Active) {
+                        _uiState.value = _uiState.value.copy(
+                            recordingState = RecordingState.Active(0L, hasAudio = false)
+                        )
+                    }
+                }
+                is VideoRecordEvent.Status -> {
+                    val active = _uiState.value.recordingState as? RecordingState.Active
+                        ?: return@launch
+                    val elapsedMs = event.recordingStats.recordedDurationNanos / 1_000_000L
+                    _uiState.value = _uiState.value.copy(
+                        recordingState = active.copy(elapsedMs = elapsedMs)
+                    )
+                }
+                is VideoRecordEvent.Finalize -> {
+                    controller.clearActiveRecording()
+                    val outputUri = event.outputResults.outputUri
+                    if (pendingDiscardFlag) {
+                        pendingDiscardFlag = false
+                        try {
+                            controller.contentResolver.delete(outputUri, null, null)
+                        } catch (t: Throwable) {
+                            Timber.tag("InsectVM").e(t, "delete pending failed")
+                        }
+                        _uiState.value = _uiState.value.copy(recordingState = RecordingState.Idle)
+                        return@launch
+                    }
+                    if (event.hasError() &&
+                        event.error != VideoRecordEvent.Finalize.ERROR_DURATION_LIMIT_REACHED
+                    ) {
+                        val errMsg = "code=${event.error}: ${event.cause?.message ?: "unknown"}"
+                        _uiState.value = _uiState.value.copy(recordingState = RecordingState.Idle)
+                        _events.send(OneShotEvent.VideoError(errMsg))
+                    } else {
+                        _uiState.value = _uiState.value.copy(recordingState = RecordingState.Idle)
+                        _events.send(OneShotEvent.VideoSaved(outputUri))
+                    }
+                }
+                else -> Unit
+            }
+        }
     }
 
     /**
