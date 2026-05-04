@@ -91,7 +91,14 @@ class InsectFilterViewModel @Inject constructor(
     fun bind(lifecycleOwner: LifecycleOwner) {
         viewModelScope.launch {
             runCatching {
-                controller.bind(lifecycleOwner, _uiState.value.lens)
+                // 05-gaps-01: pass cameraMode = InsectFilter so CameraController skips MlKitAnalyzer (D-05)
+                // and OverlayEffectBuilder routes to StickerRenderer (D-20). Without this, FilterEngine
+                // face-anchored render runs in Insect mode + face detection wastes CPU.
+                controller.bind(
+                    lifecycleOwner,
+                    _uiState.value.lens,
+                    cameraMode = com.bugzz.filter.camera.ui.home.CameraMode.InsectFilter,
+                )
             }.onFailure { e ->
                 Timber.tag("InsectVM").e(e, "bind failed")
             }
