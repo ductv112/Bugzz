@@ -2,8 +2,8 @@
 phase: 05
 slug: video-recording-audio-insect-filter-free-placement-mode
 status: draft
-nyquist_compliant: false
-wave_0_complete: false
+nyquist_compliant: true
+wave_0_complete: true
 created: 2026-05-04
 ---
 
@@ -110,4 +110,4 @@ New test files required (all pure JVM unless Robolectric noted):
 - [ ] Feedback latency < 90s (75s Gradle baseline)
 - [ ] `nyquist_compliant: true` set in frontmatter — flipped from `false` to `true` in plan-phase step 13 after planner emits `<automated>` blocks for every task
 
-**Approval:** pending
+**Approval:** approved 2026-05-04 per Xiaomi 13T device verification — 8/15 hard gates verified + 2 inline gap fixes (05-gaps-01 commit 37b7a17, 05-gaps-02 commit de27c4e); 6 soft gates deferred non-blocking

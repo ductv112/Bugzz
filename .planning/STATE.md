@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: Plan 05-07 Tasks 1-2 complete — 05-HANDOFF.md ready; awaiting Xiaomi 13T device verification before Task 4 (post-PASS closure)
+stopped_at: "Phase 5 device verification PASS — 8/15 hard gates verified + 2 inline gap fixes shipped (05-gaps-01 cameraMode propagation commit 37b7a17, 05-gaps-02 StickerRenderer coord transform commit de27c4e); 6 soft gates deferred non-blocking; 05-07-SUMMARY.md written; 05-VALIDATION.md nyquist_compliant flipped; ready for Phase 6 UX Polish"
 last_updated: "2026-05-04T15:14:18.576Z"
 progress:
   total_phases: 7
-  completed_phases: 4
+  completed_phases: 5
   total_plans: 34
-  completed_plans: 33
-  percent: 97
+  completed_plans: 34
+  percent: 100
 ---
 
 # State: Bugzz
@@ -21,20 +21,20 @@ progress:
 
 **Core Value:** Smooth live AR preview with bug sprites tracking face landmarks. If the live preview stutters or bugs don't stick to the face, everything else is meaningless.
 
-**Current Focus:** Phase 05 — Video Recording + Audio + Insect Filter Free-Placement Mode
+**Current Focus:** Phase 06 — UX Polish (Splash, Home, Onboarding, Preview, Collection, Share)
 
 **Milestone:** v1 — feature-parity clone of `com.insect.filters.funny.prank.bug.filter.face.camera` v1.2.7, MINUS monetization and i18n.
 
 ## Current Position
 
-Phase: 05 (Video Recording + Audio + Insect Filter Free-Placement Mode) — EXECUTING
-Plan: 1 of 7
+Phase: 05 (Video Recording + Audio + Insect Filter Free-Placement Mode) — COMPLETE
+Plan: 7 of 7 complete
 
-- **Phase:** 5
-- **Plan:** Not started
-- **Previous plan:** 04-08 complete — Phase 4 closed on Xiaomi 13T 2026-05-04; 15 filters visible, all 4 behaviors render (STATIC/CRAWL/SWARM/FALL), DataStore persist verified, multi-face graceful; 04-VALIDATION.md nyquist_compliant: true CameraUiState (5-field D-14 data class) + PermissionState sealed interface + OneShotEvent sealed interface for toasts; @HiltViewModel CameraViewModel @Inject(CameraController) exposing uiState:StateFlow + surfaceRequest reshared + events:Flow via Channel(BUFFERED).receiveAsFlow, with onFlipLens (CameraLensProvider.next), onTestRecord (delay(5_000L) auto-stop per D-04, no audio path per D-05), and orientationListener (quadrant-thresholded Surface.ROTATION_{0/90/180/270} emit per D-08); CameraScreen @Composable rendering CameraXViewfinder(ImplementationMode.EXTERNAL) fullscreen + OutlinedButton { Text("Flip") } Alignment.TopEnd (D-24 — text fallback, material-icons-extended not on classpath) + BuildConfig.DEBUG-gated Button { Text("TEST RECORD 5s" | "REC...") } Alignment.BottomCenter (D-04); CAMERA-only permission gate with rationale + Settings CTA reusing Phase 1 StubScreens pattern (D-26/27); DisposableEffect enables/disables OrientationEventListener (D-08). BugzzApp.kt CameraRoute import rewired to com.bugzz.filter.camera.ui.camera.CameraScreen (Phase 1 ui/screens stub orphaned but file retained for other routes). 4 Rule 3 auto-fixes: (1) Hilt cannot synthesize a binding for Kotlin @Inject constructor default-value Function2 param — split CameraController into internal primary constructor (test seam) + secondary @Inject constructor (production factory inlined), (2) ImplementationMode lives in androidx.camera.viewfinder.core NOT .surface — research §Open Questions #1 resolved with AAR class dump (EXTERNAL enum confirmed — no fallback to PERFORMANCE needed), (3) Icons.Default.Cameraswitch not on classpath — OutlinedButton { Text("Flip") } per plan's explicit fallback + CLAUDE.md D-24 icon polish deferred to Phase 6, (4) MutableCoordinateTransformer import dropped (unused in body). APK assembles (79 MB); 10 unit tests GREEN (9 Phase 2 Nyquist + 1 placeholder).
-- **Status:** Executing Phase 05
-- **Progress:** [██████████] 97%
+- **Phase:** 5 — COMPLETE (2026-05-04)
+- **Plan:** 07 complete — Phase 5 closed
+- **Previous plan:** 05-07 complete — Phase 5 closed on Xiaomi 13T 2026-05-04; 8/15 hard gates verified via ADB automation; 2 inline gap fixes shipped (05-gaps-01 cameraMode propagation 37b7a17, 05-gaps-02 StickerRenderer coord transform de27c4e); 143 unit tests GREEN; 05-VALIDATION.md nyquist_compliant: true; VideoRecorder + CameraController.startRecording/stopRecording + RecordingState sealed + OverlayEffectBuilder cameraMode branch + InsectFilterScreen + StickerRenderer + ThermalMonitor all production-wired; nav rewired InsectFilter button live; stubs deleted.
+- **Status:** Phase 05 COMPLETE — Phase 06 next
+- **Progress:** [██████████] 100%
 
 ### Phase Map
 
@@ -43,7 +43,7 @@ Phase 1: Foundation & Skeleton                            [ complete ]
 Phase 2: Camera + Face Detection + Coord Validation       [ gap closure — 6/6 base + 1/3 gap plans done (gaps-02, gaps-03 remaining) ]
 Phase 3: First Filter End-to-End + Photo Capture          [ pending ]
 Phase 4: Filter Catalog + Picker + Face Filter Mode       [ complete ]
-Phase 5: Video Recording + Audio + Insect Filter Mode     [ pending ]
+Phase 5: Video Recording + Audio + Insect Filter Mode     [ complete ]
 Phase 6: UX Polish (Splash/Home/Onboarding/...)           [ pending ]
 Phase 7: Performance & Device Matrix                      [ pending ]
 ```
@@ -81,6 +81,7 @@ Phase 7: Performance & Device Matrix                      [ pending ]
 | Phase 05 P04 | 273 | 2 tasks | 3 files |
 | Phase 05 P05 | 420 | 1 tasks | 3 files |
 | Phase 05 P06 | 180 | 1 tasks | 3 files |
+| Phase 05 P07 | ~2100 | 4 tasks | 10 files |
 
 ## Accumulated Context
 
@@ -94,6 +95,10 @@ Phase 7: Performance & Device Matrix                      [ pending ]
 6. **Persistence:** MediaStore for captures, DataStore for prefs — no Room DB for MVP.
 
 ### Key Decisions During Execution
+
+34. **[Phase 05-gaps-01] InsectFilterViewModel.bind must pass cameraMode=CameraMode.InsectFilter explicitly:** Omitting the `cameraMode` argument caused `controller.bind(lifecycle)` to default to `CameraMode.FaceFilter`, attaching `MlKitAnalyzer` in InsectFilter mode (CPU waste) and running `FilterEngine.onDraw` instead of `StickerRenderer.onDraw` (wrong render path). Fix at commit `37b7a17`. Pattern: any ViewModel that binds `CameraController` for a non-FaceFilter mode MUST pass its mode explicitly — never rely on default. Verified: ZERO FaceTracker logcat lines in Insect mode post-fix; StickerRenderer active.
+
+35. **[Phase 05-gaps-02] StickerRenderer coordinate transform: Compose preview px → OverlayEffect buffer canvas px requires axis-swap + scale + front-cam mirror:** `StickerState.offset` is in portrait Compose preview px (e.g. 1220×2712 on Xiaomi 13T). `OverlayEffect` buffer canvas is landscape 1920×1080. Transform: (1) axis swap (portrait Y → landscape X; portrait X → landscape Y) for 90° CW PreviewView rotation, (2) scale by `bufferW/previewH` and `bufferH/previewW`, (3) front-cam mirror inversion on mapped axis. `StickerRenderer.setPreviewSize(w,h)` must be called when InsectFilterScreen lays out. `onDraw` resets matrix to identity before applying custom transform — does NOT inherit `sensorToBufferTransform` from OverlayEffectBuilder. Fix at commit `de27c4e`. Visual drag direction polish (axis-mirror fine-tune) deferred to Phase 7 cross-OEM matrix.
 
 31. **[Phase 04-08 gap-01] AssetLoader must use assetDir not filterId as cache key + path source:** `AssetLoader.preload(assetDir)` and `get(assetDir, frameIdx)` take the full asset-relative path (e.g. `"sprites/sprite_spider"`) — NOT the `filterId` (e.g. `"spider_nose_static"`). FilterCatalog D-30 shares 4 sprite directories across 15 filters; using `filterId` caused `FilterLoadFailed` toast on first launch (manifest.json path was `sprites/spider_nose_static/manifest.json` — a path that does not exist). Fix at commit `514410c`. Cache key scoped to `assetDir` means shared sprites decode once for all catalog entries — D-30 perf win realized on device. **Pattern: any class that bridges `FilterDefinition.id` (logical) ↔ `FilterDefinition.assetDir` (filesystem) must use `assetDir` for I/O operations.**
 
@@ -166,12 +171,12 @@ None.
 
 ## Session Continuity
 
-**Last agent:** gsd-execute-phase (Plan 04-08 Task 4 post-PASS closure executor)
-**Last action:** Completed 04-08-PLAN.md — Task 4: 04-08-SUMMARY.md written; 04-VALIDATION.md nyquist_compliant flipped to true; STATE.md + ROADMAP.md updated. Phase 4 device verification 11/13 hard gates PASS on Xiaomi 13T 2026-05-04. Inline gap fix 04-gaps-01 (AssetLoader assetDir API) shipped at commit 514410c.
+**Last agent:** gsd-execute-phase (Plan 05-07 Task 4 post-PASS closure executor)
+**Last action:** Completed 05-07-PLAN.md — Task 4: 05-07-SUMMARY.md written; 05-VALIDATION.md nyquist_compliant flipped to true; STATE.md + ROADMAP.md updated. Phase 5 device verification 8/15 hard gates PASS on Xiaomi 13T 2026-05-04. Inline gap fixes 05-gaps-01 (InsectFilterViewModel cameraMode propagation, commit 37b7a17) + 05-gaps-02 (StickerRenderer coord transform, commit de27c4e) shipped. 143 unit tests GREEN.
 
-**Stopped at:** Completed 05-06-PLAN.md — nav rewire + stub delete + Insect Filter button enable
+**Stopped at:** Phase 5 device verification PASS — 8/15 hard gates verified + 2 inline gap fixes shipped (05-gaps-01 + 05-gaps-02); 6 soft gates deferred; ready for code-review + verifier
 
-**Next expected action:** Plan Phase 5 via `/gsd-research-phase 5` or `/gsd-discuss-phase 5` — Video Recording + Audio + Insect Filter Free-Placement Mode.
+**Next expected action:** Start Phase 6 UX Polish via `/gsd-discuss-phase 6` — Splash, Home, Onboarding, Preview, Collection, Share.
 
 **Files modified this session (Plan 03-02):**
 

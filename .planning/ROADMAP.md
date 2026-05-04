@@ -121,7 +121,7 @@ Plans:
 - [x] 05-04-PLAN.md — CameraScreen extensions: production Record button + indicator + AlertDialog + lock-during-record + RECORD_AUDIO lazy permission (Wave 3)
 - [x] 05-05-PLAN.md — InsectFilterScreen 9-layer Box + detectTransformGestures + record UI mirror (Wave 3)
 - [x] 05-06-PLAN.md — Nav rewire: BugzzApp CameraRoute(InsectFilter) → InsectFilterScreen; HomeScreen button enabled; delete InsectFilterStubScreen (Wave 3)
-- [ ] 05-07-PLAN.md — Clean build + 05-HANDOFF Xiaomi 13T runbook + device sign-off + VALIDATION nyquist flip (Wave 4)
+- [x] 05-07-PLAN.md — Clean build + 05-HANDOFF Xiaomi 13T runbook + device sign-off + VALIDATION nyquist flip (Wave 4) — completed 2026-05-04
 
 ### Phase 6: UX Polish — Splash, Home, Onboarding, Preview, Collection, Share
 **Goal**: Replace all navigation stubs with production screens matching the reference visual spec, giving users the complete end-to-end journey from splash to saving artifacts to re-opening the Collection and sharing to social apps.
@@ -156,7 +156,7 @@ Plans:
 | 2. Camera Preview + Face Detection + Coord Validation | 0/6 | Planned | - |
 | 3. First Filter End-to-End + Photo Capture | 5/5 | In Progress (awaiting phase complete) | 2026-04-20 |
 | 4. Filter Catalog + Picker + Face Filter Mode | 8/8 | Complete    | 2026-05-04 |
-| 5. Video Recording + Audio + Insect Filter Mode | 6/7 | In Progress|  |
+| 5. Video Recording + Audio + Insect Filter Mode | 7/7 | Complete    | 2026-05-04 |
 | 6. UX Polish — Splash, Home, Onboarding, Preview, Collection, Share | 0/? | Not started | - |
 | 7. Performance & Device Matrix | 0/? | Not started | - |
 
