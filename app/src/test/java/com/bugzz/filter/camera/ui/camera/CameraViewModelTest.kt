@@ -283,7 +283,8 @@ class CameraViewModelTest {
         advanceUntilIdle()
 
         // controller.bind must NEVER fire again — only filter engine + DataStore updated
-        verify(mockController, never()).bind(any(), any(), any())
+        // Note: bind() now has 4 parameters (lifecycleOwner, lens, rotation, cameraMode).
+        verify(mockController, never()).bind(any(), any(), any(), any())
     }
 
     // ----- Phase 5 — Plan 05-03 recording lifecycle tests -----

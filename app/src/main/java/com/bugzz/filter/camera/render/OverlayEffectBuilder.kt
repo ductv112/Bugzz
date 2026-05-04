@@ -11,6 +11,7 @@ import androidx.camera.core.CameraEffect
 import androidx.camera.effects.OverlayEffect
 import com.bugzz.filter.camera.BuildConfig
 import com.bugzz.filter.camera.detector.FaceDetectorClient
+import com.bugzz.filter.camera.ui.home.CameraMode
 import timber.log.Timber
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -35,9 +36,18 @@ class OverlayEffectBuilder @Inject constructor(
     private val faceDetector: FaceDetectorClient,
     private val renderer: DebugOverlayRenderer,
     private val filterEngine: FilterEngine,
+    private val stickerRenderer: StickerRenderer,
 ) {
     private lateinit var renderThread: HandlerThread
     private lateinit var renderHandler: Handler
+
+    /**
+     * Current camera mode — settable from CameraController.bind() before each bind.
+     * Determines which renderer is used in the setOnDrawListener body (D-20).
+     * Volatile for cross-thread visibility (set on main thread, read on BugzzRenderThread).
+     */
+    @Volatile
+    var cameraMode: CameraMode = CameraMode.FaceFilter
 
     /** Construct ONCE per app session. D-25: reuse across lens flips. */
     fun build(): OverlayEffect {
@@ -70,12 +80,17 @@ class OverlayEffectBuilder @Inject constructor(
                 logDiagnostic(frame.sensorToBufferTransform, snapshot.faces.first().boundingBox)
             }
 
-            // D-27 draw order (Claude's Discretion): FilterEngine draws the bug sprite FIRST so
-            // DebugOverlayRenderer's diagnostic overlay (bbox, contours) appears on top during
-            // development. In release builds the debug renderer is a no-op, so draw order only
-            // matters for correctness — sprites under the diagnostic grid is the right layering.
-            filterEngine.onDraw(canvas, frame, snapshot.faces.firstOrNull())
-            renderer.draw(canvas, snapshot, frame.timestampNanos)
+            // D-20: branch on cameraMode to select the correct renderer.
+            // FaceFilter: FilterEngine draws face-anchored bug sprites.
+            // InsectFilter: StickerRenderer draws free-placement sticker at StickerState offset.
+            // Draw order (D-27): content renderer FIRST, then DebugOverlayRenderer on top.
+            when (cameraMode) {
+                CameraMode.FaceFilter -> filterEngine.onDraw(canvas, frame, snapshot.faces.firstOrNull())
+                CameraMode.InsectFilter -> stickerRenderer.onDraw(canvas, frame)
+            }
+            if (BuildConfig.DEBUG && snapshot.faces.isNotEmpty()) {
+                renderer.draw(canvas, snapshot, frame.timestampNanos)
+            }
             true  // = "I drew something; present this frame"
         }
 

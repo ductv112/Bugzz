@@ -30,6 +30,7 @@ import androidx.lifecycle.LifecycleOwner
 import com.bugzz.filter.camera.detector.FaceDetectorClient
 import com.bugzz.filter.camera.recording.VideoRecorder
 import com.bugzz.filter.camera.render.OverlayEffectBuilder
+import com.bugzz.filter.camera.ui.home.CameraMode
 import com.google.common.util.concurrent.ListenableFuture
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -125,12 +126,21 @@ class CameraController internal constructor(
     private var videoCapture: VideoCapture<Recorder>? = null
     private var activeRecording: Recording? = null
 
-    /** CAM-03 — bind 4 use cases + 1 effect under one lifecycle. */
+    /**
+     * CAM-03 — bind 4 use cases + 1 effect under one lifecycle.
+     *
+     * @param cameraMode D-20: when InsectFilter, skips MlKitAnalyzer attachment (D-05) and
+     *   sets overlayEffectBuilder.cameraMode = InsectFilter so StickerRenderer is used.
+     */
     suspend fun bind(
         lifecycleOwner: LifecycleOwner,
         lens: CameraLens,
         initialRotation: Int = Surface.ROTATION_0,
+        cameraMode: CameraMode = CameraMode.FaceFilter,
     ) {
+        // Update OverlayEffectBuilder cameraMode BEFORE building the use case group (D-20).
+        overlayEffectBuilder.cameraMode = cameraMode
+
         val provider = providerFactory(appContext)
         provider.unbindAll()
 
@@ -141,7 +151,6 @@ class CameraController internal constructor(
                 p.setSurfaceProvider { request -> _surfaceRequest.value = request }
             }
 
-        val analyzer = faceDetector.createAnalyzer()
         val imageAnalysisUc = ImageAnalysis.Builder()
             .setResolutionSelector(
                 ResolutionSelector.Builder()
@@ -155,7 +164,14 @@ class CameraController internal constructor(
             .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST)  // CAM-05 / PITFALLS #4
             .setTargetRotation(initialRotation)
             .build()
-            .also { it.setAnalyzer(cameraExecutor, analyzer) }
+            .also { ia ->
+                // D-05: only attach MlKitAnalyzer in FaceFilter mode. InsectFilter saves CPU
+                // by skipping face detection entirely (no face tracking needed for sticker mode).
+                if (cameraMode == CameraMode.FaceFilter) {
+                    val analyzer = faceDetector.createAnalyzer()
+                    ia.setAnalyzer(cameraExecutor, analyzer)
+                }
+            }
 
         val imageCaptureUc = imageCaptureFactory().also { it.targetRotation = initialRotation }
 
