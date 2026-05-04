@@ -70,16 +70,16 @@ Feature-parity clone of reference app (`com.insect.filters.funny.prank.bug.filte
 
 ### Video Recording
 
-- [ ] **VID-01**: Record button starts video recording via CameraX `Recorder` + `VideoCapture`
-- [ ] **VID-02**: Video output has overlay baked in (OverlayEffect composites into VIDEO_CAPTURE output)
-- [ ] **VID-03**: Audio captured from device microphone and synced with video
-- [ ] **VID-04**: Recording auto-stops at 60-second cap; user can stop earlier via button
-- [ ] **VID-05**: Front-camera video uses `MIRROR_MODE_ON_FRONT_ONLY` to match reference convention
-- [ ] **VID-06**: Video saved as MP4 to `DCIM/Bugzz/` via MediaStore `Video` insert
+- [x] **VID-01**: Record button starts video recording via CameraX `Recorder` + `VideoCapture`
+- [x] **VID-02**: Video output has overlay baked in (OverlayEffect composites into VIDEO_CAPTURE output)
+- [x] **VID-03**: Audio captured from device microphone and synced with video
+- [x] **VID-04**: Recording auto-stops at 60-second cap; user can stop earlier via button
+- [x] **VID-05**: Front-camera video uses `MIRROR_MODE_ON_FRONT_ONLY` to match reference convention
+- [x] **VID-06**: Video saved as MP4 to `DCIM/Bugzz/` via MediaStore `Video` insert
 - [ ] **VID-07**: Recording indicator (red dot + elapsed timer) visible while recording
 - [x] **VID-08**: `PowerManager.ThermalStatusListener` hooked; above `THERMAL_STATUS_MODERATE` drops detection to `PERFORMANCE_MODE_FAST`
-- [ ] **VID-09**: Exit-during-record triggers confirmation dialog; cancel preserves recording
-- [ ] **VID-10**: RECORD_AUDIO permission requested lazily on first record attempt, not at app launch
+- [x] **VID-09**: Exit-during-record triggers confirmation dialog; cancel preserves recording
+- [x] **VID-10**: RECORD_AUDIO permission requested lazily on first record attempt, not at app launch
 
 ### UX Screens
 
@@ -204,16 +204,16 @@ Final mapping locked by roadmap (2026-04-18). Every v1 requirement is assigned t
 | MOD-05 | Phase 5 | Pending |
 | MOD-06 | Phase 5 | Pending |
 | MOD-07 | Phase 5 | Complete |
-| VID-01 | Phase 5 | Pending |
-| VID-02 | Phase 5 | Pending |
-| VID-03 | Phase 5 | Pending |
-| VID-04 | Phase 5 | Pending |
-| VID-05 | Phase 5 | Pending |
-| VID-06 | Phase 5 | Pending |
+| VID-01 | Phase 5 | Complete |
+| VID-02 | Phase 5 | Complete |
+| VID-03 | Phase 5 | Complete |
+| VID-04 | Phase 5 | Complete |
+| VID-05 | Phase 5 | Complete |
+| VID-06 | Phase 5 | Complete |
 | VID-07 | Phase 5 | Pending |
 | VID-08 | Phase 5 | Complete |
-| VID-09 | Phase 5 | Pending |
-| VID-10 | Phase 5 | Pending |
+| VID-09 | Phase 5 | Complete |
+| VID-10 | Phase 5 | Complete |
 | UX-01 | Phase 6 | Pending |
 | UX-02 | Phase 6 | Pending |
 | UX-03 | Phase 6 | Pending |
