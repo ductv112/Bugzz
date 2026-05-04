@@ -2,8 +2,8 @@
 phase: 04
 slug: filter-catalog-picker-face-filter-mode
 status: draft
-nyquist_compliant: false
-wave_0_complete: false
+nyquist_compliant: true
+wave_0_complete: true
 created: 2026-04-20
 ---
 
@@ -99,13 +99,13 @@ New test files required (all pure JVM unless Robolectric noted):
 
 ## Validation Sign-Off
 
-- [ ] All tasks have `<automated>` verify or Wave 0 dependencies
-- [ ] Sampling continuity: no 3 consecutive tasks without automated verify
-- [ ] Wave 0 covers all MISSING test references (7 new + 2 extensions)
-- [ ] `io.coil-kt:coil-compose:2.7.0` and `androidx.datastore:datastore-preferences:1.1.3` added to catalog
-- [ ] Turbine 1.2.0 added to testImplementation for Flow testing
-- [ ] No watch-mode flags
-- [ ] Feedback latency < 90s (60s Gradle baseline)
-- [ ] `nyquist_compliant: true` set in frontmatter — flipped from `false` to `true` in plan-phase step 13 after planner emits `<automated>` blocks for every task
+- [x] All tasks have `<automated>` verify or Wave 0 dependencies
+- [x] Sampling continuity: no 3 consecutive tasks without automated verify
+- [x] Wave 0 covers all MISSING test references (7 new + 2 extensions)
+- [x] `io.coil-kt:coil-compose:2.7.0` and `androidx.datastore:datastore-preferences:1.1.3` added to catalog
+- [x] Turbine 1.2.0 added to testImplementation for Flow testing
+- [x] No watch-mode flags
+- [x] Feedback latency < 90s (measured: ~60s on Plan 04-08 Task 1 run)
+- [x] `nyquist_compliant: true` — flipped 2026-05-04 post Xiaomi 13T device sign-off (11/13 hard gates PASS)
 
-**Approval:** pending
+**Approval:** approved 2026-05-04

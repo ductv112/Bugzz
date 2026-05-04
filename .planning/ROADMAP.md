@@ -10,7 +10,7 @@
 - [x] **Phase 1: Foundation & Skeleton** — Gradle, Hilt, Compose nav shell, manifest, permissions, StrictMode installed and app boots on real device. (completed 2026-04-18)
 - [ ] **Phase 2: Camera Preview + Face Detection + Coordinate Validation** — CameraX 1.6 pipeline live on-device with `OverlayEffect` + `MlKitAnalyzer` debug overlay proving sensor-to-buffer transform across all orientations and lenses.
 - [ ] **Phase 3: First Filter End-to-End + Photo Capture** — one production filter tracks face in real time, shutter bakes overlay into JPEG saved to `DCIM/Bugzz/`.
-- [ ] **Phase 4: Filter Catalog + Picker + Face Filter Mode** — 15-25 bundled filters with 4 bug behaviors, horizontal picker, instant in-preview filter swap.
+- [x] **Phase 4: Filter Catalog + Picker + Face Filter Mode** — 15-25 bundled filters with 4 bug behaviors, horizontal picker, instant in-preview filter swap. (completed 2026-05-04)
 - [ ] **Phase 5: Video Recording + Audio + Insect Filter Free-Placement Mode** — 60s video capture with audio+overlay muxed, plus draggable/pinch/rotate sticker mode.
 - [ ] **Phase 6: UX Polish — Splash, Home, Onboarding, Preview, Collection, Share** — every reference screen wired, MediaStore-backed collection, Android share sheet delivering artifacts with overlay intact.
 - [ ] **Phase 7: Performance & Device Matrix** — measured ≥24fps on mid-tier device, thermal mitigation verified, APK ≤40MB, cross-OEM pass on Samsung + Pixel.
@@ -99,7 +99,7 @@ Plans:
 - [x] 04-05-PLAN.md — FilterPrefsRepository + DataModule + FilterSummary + CameraViewModel.onSelectFilter + DataStore-aware bind (Wave 3)
 - [x] 04-06-PLAN.md — FilterPicker LazyRow composable + CameraScreen integration + Cycle button removal (Wave 3)
 - [x] 04-07-PLAN.md — CameraMode enum + production HomeScreen + InsectFilterStubScreen + Routes/BugzzApp rewire (Wave 3)
-- [ ] 04-08-PLAN.md — Clean debug build + 04-HANDOFF Xiaomi 13T runbook + device sign-off + VALIDATION nyquist flip (Wave 4)
+- [x] 04-08-PLAN.md — Clean debug build + 04-HANDOFF Xiaomi 13T runbook + device sign-off + VALIDATION nyquist flip (Wave 4) — completed 2026-05-04
 
 ### Phase 5: Video Recording + Audio + Insect Filter Free-Placement Mode
 **Goal**: Add the two features that reuse the validated render pipeline — 60s video capture with synced audio and overlay baked in, plus the free-placement Insect Filter sticker mode with drag/pinch/rotate gestures.
@@ -146,7 +146,7 @@ Plans:
 | 1. Foundation & Skeleton | 4/4 | Complete    | 2026-04-18 |
 | 2. Camera Preview + Face Detection + Coord Validation | 0/6 | Planned | - |
 | 3. First Filter End-to-End + Photo Capture | 5/5 | In Progress (awaiting phase complete) | 2026-04-20 |
-| 4. Filter Catalog + Picker + Face Filter Mode | 5/8 | In Progress|  |
+| 4. Filter Catalog + Picker + Face Filter Mode | 8/8 | Complete    | 2026-05-04 |
 | 5. Video Recording + Audio + Insect Filter Mode | 0/? | Not started | - |
 | 6. UX Polish — Splash, Home, Onboarding, Preview, Collection, Share | 0/? | Not started | - |
 | 7. Performance & Device Matrix | 0/? | Not started | - |
