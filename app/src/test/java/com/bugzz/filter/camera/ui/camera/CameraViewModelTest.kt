@@ -21,6 +21,7 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Before
+import org.junit.Ignore
 import org.junit.Test
 import org.mockito.kotlin.any
 import org.mockito.kotlin.argThat
@@ -282,5 +283,43 @@ class CameraViewModelTest {
 
         // controller.bind must NEVER fire again — only filter engine + DataStore updated
         verify(mockController, never()).bind(any(), any(), any())
+    }
+
+    // ----- Phase 5 — Plan 05-03 will un-Ignore these -----
+
+    @Ignore("Plan 05-03 lands onRecordTapped + RecordingState")
+    @Test
+    fun onRecordTapped_idle_startsRecording_emitsActiveState() {
+        org.junit.Assert.fail("Plan 05-03 lands SUT")
+    }
+
+    @Ignore("Plan 05-03 lands isRecording guard")
+    @Test
+    fun onRecordTapped_alreadyActive_returnsEarly() {
+        org.junit.Assert.fail("Plan 05-03 lands SUT")
+    }
+
+    @Ignore("Plan 05-03 lands onDiscardRecording")
+    @Test
+    fun onDiscardRecording_stopsAndDeletesPendingUri() {
+        org.junit.Assert.fail("Plan 05-03 lands SUT")
+    }
+
+    @Ignore("Plan 05-03 lands recording timer Status event handler")
+    @Test
+    fun recordingState_statusEvent_incrementsElapsedMs() {
+        org.junit.Assert.fail("Plan 05-03 lands SUT")
+    }
+
+    @Ignore("Plan 05-04 lands lock-during-record UI signal")
+    @Test
+    fun lockUI_duringRecording_pickerAlphaAndFlipDisabled() {
+        org.junit.Assert.fail("Plan 05-04 lands SUT")
+    }
+
+    @Ignore("Plan 05-03 lands lazy permission denial flow")
+    @Test
+    fun onRecordTapped_audioPermissionDenied_emitsRationaleEvent() {
+        org.junit.Assert.fail("Plan 05-03 lands SUT")
     }
 }

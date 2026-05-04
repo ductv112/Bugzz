@@ -18,6 +18,7 @@ import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertTrue
+import org.junit.Ignore
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.mockito.kotlin.any
@@ -233,5 +234,31 @@ class CameraControllerTest {
             "exception must be IllegalStateException",
             capturedResult!!.exceptionOrNull() is IllegalStateException
         )
+    }
+
+    // ----- Phase 5 — Plan 05-03 will un-Ignore these -----
+
+    @Ignore("Plan 05-03 lands CameraController.startRecording / stopRecording production methods")
+    @Test
+    fun bind_videoCaptureHasMirrorMode() {
+        org.junit.Assert.fail("Plan 05-03 lands SUT")
+    }
+
+    @Ignore("Plan 05-03 lands CameraController.startRecording")
+    @Test
+    fun startRecording_durationLimitSet() {
+        org.junit.Assert.fail("Plan 05-03 lands SUT")
+    }
+
+    @Ignore("Plan 05-03 lands CameraController.startRecording audio toggle")
+    @Test
+    fun startRecording_audioEnabledFlagToggle() {
+        org.junit.Assert.fail("Plan 05-03 lands SUT")
+    }
+
+    @Ignore("Plan 05-03 lands CameraController.stopRecording")
+    @Test
+    fun stopRecording_invokesRecordingStop() {
+        org.junit.Assert.fail("Plan 05-03 lands SUT")
     }
 }
