@@ -53,10 +53,10 @@ Feature-parity clone of reference app (`com.insect.filters.funny.prank.bug.filte
 
 - [x] **MOD-01**: Home screen has two primary buttons: "Face Filter" (landmark-tracked) and "Insect Filter" (free-placement sticker)
 - [x] **MOD-02**: Face Filter mode anchors bugs to face landmarks with real-time tracking
-- [ ] **MOD-03**: Insect Filter mode places a single bug sticker on screen without face tracking
-- [ ] **MOD-04**: Insect Filter mode supports drag gesture to move sticker
-- [ ] **MOD-05**: Insect Filter mode supports pinch-to-zoom gesture
-- [ ] **MOD-06**: Insect Filter mode supports rotation gesture
+- [x] **MOD-03**: Insect Filter mode places a single bug sticker on screen without face tracking
+- [x] **MOD-04**: Insect Filter mode supports drag gesture to move sticker
+- [x] **MOD-05**: Insect Filter mode supports pinch-to-zoom gesture
+- [x] **MOD-06**: Insect Filter mode supports rotation gesture
 - [x] **MOD-07**: Insect Filter mode sticker survives camera flip and orientation change
 
 ### Photo Capture
@@ -199,10 +199,10 @@ Final mapping locked by roadmap (2026-04-18). Every v1 requirement is assigned t
 | CAT-05 | Phase 4 | Complete |
 | MOD-01 | Phase 4 | Complete |
 | MOD-02 | Phase 4 | Complete |
-| MOD-03 | Phase 5 | Pending |
-| MOD-04 | Phase 5 | Pending |
-| MOD-05 | Phase 5 | Pending |
-| MOD-06 | Phase 5 | Pending |
+| MOD-03 | Phase 5 | Complete |
+| MOD-04 | Phase 5 | Complete |
+| MOD-05 | Phase 5 | Complete |
+| MOD-06 | Phase 5 | Complete |
 | MOD-07 | Phase 5 | Complete |
 | VID-01 | Phase 5 | Complete |
 | VID-02 | Phase 5 | Complete |
