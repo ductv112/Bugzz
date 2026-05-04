@@ -678,7 +678,7 @@ The `"Insect Filter"` string on HomeScreen button label (`"Insect Filter"`) is *
 
 ### Contract Summary
 - Spacing: 4dp grid (4/8/16/24/32/48/64dp stops) — inherited Phase 4. Exceptions: 16dp red dot (semantic), 104dp picker bottom offset (calculated).
-- Typography: 4 sizes (10sp/14sp/16sp + timer 16sp Medium), 3 weights (400/500/600) — inherited Phase 4, timer size clarified.
+- Typography: 3 sizes (10sp/14sp/16sp), 2 weights (400/500) — Phase 5 reduced from Phase 4's 3 by eliminating SemiBold; AlertDialog title overrides Material3 default to Medium.
 - Color: Dominant #121212 / Secondary #1E1E1E 80% / Accent white #FFFFFFFF / Accent-record #FFE53935 (scope-limited) / Destructive #FFB00020 — 1 new semantic token added.
 - Copywriting: 8 new Phase 5 strings defined; 6 Phase 4 strings inherited; 3 stub strings retired.
 - Registry: Maven Central only (all existing declarations) — no new registries, no third-party blocks.
