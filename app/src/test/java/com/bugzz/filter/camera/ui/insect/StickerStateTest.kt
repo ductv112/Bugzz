@@ -1,68 +1,83 @@
 package com.bugzz.filter.camera.ui.insect
 
-import org.junit.Assert
-import org.junit.Ignore
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.unit.IntSize
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertTrue
 import org.junit.Test
 
 /**
- * RED scaffold for MOD-03..06. SUT (StickerState data class + clamp helpers) lands in Plan 05-02.
- *
- * Expected API shape (Plan 05-02):
- *   data class StickerState(
- *       val offset: androidx.compose.ui.geometry.Offset = Offset.Zero,
- *       val scale: Float = 1f,
- *       val rotation: Float = 0f,
- *   ) {
- *       fun drag(panX: Float, panY: Float): StickerState  // adds panAmount to offset
- *       fun pinch(zoomChange: Float): StickerState        // scale * zoomChange, clamped [0.3f, 3.0f]
- *       fun rotate(rotationDeg: Float): StickerState      // rotation + rotationDeg, mod 360
- *       fun clampOffset(previewWidth: Float, previewHeight: Float): StickerState
- *           // offset clamped so sticker center stays within [-50%..+150%] of preview size
- *   }
- *
- * D-03 constraints:
- *   - scale: clamped to [0.3f, 3.0f]
- *   - offset: sticker center may overflow edge by 50% of preview dimension
- *   - rotation: mod 360 (unbounded input, output in [0, 360))
- *
- * Initial state per D-02: sticker spawns at preview center when InsectFilter mode entered.
- * The ViewModel sets offset to (previewWidth/2, previewHeight/2) on mode entry.
+ * Pure JVM unit tests for StickerState clamp math — MOD-03..06.
+ * Un-Ignored in Plan 05-02 when SUT landed.
  */
 class StickerStateTest {
 
-    @Ignore("Plan 05-02 lands StickerState SUT")
+    private val previewSize = IntSize(720, 1280)
+    private val bitmapSize = IntSize(200, 200)
+
     @Test
     fun initialPosition_isCenter() {
-        Assert.fail("Plan 05-02 lands SUT")
+        val state = StickerState().centerOn(previewSize)
+        assertEquals(360f, state.offset.x, 0.001f)
+        assertEquals(640f, state.offset.y, 0.001f)
+        assertEquals(1f, state.scale, 0.001f)
+        assertEquals(0f, state.rotation, 0.001f)
     }
 
-    @Ignore("Plan 05-02 lands StickerState SUT")
     @Test
     fun drag_updatesOffsetByPanAmount() {
-        Assert.fail("Plan 05-02 lands SUT")
+        val initial = StickerState(offset = Offset(200f, 300f))
+        val pan = Offset(50f, -30f)
+        val result = initial.applyGesture(
+            pan = pan, zoom = 1f, rotationDelta = 0f,
+            previewSize = previewSize, bitmapSize = bitmapSize,
+        )
+        assertEquals(250f, result.offset.x, 0.001f)
+        assertEquals(270f, result.offset.y, 0.001f)
     }
 
-    @Ignore("Plan 05-02 lands StickerState SUT")
     @Test
     fun pinch_updatesScale_clampedToMax3() {
-        Assert.fail("Plan 05-02 lands SUT")
+        val initial = StickerState(scale = 1f)
+        val result = initial.applyGesture(
+            pan = Offset.Zero, zoom = 10f, rotationDelta = 0f,
+            previewSize = previewSize, bitmapSize = bitmapSize,
+        )
+        assertEquals(StickerState.MAX_SCALE, result.scale, 0.001f)
     }
 
-    @Ignore("Plan 05-02 lands StickerState SUT")
     @Test
     fun pinch_updatesScale_clampedToMin0_3() {
-        Assert.fail("Plan 05-02 lands SUT")
+        val initial = StickerState(scale = 1f)
+        val result = initial.applyGesture(
+            pan = Offset.Zero, zoom = 0.01f, rotationDelta = 0f,
+            previewSize = previewSize, bitmapSize = bitmapSize,
+        )
+        assertEquals(StickerState.MIN_SCALE, result.scale, 0.001f)
     }
 
-    @Ignore("Plan 05-02 lands StickerState SUT")
     @Test
     fun rotate_updatesRotation_modulo360() {
-        Assert.fail("Plan 05-02 lands SUT")
+        val initial = StickerState(rotation = 0f)
+        val result = initial.applyGesture(
+            pan = Offset.Zero, zoom = 1f, rotationDelta = 400f,
+            previewSize = previewSize, bitmapSize = bitmapSize,
+        )
+        // 400 % 360 = 40
+        assertEquals(40f, result.rotation, 0.001f)
     }
 
-    @Ignore("Plan 05-02 lands StickerState SUT")
     @Test
     fun offset_clampedTo50PercentOverflow() {
-        Assert.fail("Plan 05-02 lands SUT")
+        // halfW = bitmapSize.width * scale / 2 = 200 * 1f / 2 = 100
+        // maxX = previewSize.width + halfW = 720 + 100 = 820
+        val initial = StickerState(offset = Offset(0f, 0f))
+        val result = initial.applyGesture(
+            pan = Offset(10000f, 0f), zoom = 1f, rotationDelta = 0f,
+            previewSize = previewSize, bitmapSize = bitmapSize,
+        )
+        assertEquals(820f, result.offset.x, 0.001f)
+        // Y unchanged
+        assertTrue(result.offset.y >= -100f)
     }
 }
