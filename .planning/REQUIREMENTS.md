@@ -57,7 +57,7 @@ Feature-parity clone of reference app (`com.insect.filters.funny.prank.bug.filte
 - [ ] **MOD-04**: Insect Filter mode supports drag gesture to move sticker
 - [ ] **MOD-05**: Insect Filter mode supports pinch-to-zoom gesture
 - [ ] **MOD-06**: Insect Filter mode supports rotation gesture
-- [ ] **MOD-07**: Insect Filter mode sticker survives camera flip and orientation change
+- [x] **MOD-07**: Insect Filter mode sticker survives camera flip and orientation change
 
 ### Photo Capture
 
@@ -77,7 +77,7 @@ Feature-parity clone of reference app (`com.insect.filters.funny.prank.bug.filte
 - [ ] **VID-05**: Front-camera video uses `MIRROR_MODE_ON_FRONT_ONLY` to match reference convention
 - [ ] **VID-06**: Video saved as MP4 to `DCIM/Bugzz/` via MediaStore `Video` insert
 - [ ] **VID-07**: Recording indicator (red dot + elapsed timer) visible while recording
-- [ ] **VID-08**: `PowerManager.ThermalStatusListener` hooked; above `THERMAL_STATUS_MODERATE` drops detection to `PERFORMANCE_MODE_FAST`
+- [x] **VID-08**: `PowerManager.ThermalStatusListener` hooked; above `THERMAL_STATUS_MODERATE` drops detection to `PERFORMANCE_MODE_FAST`
 - [ ] **VID-09**: Exit-during-record triggers confirmation dialog; cancel preserves recording
 - [ ] **VID-10**: RECORD_AUDIO permission requested lazily on first record attempt, not at app launch
 
@@ -203,7 +203,7 @@ Final mapping locked by roadmap (2026-04-18). Every v1 requirement is assigned t
 | MOD-04 | Phase 5 | Pending |
 | MOD-05 | Phase 5 | Pending |
 | MOD-06 | Phase 5 | Pending |
-| MOD-07 | Phase 5 | Pending |
+| MOD-07 | Phase 5 | Complete |
 | VID-01 | Phase 5 | Pending |
 | VID-02 | Phase 5 | Pending |
 | VID-03 | Phase 5 | Pending |
@@ -211,7 +211,7 @@ Final mapping locked by roadmap (2026-04-18). Every v1 requirement is assigned t
 | VID-05 | Phase 5 | Pending |
 | VID-06 | Phase 5 | Pending |
 | VID-07 | Phase 5 | Pending |
-| VID-08 | Phase 5 | Pending |
+| VID-08 | Phase 5 | Complete |
 | VID-09 | Phase 5 | Pending |
 | VID-10 | Phase 5 | Pending |
 | UX-01 | Phase 6 | Pending |
