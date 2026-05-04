@@ -118,7 +118,7 @@ Plans:
 - [x] 05-01-PLAN.md — Wave 0 Nyquist test scaffolds: 5 new + 2 extended test files for VID-01..10 + MOD-03..07 (Wave 0)
 - [x] 05-02-PLAN.md — Infra: ThermalMonitor + StickerState + StickerRenderer + InsectFilterViewModel + FaceDetectorClient frame-skip (Wave 1)
 - [x] 05-03-PLAN.md — Recording lifecycle: VideoRecorder + CameraController.startRecording + RecordingState + OneShotEvent + OverlayEffectBuilder cameraMode branch (Wave 2)
-- [ ] 05-04-PLAN.md — CameraScreen extensions: production Record button + indicator + AlertDialog + lock-during-record + RECORD_AUDIO lazy permission (Wave 3)
+- [x] 05-04-PLAN.md — CameraScreen extensions: production Record button + indicator + AlertDialog + lock-during-record + RECORD_AUDIO lazy permission (Wave 3)
 - [ ] 05-05-PLAN.md — InsectFilterScreen 9-layer Box + detectTransformGestures + record UI mirror (Wave 3)
 - [ ] 05-06-PLAN.md — Nav rewire: BugzzApp CameraRoute(InsectFilter) → InsectFilterScreen; HomeScreen button enabled; delete InsectFilterStubScreen (Wave 3)
 - [ ] 05-07-PLAN.md — Clean build + 05-HANDOFF Xiaomi 13T runbook + device sign-off + VALIDATION nyquist flip (Wave 4)
@@ -156,7 +156,7 @@ Plans:
 | 2. Camera Preview + Face Detection + Coord Validation | 0/6 | Planned | - |
 | 3. First Filter End-to-End + Photo Capture | 5/5 | In Progress (awaiting phase complete) | 2026-04-20 |
 | 4. Filter Catalog + Picker + Face Filter Mode | 8/8 | Complete    | 2026-05-04 |
-| 5. Video Recording + Audio + Insect Filter Mode | 3/7 | In Progress|  |
+| 5. Video Recording + Audio + Insect Filter Mode | 4/7 | In Progress|  |
 | 6. UX Polish — Splash, Home, Onboarding, Preview, Collection, Share | 0/? | Not started | - |
 | 7. Performance & Device Matrix | 0/? | Not started | - |
 
