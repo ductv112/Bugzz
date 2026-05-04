@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: planning
-stopped_at: Completed 04-08-PLAN.md — Phase 4 complete
-last_updated: "2026-05-04T12:40:31.875Z"
+status: executing
+stopped_at: Phase 5 context gathered (full auto-lock)
+last_updated: "2026-05-04T13:52:03.194Z"
 progress:
   total_phases: 7
   completed_phases: 4
-  total_plans: 27
+  total_plans: 34
   completed_plans: 27
-  percent: 100
+  percent: 79
 ---
 
 # State: Bugzz
@@ -33,7 +33,7 @@ Plan: 0 of TBD
 - **Phase:** 5
 - **Plan:** Not started
 - **Previous plan:** 04-08 complete — Phase 4 closed on Xiaomi 13T 2026-05-04; 15 filters visible, all 4 behaviors render (STATIC/CRAWL/SWARM/FALL), DataStore persist verified, multi-face graceful; 04-VALIDATION.md nyquist_compliant: true CameraUiState (5-field D-14 data class) + PermissionState sealed interface + OneShotEvent sealed interface for toasts; @HiltViewModel CameraViewModel @Inject(CameraController) exposing uiState:StateFlow + surfaceRequest reshared + events:Flow via Channel(BUFFERED).receiveAsFlow, with onFlipLens (CameraLensProvider.next), onTestRecord (delay(5_000L) auto-stop per D-04, no audio path per D-05), and orientationListener (quadrant-thresholded Surface.ROTATION_{0/90/180/270} emit per D-08); CameraScreen @Composable rendering CameraXViewfinder(ImplementationMode.EXTERNAL) fullscreen + OutlinedButton { Text("Flip") } Alignment.TopEnd (D-24 — text fallback, material-icons-extended not on classpath) + BuildConfig.DEBUG-gated Button { Text("TEST RECORD 5s" | "REC...") } Alignment.BottomCenter (D-04); CAMERA-only permission gate with rationale + Settings CTA reusing Phase 1 StubScreens pattern (D-26/27); DisposableEffect enables/disables OrientationEventListener (D-08). BugzzApp.kt CameraRoute import rewired to com.bugzz.filter.camera.ui.camera.CameraScreen (Phase 1 ui/screens stub orphaned but file retained for other routes). 4 Rule 3 auto-fixes: (1) Hilt cannot synthesize a binding for Kotlin @Inject constructor default-value Function2 param — split CameraController into internal primary constructor (test seam) + secondary @Inject constructor (production factory inlined), (2) ImplementationMode lives in androidx.camera.viewfinder.core NOT .surface — research §Open Questions #1 resolved with AAR class dump (EXTERNAL enum confirmed — no fallback to PERFORMANCE needed), (3) Icons.Default.Cameraswitch not on classpath — OutlinedButton { Text("Flip") } per plan's explicit fallback + CLAUDE.md D-24 icon polish deferred to Phase 6, (4) MutableCoordinateTransformer import dropped (unused in body). APK assembles (79 MB); 10 unit tests GREEN (9 Phase 2 Nyquist + 1 placeholder).
-- **Status:** Ready to plan
+- **Status:** Ready to execute
 - **Progress:** [██████████] 96%
 
 ### Phase Map
@@ -163,7 +163,7 @@ None.
 **Last agent:** gsd-execute-phase (Plan 04-08 Task 4 post-PASS closure executor)
 **Last action:** Completed 04-08-PLAN.md — Task 4: 04-08-SUMMARY.md written; 04-VALIDATION.md nyquist_compliant flipped to true; STATE.md + ROADMAP.md updated. Phase 4 device verification 11/13 hard gates PASS on Xiaomi 13T 2026-05-04. Inline gap fix 04-gaps-01 (AssetLoader assetDir API) shipped at commit 514410c.
 
-**Stopped at:** Completed 04-08-PLAN.md — Phase 4 complete
+**Stopped at:** Phase 5 context gathered (full auto-lock)
 
 **Next expected action:** Plan Phase 5 via `/gsd-research-phase 5` or `/gsd-discuss-phase 5` — Video Recording + Audio + Insect Filter Free-Placement Mode.
 

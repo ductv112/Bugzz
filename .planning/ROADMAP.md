@@ -111,8 +111,17 @@ Plans:
   3. RECORD_AUDIO permission is requested lazily on the first tap of record (not at app launch or camera open); denial shows an inline rationale; acceptance allows recording to proceed immediately.
   4. `PowerManager.ThermalStatusListener` is active: above `THERMAL_STATUS_MODERATE` the detector drops to `PERFORMANCE_MODE_FAST`; a 60s recording on a pre-warmed device maintains ≥20fps end-to-end.
   5. Insect Filter mode places a single draggable sticker that responds to drag, pinch-to-zoom, and two-finger rotation gestures; sticker state (position, scale, rotation) survives camera flip and device orientation change.
-**Plans**: TBD
+**Plans**: 7 plans
 **UI hint**: yes
+
+Plans:
+- [ ] 05-01-PLAN.md — Wave 0 Nyquist test scaffolds: 5 new + 2 extended test files for VID-01..10 + MOD-03..07 (Wave 0)
+- [ ] 05-02-PLAN.md — Infra: ThermalMonitor + StickerState + StickerRenderer + InsectFilterViewModel + FaceDetectorClient frame-skip (Wave 1)
+- [ ] 05-03-PLAN.md — Recording lifecycle: VideoRecorder + CameraController.startRecording + RecordingState + OneShotEvent + OverlayEffectBuilder cameraMode branch (Wave 2)
+- [ ] 05-04-PLAN.md — CameraScreen extensions: production Record button + indicator + AlertDialog + lock-during-record + RECORD_AUDIO lazy permission (Wave 3)
+- [ ] 05-05-PLAN.md — InsectFilterScreen 9-layer Box + detectTransformGestures + record UI mirror (Wave 3)
+- [ ] 05-06-PLAN.md — Nav rewire: BugzzApp CameraRoute(InsectFilter) → InsectFilterScreen; HomeScreen button enabled; delete InsectFilterStubScreen (Wave 3)
+- [ ] 05-07-PLAN.md — Clean build + 05-HANDOFF Xiaomi 13T runbook + device sign-off + VALIDATION nyquist flip (Wave 4)
 
 ### Phase 6: UX Polish — Splash, Home, Onboarding, Preview, Collection, Share
 **Goal**: Replace all navigation stubs with production screens matching the reference visual spec, giving users the complete end-to-end journey from splash to saving artifacts to re-opening the Collection and sharing to social apps.
@@ -147,7 +156,7 @@ Plans:
 | 2. Camera Preview + Face Detection + Coord Validation | 0/6 | Planned | - |
 | 3. First Filter End-to-End + Photo Capture | 5/5 | In Progress (awaiting phase complete) | 2026-04-20 |
 | 4. Filter Catalog + Picker + Face Filter Mode | 8/8 | Complete    | 2026-05-04 |
-| 5. Video Recording + Audio + Insect Filter Mode | 0/? | Not started | - |
+| 5. Video Recording + Audio + Insect Filter Mode | 0/7 | Planned | - |
 | 6. UX Polish — Splash, Home, Onboarding, Preview, Collection, Share | 0/? | Not started | - |
 | 7. Performance & Device Matrix | 0/? | Not started | - |
 
