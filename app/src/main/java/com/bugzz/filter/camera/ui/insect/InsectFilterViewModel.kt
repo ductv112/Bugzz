@@ -284,5 +284,7 @@ class InsectFilterViewModel @Inject constructor(
             stickerState = newStickerState,
         )
         if (isFirstSize) stickerRenderer.setStickerState(newStickerState)
+        // 05-gaps-02 fix: forward preview dims to renderer so it can scale Compose-px → buffer-px
+        stickerRenderer.setPreviewSize(size.width, size.height)
     }
 }
