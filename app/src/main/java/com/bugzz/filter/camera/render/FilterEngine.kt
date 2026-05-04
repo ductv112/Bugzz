@@ -117,7 +117,8 @@ class FilterEngine @Inject constructor(
         }
 
         // D-11 no-ghost: skip draw if bitmap not yet cached (preload incomplete).
-        val bitmap = assetLoader.get(filter.id, frameIdx) ?: return
+        // 04-gaps-01: lookup by assetDir (shared sprite group) per D-30, not filter.id.
+        val bitmap = assetLoader.get(filter.assetDir, frameIdx) ?: return
 
         val dtMs = if (lastFrameAdvanceTsNanos == 0L) 0L
                    else (tsNanos - lastFrameAdvanceTsNanos) / 1_000_000L

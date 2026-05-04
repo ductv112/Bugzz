@@ -33,13 +33,21 @@ class AssetLoader @Inject constructor(
         // No entryRemoved override — DO NOT recycle (§Pitfall 3).
     }
 
-    /** D-11 — preload all frames for filterId. Suspends until complete or throws. */
-    suspend fun preload(filterId: String) = withContext(decodeDispatcher) {
-        val manifest = loadManifest(filterId)
+    /**
+     * D-11 / D-30 — preload all frames for [assetDir]. Suspends until complete or throws.
+     *
+     * [assetDir] is the **full asset-relative path** to the sprite group (e.g. `"sprites/sprite_spider"`).
+     * Cache keys are scoped to [assetDir], so 15 FilterDefinitions sharing 4 sprite groups (D-30)
+     * preload + cache only 4 distinct sprite sets — picker rapid-tap (CAT-03) is mostly cache hits.
+     *
+     * Fix 04-gaps-01: previously used filterId as path, breaking shared-sprite model.
+     */
+    suspend fun preload(assetDir: String) = withContext(decodeDispatcher) {
+        val manifest = loadManifest(assetDir)
         for (idx in 0 until manifest.frameCount) {
-            val key = "$filterId/frame_$idx"
-            if (cache.get(key) != null) continue   // already cached
-            val path = "sprites/$filterId/frame_${idx.toString().padStart(2, '0')}.png"
+            val key = "$assetDir/frame_$idx"
+            if (cache.get(key) != null) continue   // already cached (shared across filters per D-30)
+            val path = "$assetDir/frame_${idx.toString().padStart(2, '0')}.png"
             val opts = BitmapFactory.Options().apply {
                 inPreferredConfig = when (manifest.bitmapConfig) {
                     "RGB_565" -> Bitmap.Config.RGB_565
@@ -65,11 +73,11 @@ class AssetLoader @Inject constructor(
     }
 
     /** Non-blocking lookup. Returns null if preload incomplete (D-11 semantics). */
-    fun get(filterId: String, frameIdx: Int): Bitmap? =
-        cache.get("$filterId/frame_$frameIdx")
+    fun get(assetDir: String, frameIdx: Int): Bitmap? =
+        cache.get("$assetDir/frame_$frameIdx")
 
-    private fun loadManifest(filterId: String): SpriteManifest {
-        val path = "sprites/$filterId/manifest.json"
+    private fun loadManifest(assetDir: String): SpriteManifest {
+        val path = "$assetDir/manifest.json"
         val text = appContext.assets.open(path).bufferedReader().use { it.readText() }
         return Json.decodeFromString(SpriteManifest.serializer(), text)
     }

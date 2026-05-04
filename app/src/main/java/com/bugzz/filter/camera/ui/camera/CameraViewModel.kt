@@ -127,7 +127,7 @@ class CameraViewModel @Inject constructor(
                 }
                 try {
                     withContext(cameraExecutor.asCoroutineDispatcher()) {
-                        assetLoader.preload(resolved.id)
+                        assetLoader.preload(resolved.assetDir)   // 04-gaps-01: assetDir not id
                     }
                     filterEngine.setFilter(resolved)
                     _uiState.value = _uiState.value.copy(
@@ -238,7 +238,7 @@ class CameraViewModel @Inject constructor(
         // (b) Preload + set on cameraExecutor (render/asset thread).
         viewModelScope.launch(cameraExecutor.asCoroutineDispatcher()) {
             try {
-                assetLoader.preload(def.id)
+                assetLoader.preload(def.assetDir)   // 04-gaps-01: assetDir not id
                 filterEngine.setFilter(def)
             } catch (e: Exception) {
                 _events.send(OneShotEvent.FilterLoadError("Filter load failed: ${e.message ?: "unknown"}"))
@@ -264,7 +264,7 @@ class CameraViewModel @Inject constructor(
         viewModelScope.launch {
             try {
                 withContext(cameraExecutor.asCoroutineDispatcher()) {
-                    assetLoader.preload(next.id)
+                    assetLoader.preload(next.assetDir)   // 04-gaps-01: assetDir not id
                 }
                 filterEngine.setFilter(next)
                 _uiState.value = _uiState.value.copy(activeFilterId = next.id)

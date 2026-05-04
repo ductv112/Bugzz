@@ -77,7 +77,7 @@ class AssetLoaderTest {
         val loader = buildStubLoader()
         assertNull(
             "get() must return null before preload() is called",
-            loader.get("test_filter", 0),
+            loader.get("sprites/test_filter", 0),
         )
     }
 
@@ -91,8 +91,8 @@ class AssetLoaderTest {
     @Test
     fun preload_populatesCache_getReturnsBitmap() {
         val loader = buildStubLoader()
-        runBlocking { loader.preload("test_filter") }
-        val bitmap = loader.get("test_filter", 0)
+        runBlocking { loader.preload("sprites/test_filter") }
+        val bitmap = loader.get("sprites/test_filter", 0)
         assertNotNull("get() must return non-null Bitmap after preload()", bitmap)
         assertTrue("Decoded bitmap must have positive width", bitmap!!.width > 0)
         assertTrue("Decoded bitmap must have positive height", bitmap.height > 0)
@@ -105,11 +105,11 @@ class AssetLoaderTest {
     fun preload_idempotent_multipleCallsDoNotReDecode() {
         val loader = buildStubLoader()
         runBlocking {
-            loader.preload("test_filter")
-            loader.preload("test_filter")  // second call must be a no-op (cache hit)
+            loader.preload("sprites/test_filter")
+            loader.preload("sprites/test_filter")  // second call must be a no-op (cache hit)
         }
         // If preload is idempotent, the second call should not throw or corrupt cache
-        val bitmap = loader.get("test_filter", 0)
+        val bitmap = loader.get("sprites/test_filter", 0)
         assertNotNull("Cache must still contain bitmap after idempotent double-preload", bitmap)
     }
 
@@ -121,7 +121,7 @@ class AssetLoaderTest {
         // A zero-byte or corrupted PNG should surface as IllegalArgumentException (T-03-02)
         val loader = buildStubLoader()
         try {
-            runBlocking { loader.preload("bad_filter") }
+            runBlocking { loader.preload("sprites/bad_filter") }
             throw AssertionError("Expected IllegalArgumentException for malformed PNG, but no exception thrown")
         } catch (e: IllegalArgumentException) {
             // Expected — T-03-02 mitigation: decode failure must not silently produce null
