@@ -36,6 +36,7 @@ import androidx.compose.ui.unit.dp
 @Composable
 fun HomeScreen(
     onFaceFilter: () -> Unit,
+    onInsectFilter: () -> Unit,
     onMyCollection: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -77,11 +78,10 @@ fun HomeScreen(
                     )
                 }
 
-                // Insect Filter — disabled in Phase 4 (enabled = false). Material3 suppresses onClick automatically.
-                // Phase 5 MOD-03..07 flips enabled to true and adds the free-placement sticker screen.
+                // Insect Filter — enabled in Phase 5 (MOD-03..07). Navigates to InsectFilterScreen.
                 OutlinedButton(
-                    onClick = { /* no-op; enabled = false suppresses */ },
-                    enabled = false,
+                    onClick = onInsectFilter,
+                    enabled = true,
                     modifier = Modifier.size(width = 200.dp, height = 80.dp),
                 ) {
                     Text(

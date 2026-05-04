@@ -8,7 +8,7 @@ import androidx.navigation.toRoute
 import com.bugzz.filter.camera.ui.camera.CameraScreen
 import com.bugzz.filter.camera.ui.home.CameraMode
 import com.bugzz.filter.camera.ui.home.HomeScreen
-import com.bugzz.filter.camera.ui.home.InsectFilterStubScreen
+import com.bugzz.filter.camera.ui.insect.InsectFilterScreen
 import com.bugzz.filter.camera.ui.nav.CameraRoute
 import com.bugzz.filter.camera.ui.nav.CollectionRoute
 import com.bugzz.filter.camera.ui.nav.HomeRoute
@@ -31,6 +31,7 @@ fun BugzzApp() {
         composable<HomeRoute> {
             HomeScreen(
                 onFaceFilter = { navController.navigate(CameraRoute(mode = CameraMode.FaceFilter)) },
+                onInsectFilter = { navController.navigate(CameraRoute(mode = CameraMode.InsectFilter)) },
                 onMyCollection = { navController.navigate(CollectionRoute) },
             )
         }
@@ -40,9 +41,7 @@ fun BugzzApp() {
                 CameraMode.FaceFilter -> CameraScreen(
                     onOpenPreview = { navController.navigate(PreviewRoute) }
                 )
-                CameraMode.InsectFilter -> InsectFilterStubScreen(
-                    onBack = { navController.popBackStack() }
-                )
+                CameraMode.InsectFilter -> InsectFilterScreen()
             }
         }
         composable<PreviewRoute> {
