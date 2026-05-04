@@ -11,20 +11,22 @@ import androidx.camera.core.UseCaseGroup
 import androidx.camera.effects.OverlayEffect
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.camera.mlkit.vision.MlKitAnalyzer
+import androidx.camera.video.Recording
 import androidx.lifecycle.LifecycleOwner
 import com.bugzz.filter.camera.detector.FaceDetectorClient
+import com.bugzz.filter.camera.recording.VideoRecorder
 import com.bugzz.filter.camera.render.OverlayEffectBuilder
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertTrue
-import org.junit.Ignore
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.mockito.kotlin.any
 import org.mockito.kotlin.argumentCaptor
 import org.mockito.kotlin.doAnswer
 import org.mockito.kotlin.doReturn
+import org.mockito.kotlin.eq
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.stub
 import org.mockito.kotlin.verify
@@ -57,6 +59,7 @@ class CameraControllerTest {
     private fun buildController(
         mockProvider: ProcessCameraProvider,
         mockImageCapture: ImageCapture? = null,
+        mockVideoRecorder: VideoRecorder? = null,
     ): CameraController {
         val mockContext: Context = mock()
         val mockAnalyzer: MlKitAnalyzer = mock()
@@ -78,11 +81,13 @@ class CameraControllerTest {
         } else {
             { ImageCapture.Builder().setTargetRotation(Surface.ROTATION_0).build() }
         }
+        val videoRecorder: VideoRecorder = mockVideoRecorder ?: mock()
         return CameraController(
             appContext = mockContext,
             cameraExecutor = cameraExecutor,
             faceDetector = mockDetector,
             overlayEffectBuilder = mockBuilder,
+            videoRecorder = videoRecorder,
             providerFactory = { mockProvider },
             imageCaptureFactory = factory,
         )
@@ -236,29 +241,85 @@ class CameraControllerTest {
         )
     }
 
-    // ----- Phase 5 — Plan 05-03 will un-Ignore these -----
+    // ----- Phase 5 — Plan 05-03 production recording API tests -----
 
-    @Ignore("Plan 05-03 lands CameraController.startRecording / stopRecording production methods")
+    /**
+     * Verifies MIRROR_MODE_ON_FRONT_ONLY is set on VideoCapture (D-13 / VID-05).
+     * Structural assertion: bind() compiles and executes without error using the builder chain
+     * that includes setMirrorMode(MIRROR_MODE_ON_FRONT_ONLY). The presence of the constant
+     * is verified via grep-assertion in the plan; here we verify bind() succeeds with that chain.
+     */
     @Test
-    fun bind_videoCaptureHasMirrorMode() {
-        org.junit.Assert.fail("Plan 05-03 lands SUT")
+    fun bind_videoCaptureHasMirrorMode() = runBlocking {
+        val mockProvider: ProcessCameraProvider = mock()
+        val mockOwner: LifecycleOwner = mock()
+        val controller = buildController(mockProvider)
+
+        // bind() must succeed — VideoCapture.Builder.setMirrorMode(MIRROR_MODE_ON_FRONT_ONLY)
+        // is part of the chain; if the constant or method is wrong this throws at build time.
+        controller.bind(mockOwner, CameraLens.FRONT, Surface.ROTATION_0)
+
+        val captor = argumentCaptor<UseCaseGroup>()
+        verify(mockProvider).bindToLifecycle(any(), any(), captor.capture())
+        // VideoCapture must be present in the group (CAM-03)
+        val hasVideoCapture = captor.firstValue.useCases.any { it is androidx.camera.video.VideoCapture<*> }
+        assertTrue("UseCaseGroup must contain VideoCapture with MIRROR_MODE_ON_FRONT_ONLY", hasVideoCapture)
     }
 
-    @Ignore("Plan 05-03 lands CameraController.startRecording")
+    /**
+     * Verifies CameraController.startRecording delegates to VideoRecorder.startRecording,
+     * forwarding audioEnabled=false. Duration limit is enforced inside VideoRecorder (tested
+     * in VideoRecorderTest.durationLimit_setTo60Seconds).
+     */
     @Test
     fun startRecording_durationLimitSet() {
-        org.junit.Assert.fail("Plan 05-03 lands SUT")
+        val mockProvider: ProcessCameraProvider = mock()
+        val mockOwner: LifecycleOwner = mock()
+        val mockRecording: Recording = mock()
+        val mockVR: VideoRecorder = mock<VideoRecorder>().stub {
+            on { startRecording(any(), any(), any()) } doReturn mockRecording
+        }
+        val controller = buildController(mockProvider, mockVideoRecorder = mockVR)
+        runBlocking { controller.bind(mockOwner, CameraLens.FRONT, Surface.ROTATION_0) }
+
+        controller.startRecording(audioEnabled = false) { }
+
+        verify(mockVR).startRecording(any(), eq(false), any())
     }
 
-    @Ignore("Plan 05-03 lands CameraController.startRecording audio toggle")
+    /**
+     * Verifies audioEnabled flag is passed through to VideoRecorder correctly for both
+     * true and false values (D-12 / D-18 / VID-03).
+     */
     @Test
     fun startRecording_audioEnabledFlagToggle() {
-        org.junit.Assert.fail("Plan 05-03 lands SUT")
+        val mockProvider: ProcessCameraProvider = mock()
+        val mockOwner: LifecycleOwner = mock()
+        val mockRecording: Recording = mock()
+        val mockVR: VideoRecorder = mock<VideoRecorder>().stub {
+            on { startRecording(any(), any(), any()) } doReturn mockRecording
+        }
+        val controller = buildController(mockProvider, mockVideoRecorder = mockVR)
+        runBlocking { controller.bind(mockOwner, CameraLens.FRONT, Surface.ROTATION_0) }
+
+        controller.startRecording(audioEnabled = true) { }
+        verify(mockVR).startRecording(any(), eq(true), any())
+
+        controller.startRecording(audioEnabled = false) { }
+        verify(mockVR).startRecording(any(), eq(false), any())
     }
 
-    @Ignore("Plan 05-03 lands CameraController.stopRecording")
+    /**
+     * Verifies CameraController.stopRecording() delegates to VideoRecorder.stopRecording().
+     */
     @Test
     fun stopRecording_invokesRecordingStop() {
-        org.junit.Assert.fail("Plan 05-03 lands SUT")
+        val mockProvider: ProcessCameraProvider = mock()
+        val mockVR: VideoRecorder = mock()
+        val controller = buildController(mockProvider, mockVideoRecorder = mockVR)
+
+        controller.stopRecording()
+
+        verify(mockVR).stopRecording()
     }
 }

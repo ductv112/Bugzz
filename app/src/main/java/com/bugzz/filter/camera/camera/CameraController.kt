@@ -28,6 +28,7 @@ import androidx.camera.video.VideoRecordEvent
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.LifecycleOwner
 import com.bugzz.filter.camera.detector.FaceDetectorClient
+import com.bugzz.filter.camera.recording.VideoRecorder
 import com.bugzz.filter.camera.render.OverlayEffectBuilder
 import com.google.common.util.concurrent.ListenableFuture
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -49,7 +50,7 @@ import kotlin.coroutines.resumeWithException
 
 /**
  * Owns CameraX lifecycle binding. Single source of truth for use-case construction + lens flip
- * + device rotation + debug test recording (Phase 2).
+ * + device rotation + production recording (Phase 5 replaces Phase 2 debug test recording).
  *
  * Contract:
  *   - `bind()` produces a UseCaseGroup with EXACTLY 4 use cases (Preview + ImageAnalysis +
@@ -57,7 +58,7 @@ import kotlin.coroutines.resumeWithException
  *   - OverlayEffect is constructed ONCE via overlayEffectBuilder.build() (D-25) — same instance
  *     is re-added to every new UseCaseGroup on lens flip.
  *   - ImageAnalysis backpressure is STRATEGY_KEEP_ONLY_LATEST (CAM-05 / PITFALLS #4).
- *   - VideoCapture is ALWAYS bound (D-06 — even though only the debug test button triggers it).
+ *   - VideoCapture is ALWAYS bound (D-06).
  *   - No audio on test recording (D-05 — no `.withAudioEnabled()`; T-02-06).
  *
  * Provider-factory seam: the primary `@Inject` constructor hard-codes the production factory
@@ -70,10 +71,11 @@ import kotlin.coroutines.resumeWithException
  */
 @Singleton
 class CameraController internal constructor(
-    @ApplicationContext private val appContext: Context,
+    @ApplicationContext internal val appContext: Context,
     @Named("cameraExecutor") private val cameraExecutor: Executor,
     private val faceDetector: FaceDetectorClient,
     private val overlayEffectBuilder: OverlayEffectBuilder,
+    private val videoRecorder: VideoRecorder,
     private val providerFactory: suspend (Context) -> ProcessCameraProvider,
     /**
      * Test seam (Plan 03-04 D-14 constructor-split pattern): allows tests to inject a mock
@@ -95,14 +97,19 @@ class CameraController internal constructor(
         @Named("cameraExecutor") cameraExecutor: Executor,
         faceDetector: FaceDetectorClient,
         overlayEffectBuilder: OverlayEffectBuilder,
+        videoRecorder: VideoRecorder,
     ) : this(
         appContext = appContext,
         cameraExecutor = cameraExecutor,
         faceDetector = faceDetector,
         overlayEffectBuilder = overlayEffectBuilder,
+        videoRecorder = videoRecorder,
         providerFactory = { ctx -> ProcessCameraProvider.getInstance(ctx).await() },
         imageCaptureFactory = { ImageCapture.Builder().setTargetRotation(Surface.ROTATION_0).build() },
     )
+
+    /** Exposes ContentResolver for ViewModel's pending-URI deletion (T-05-07). */
+    val contentResolver get() = appContext.contentResolver
 
     // Compose-native: emit latest SurfaceRequest to the composable for CameraXViewfinder.
     private val _surfaceRequest = MutableStateFlow<SurfaceRequest?>(null)
@@ -196,6 +203,47 @@ class CameraController internal constructor(
         imageCapture?.targetRotation = rotation
         videoCapture?.targetRotation = rotation
     }
+
+    // -------------------------------------------------------------------------
+    // Phase 5: Production recording API (D-21)
+    // -------------------------------------------------------------------------
+
+    /**
+     * Starts a production recording with optional audio.
+     *
+     * Delegates to [VideoRecorder] which handles MediaStoreOutputOptions, 60s duration limit
+     * (D-09), and the single-recording invariant (T-05-03). Mirror mode is already set on
+     * VideoCapture.Builder (D-13 / MIRROR_MODE_ON_FRONT_ONLY).
+     *
+     * @param audioEnabled true if RECORD_AUDIO permission has been granted (D-12).
+     * @param onEvent Callback dispatched on cameraExecutor for VideoRecordEvents.
+     * @return The active Recording handle.
+     * @throws IllegalStateException if camera is not bound.
+     */
+    fun startRecording(audioEnabled: Boolean, onEvent: (VideoRecordEvent) -> Unit): Recording {
+        val vc = videoCapture ?: error("Camera not bound — call bind() first (D-21)")
+        return videoRecorder.startRecording(vc, audioEnabled, onEvent)
+    }
+
+    /**
+     * Stops the active recording. Recorder fires VideoRecordEvent.Finalize asynchronously.
+     */
+    fun stopRecording() {
+        videoRecorder.stopRecording()
+    }
+
+    /**
+     * Clears the active-recording reference in VideoRecorder after Finalize is received.
+     * Called from CameraViewModel.handleVideoEvent(Finalize) so the invariant resets.
+     */
+    fun clearActiveRecording() {
+        videoRecorder.clearActive()
+    }
+
+    // -------------------------------------------------------------------------
+    // Phase 2: Debug test recording (kept behind BuildConfig.DEBUG per D-26 discretion)
+    // Production callers must use startRecording(audioEnabled) above.
+    // -------------------------------------------------------------------------
 
     /** D-04 / D-05 — debug-only, NO AUDIO (no .withAudioEnabled()), saves to DCIM/Bugzz/. */
     fun startTestRecording(onFinalized: (Result<Uri>) -> Unit) {
