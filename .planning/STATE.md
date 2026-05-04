@@ -2,9 +2,9 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: executing
-stopped_at: "Phase 5 device verification PASS — 8/15 hard gates verified + 2 inline gap fixes shipped (05-gaps-01 cameraMode propagation commit 37b7a17, 05-gaps-02 StickerRenderer coord transform commit de27c4e); 6 soft gates deferred non-blocking; 05-07-SUMMARY.md written; 05-VALIDATION.md nyquist_compliant flipped; ready for Phase 6 UX Polish"
-last_updated: "2026-05-04T15:14:18.576Z"
+status: planning
+stopped_at: Phase 5 device verification PASS — 8/15 hard gates verified + 2 inline gap fixes shipped (05-gaps-01 + 05-gaps-02); 6 soft gates deferred; ready for code-review + verifier
+last_updated: "2026-05-04T16:03:11.029Z"
 progress:
   total_phases: 7
   completed_phases: 5
@@ -30,10 +30,10 @@ progress:
 Phase: 05 (Video Recording + Audio + Insect Filter Free-Placement Mode) — COMPLETE
 Plan: 7 of 7 complete
 
-- **Phase:** 5 — COMPLETE (2026-05-04)
-- **Plan:** 07 complete — Phase 5 closed
+- **Phase:** 6
+- **Plan:** Not started
 - **Previous plan:** 05-07 complete — Phase 5 closed on Xiaomi 13T 2026-05-04; 8/15 hard gates verified via ADB automation; 2 inline gap fixes shipped (05-gaps-01 cameraMode propagation 37b7a17, 05-gaps-02 StickerRenderer coord transform de27c4e); 143 unit tests GREEN; 05-VALIDATION.md nyquist_compliant: true; VideoRecorder + CameraController.startRecording/stopRecording + RecordingState sealed + OverlayEffectBuilder cameraMode branch + InsectFilterScreen + StickerRenderer + ThermalMonitor all production-wired; nav rewired InsectFilter button live; stubs deleted.
-- **Status:** Phase 05 COMPLETE — Phase 06 next
+- **Status:** Ready to plan
 - **Progress:** [██████████] 100%
 
 ### Phase Map
