@@ -13,6 +13,7 @@ import com.bugzz.filter.camera.data.FilterPrefsRepository
 import com.bugzz.filter.camera.filter.FilterCatalog
 import com.bugzz.filter.camera.filter.FilterDefinition
 import com.bugzz.filter.camera.render.StickerRenderer
+import com.bugzz.filter.camera.ui.camera.FilterSummary
 import com.bugzz.filter.camera.ui.camera.OneShotEvent
 import com.bugzz.filter.camera.ui.camera.RecordingState
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -59,6 +60,10 @@ class InsectFilterViewModel @Inject constructor(
     @Volatile private var pendingDiscardFlag: Boolean = false
 
     init {
+        // Populate filter list from FilterCatalog.all (D-01 — same 15-filter catalog as FaceFilter mode).
+        val summaries = FilterCatalog.all.map { FilterSummary(it.id, it.displayName, it.assetDir) }
+        _uiState.value = _uiState.value.copy(filters = summaries)
+
         // CAT-05 reuse: restore last-used filter from DataStore on VM creation.
         viewModelScope.launch {
             val storedId = try {
@@ -141,6 +146,34 @@ class InsectFilterViewModel @Inject constructor(
         _uiState.value = _uiState.value.copy(lens = newLens)
         // Plan 05-03 will wire actual flipLens() on CameraController with lifecycleOwner.
         // Wave 1 placeholder: lens state updated in VM; rebind happens when Plan 05-03 lands.
+    }
+
+    /**
+     * Photo capture — mirrors CameraViewModel.onShutterTapped() (Phase 3 D-13/D-16/WR-02/WR-04).
+     * isCapturing guard prevents re-entrance on rapid double-tap.
+     * captureFlashVisible set true on success only (WR-04: no flash on synchronous failure).
+     * D-23: shutter NOT locked during recording — concurrent ImageCapture+VideoCapture supported.
+     *
+     * Rule 2 addition: missing from Plan 05-02 spec but required for shutter button to function.
+     */
+    fun onShutterTapped() {
+        if (_uiState.value.isCapturing) return  // re-entrance guard (WR-02)
+        _uiState.value = _uiState.value.copy(isCapturing = true)
+        controller.capturePhoto { result ->
+            viewModelScope.launch {
+                result.fold(
+                    onSuccess = { uri ->
+                        _uiState.value = _uiState.value.copy(captureFlashVisible = true)
+                        _uiState.value = _uiState.value.copy(isCapturing = false, captureFlashVisible = false)
+                        _events.send(OneShotEvent.PhotoSaved(uri))
+                    },
+                    onFailure = { exc ->
+                        _uiState.value = _uiState.value.copy(isCapturing = false)
+                        _events.send(OneShotEvent.PhotoError(exc.message ?: "capture failed"))
+                    },
+                )
+            }
+        }
     }
 
     // -------------------------------------------------------------------------
