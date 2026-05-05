@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: planning
-stopped_at: Phase 5 device verification PASS — 8/15 hard gates verified + 2 inline gap fixes shipped (05-gaps-01 + 05-gaps-02); 6 soft gates deferred; ready for code-review + verifier
-last_updated: "2026-05-04T16:03:11.029Z"
+stopped_at: Plan 06-01 complete — Wave 0 RED scaffolds landed; suite GREEN at 170/27/0; 06-VALIDATION wave_0_complete=true
+last_updated: "2026-05-05T15:13:54.676Z"
 progress:
   total_phases: 7
   completed_phases: 5
-  total_plans: 34
-  completed_plans: 34
-  percent: 100
+  total_plans: 42
+  completed_plans: 35
+  percent: 83
 ---
 
 # State: Bugzz
@@ -34,7 +34,7 @@ Plan: 7 of 7 complete
 - **Plan:** Not started
 - **Previous plan:** 05-07 complete — Phase 5 closed on Xiaomi 13T 2026-05-04; 8/15 hard gates verified via ADB automation; 2 inline gap fixes shipped (05-gaps-01 cameraMode propagation 37b7a17, 05-gaps-02 StickerRenderer coord transform de27c4e); 143 unit tests GREEN; 05-VALIDATION.md nyquist_compliant: true; VideoRecorder + CameraController.startRecording/stopRecording + RecordingState sealed + OverlayEffectBuilder cameraMode branch + InsectFilterScreen + StickerRenderer + ThermalMonitor all production-wired; nav rewired InsectFilter button live; stubs deleted.
 - **Status:** Ready to plan
-- **Progress:** [██████████] 100%
+- **Progress:** [████████░░] 83%
 
 ### Phase Map
 
@@ -82,6 +82,7 @@ Phase 7: Performance & Device Matrix                      [ pending ]
 | Phase 05 P05 | 420 | 1 tasks | 3 files |
 | Phase 05 P06 | 180 | 1 tasks | 3 files |
 | Phase 05 P07 | ~2100 | 4 tasks | 10 files |
+| Phase 06 P01 | 600 | 3 tasks | 9 files |
 
 ## Accumulated Context
 
@@ -174,7 +175,7 @@ None.
 **Last agent:** gsd-execute-phase (Plan 05-07 Task 4 post-PASS closure executor)
 **Last action:** Completed 05-07-PLAN.md — Task 4: 05-07-SUMMARY.md written; 05-VALIDATION.md nyquist_compliant flipped to true; STATE.md + ROADMAP.md updated. Phase 5 device verification 8/15 hard gates PASS on Xiaomi 13T 2026-05-04. Inline gap fixes 05-gaps-01 (InsectFilterViewModel cameraMode propagation, commit 37b7a17) + 05-gaps-02 (StickerRenderer coord transform, commit de27c4e) shipped. 143 unit tests GREEN.
 
-**Stopped at:** Phase 5 device verification PASS — 8/15 hard gates verified + 2 inline gap fixes shipped (05-gaps-01 + 05-gaps-02); 6 soft gates deferred; ready for code-review + verifier
+**Stopped at:** Plan 06-01 complete — Wave 0 RED scaffolds landed; suite GREEN at 170/27/0; 06-VALIDATION wave_0_complete=true
 
 **Next expected action:** Start Phase 6 UX Polish via `/gsd-discuss-phase 6` — Splash, Home, Onboarding, Preview, Collection, Share.
 

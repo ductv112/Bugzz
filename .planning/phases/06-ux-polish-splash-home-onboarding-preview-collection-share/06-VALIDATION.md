@@ -3,7 +3,7 @@ phase: 06
 slug: ux-polish-splash-home-onboarding-preview-collection-share
 status: draft
 nyquist_compliant: false
-wave_0_complete: false
+wave_0_complete: true
 created: 2026-05-04
 ---
 
@@ -38,7 +38,7 @@ created: 2026-05-04
 
 | Task ID | Plan | Wave | Requirement | Threat Ref | Test Type | Automated Command | Status |
 |---------|------|------|-------------|------------|-----------|-------------------|--------|
-| 06-01-NN | 01 (Wave 0 scaffolds) | 0 | UX-01..09, SHR-01..04 | T-06-01..06 | unit scaffolds RED | `./gradlew :app:testDebugUnitTest` | ⬜ |
+| 06-01-NN | 01 (Wave 0 scaffolds) | 0 | UX-01..09, SHR-01..04 | T-06-01..06 | unit scaffolds RED | `./gradlew :app:testDebugUnitTest` | ✅ Wave 0 RED scaffolds GREEN |
 | 06-02-NN | 02 (deps + DataStore extension + Lottie asset copy) | 1 | (infra) | T-06-04, T-06-05 | unit | `./gradlew :app:testDebugUnitTest --tests "*FilterPrefsRepositoryTest*onboarding*"` | ⬜ |
 | 06-03-NN | 03 (SplashScreen + Onboarding + Routes nav graph) | 2 | UX-01, UX-02 | T-06-04 | unit | `./gradlew :app:testDebugUnitTest --tests "*SplashViewModelTest* *OnboardingViewModelTest* *OnboardingPagerStateTest*"` | ⬜ |
 | 06-04-NN | 04 (Routes PreviewRoute breaking change + PreviewScreen photo+video) | 3 | UX-04 | T-06-03 (ExoPlayer leak), T-06-01 | unit + manual | `./gradlew :app:testDebugUnitTest --tests "*PreviewViewModelTest*"` + 06-HANDOFF | ⬜ |
@@ -70,17 +70,17 @@ created: 2026-05-04
 ## Wave 0 Requirements
 
 8 new test files:
-- [ ] `app/src/test/java/com/bugzz/filter/camera/ui/splash/SplashViewModelTest.kt` (UX-01)
-- [ ] `app/src/test/java/com/bugzz/filter/camera/ui/onboarding/OnboardingViewModelTest.kt` (UX-02)
-- [ ] `app/src/test/java/com/bugzz/filter/camera/ui/onboarding/OnboardingPagerStateTest.kt` (UX-02 pager nav)
-- [ ] `app/src/test/java/com/bugzz/filter/camera/ui/preview/PreviewViewModelTest.kt` (UX-04)
-- [ ] `app/src/test/java/com/bugzz/filter/camera/data/CollectionRepositoryTest.kt` (UX-05/07)
-- [ ] `app/src/test/java/com/bugzz/filter/camera/ui/collection/CollectionViewModelTest.kt` (UX-07)
-- [ ] `app/src/test/java/com/bugzz/filter/camera/ui/components/DeleteConfirmDialogTest.kt` (UX-08)
-- [ ] `app/src/test/java/com/bugzz/filter/camera/ui/share/ShareIntentBuilderTest.kt` (SHR-01..03)
+- [x] `app/src/test/java/com/bugzz/filter/camera/ui/splash/SplashViewModelTest.kt` (UX-01) — 3 @Ignored
+- [x] `app/src/test/java/com/bugzz/filter/camera/ui/onboarding/OnboardingViewModelTest.kt` (UX-02) — 2 @Ignored
+- [x] `app/src/test/java/com/bugzz/filter/camera/ui/onboarding/OnboardingPagerStateTest.kt` (UX-02 pager nav) — 3 @Ignored
+- [x] `app/src/test/java/com/bugzz/filter/camera/ui/preview/PreviewViewModelTest.kt` (UX-04) — 4 @Ignored
+- [x] `app/src/test/java/com/bugzz/filter/camera/data/CollectionRepositoryTest.kt` (UX-05/07) — 4 @Ignored
+- [x] `app/src/test/java/com/bugzz/filter/camera/ui/collection/CollectionViewModelTest.kt` (UX-07) — 2 @Ignored
+- [x] `app/src/test/java/com/bugzz/filter/camera/ui/components/DeleteConfirmDialogTest.kt` (UX-08) — 2 @Ignored
+- [x] `app/src/test/java/com/bugzz/filter/camera/ui/share/ShareIntentBuilderTest.kt` (SHR-01..03) — 4 @Ignored
 
 Plus 1 EXTENSION:
-- [ ] **EXTEND** `app/src/test/java/com/bugzz/filter/camera/data/FilterPrefsRepositoryTest.kt` with `onboarding_completed` read/write tests (Phase 6 D-23 extension)
+- [x] **EXTEND** `app/src/test/java/com/bugzz/filter/camera/data/FilterPrefsRepositoryTest.kt` with `onboarding_completed` read/write tests (Phase 6 D-23 extension) — 3 @Ignored added; existing 4 GREEN tests untouched
 
 **New deps:** `lottie-compose 6.7.1`, `media3-ui 1.4.1`, `media3-exoplayer 1.4.1` (no new test deps).
 
