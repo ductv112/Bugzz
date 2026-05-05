@@ -40,7 +40,7 @@ created: 2026-05-04
 |---------|------|------|-------------|------------|-----------|-------------------|--------|
 | 06-01-NN | 01 (Wave 0 scaffolds) | 0 | UX-01..09, SHR-01..04 | T-06-01..06 | unit scaffolds RED | `./gradlew :app:testDebugUnitTest` | ✅ Wave 0 RED scaffolds GREEN |
 | 06-02-NN | 02 (deps + DataStore extension + Lottie asset copy) | 1 | (infra) | T-06-04, T-06-05 | unit | `./gradlew :app:testDebugUnitTest --tests "*FilterPrefsRepositoryTest*onboarding*"` | ⬜ |
-| 06-03-NN | 03 (SplashScreen + Onboarding + Routes nav graph) | 2 | UX-01, UX-02 | T-06-04 | unit | `./gradlew :app:testDebugUnitTest --tests "*SplashViewModelTest* *OnboardingViewModelTest* *OnboardingPagerStateTest*"` | ⬜ |
+| 06-03-NN | 03 (SplashScreen + Onboarding + Routes nav graph) | 2 | UX-01, UX-02 | T-06-04 | unit | `./gradlew :app:testDebugUnitTest --tests "*SplashViewModelTest* *OnboardingViewModelTest* *OnboardingPagerStateTest*"` | ✅ Wave 2 Splash + Onboarding GREEN |
 | 06-04-NN | 04 (Routes PreviewRoute breaking change + PreviewScreen photo+video) | 3 | UX-04 | T-06-03 (ExoPlayer leak), T-06-01 | unit + manual | `./gradlew :app:testDebugUnitTest --tests "*PreviewViewModelTest*"` + 06-HANDOFF | ⬜ |
 | 06-05-NN | 05 (CollectionRepository + CollectionScreen + EmptyStateColumn) | 4 | UX-05, UX-06, UX-07 | T-06-02 | unit | `./gradlew :app:testDebugUnitTest --tests "*CollectionRepositoryTest* *CollectionViewModelTest*"` | ⬜ |
 | 06-06-NN | 06 (DeleteConfirmDialog + Share intent + HomeScreen polish) | 5 | UX-08, UX-09, SHR-01..04 | T-06-01, T-06-06 | unit | `./gradlew :app:testDebugUnitTest --tests "*DeleteConfirmDialogTest* *ShareIntentBuilderTest*"` | ⬜ |

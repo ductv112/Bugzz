@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: in_progress
-stopped_at: Plan 06-02 complete — Wave 1 deps + Lottie asset + DataStore onboarding key landed; commit 03ff140; suite GREEN at 170/24 ignored/0 (-3 ignored vs 06-01 = 3 onboarding tests un-ignored & passing); 9 D-32 grep-asserts pass; APK assembles; Wave 2 (Splash + Onboarding) unblocked
-last_updated: "2026-05-05T15:30:00.000Z"
+status: executing
+stopped_at: Completed 06-03-PLAN.md
+last_updated: "2026-05-05T15:37:28.845Z"
 progress:
   total_phases: 7
   completed_phases: 5
   total_plans: 42
-  completed_plans: 36
-  percent: 86
+  completed_plans: 37
+  percent: 88
 ---
 
 # State: Bugzz
@@ -27,14 +27,14 @@ progress:
 
 ## Current Position
 
-Phase: 05 (Video Recording + Audio + Insect Filter Free-Placement Mode) — COMPLETE
-Plan: 7 of 7 complete
+Phase: 06 (UX Polish — Splash/Home/Onboarding/Preview/Collection/Share) — IN PROGRESS
+Plan: 06-03 complete (3 of 8) → next Plan 06-04 (Wave 3: Routes PreviewRoute breaking change + PreviewScreen photo+video)
 
 - **Phase:** 6
-- **Plan:** 06-02 complete (2 of 8) → next Plan 06-03 (Wave 2: Splash + Onboarding)
-- **Previous plan:** 06-02 complete — Wave 1 lottie-compose 6.7.1 + media3-exoplayer/ui 1.4.1→1.9.0 (transitive resolution to CameraX-pulled 1.9.0) on classpath; home_lottie.json (746491 B, sha256 5d3cfc5c…) byte-identical at app/src/main/assets/lottie/; FilterPrefsRepository extended in-place with onboardingCompleted: Flow<Boolean> + setOnboardingCompleted() (no-arg, idempotent) + KEY_ONBOARDING_COMPLETED booleanPreferencesKey; T-06-04 mitigation (.catch IOException → false) present; 3 FilterPrefsRepositoryTest @Ignore('Plan 06-02') cases un-ignored & GREEN (7/7 in that class); full suite 170/24 ignored/0; D-32 invariants intact. Commit 03ff140.
-- **Status:** In Progress (Wave 2 unblocked)
-- **Progress:** [█████████░] 86%
+- **Plan:** 06-03 complete (3 of 8) → next Plan 06-04 (Wave 3: PreviewRoute + PreviewScreen)
+- **Previous plan:** 06-03 complete — Wave 2 production Splash + Onboarding + Routes additions: ui/components/LottiePlayer.kt shared D-26 wrapper; ui/splash/{SplashScreen,SplashViewModel}.kt with 1.5s auto-advance + DataStore-conditional first-launch routing (StateFlow<Boolean?> tri-state, T-06-04 .catch defence-in-depth); ui/onboarding/{OnboardingScreen,OnboardingViewModel}.kt 3-page HorizontalPager + Skip/Next/GetStarted + 3-dot indicator + decideNextAction() pure-JVM testable helper; Routes.kt +OnboardingRoute +SettingsRoute (PreviewRoute UNCHANGED — Plan 06-04 owns the breaking change); BugzzApp wires Splash + Onboarding production composables with popUpTo back-stack rules (D-25); 8 tests un-Ignored & GREEN (3 SplashVM + 2 OnboardingVM + 3 OnboardingPagerState); suite 170/16 ignored/0 failures; UI-SPEC §2/§3 verbatim copy + spacing on-grid + accessibility verified; D-32 invariants intact (9/9 grep-asserts pass). Commits f0be773 + f214b2f.
+- **Status:** Ready to execute
+- **Progress:** [█████████░] 88%
 
 ### Phase Map
 
@@ -84,6 +84,7 @@ Phase 7: Performance & Device Matrix                      [ pending ]
 | Phase 05 P07 | ~2100 | 4 tasks | 10 files |
 | Phase 06 P01 | 600 | 3 tasks | 9 files |
 | Phase 06 P02 | 400s | 3 tasks | 5 files |
+| Phase 06 P03 | ~600s | 3 tasks | 10 files |
 
 ## Accumulated Context
 
@@ -182,7 +183,7 @@ None.
 **Last agent:** gsd-execute-phase (Plan 06-02 Wave 1 executor — autonomous per `feedback_autonomy.md`)
 **Last action:** Completed 06-02-PLAN.md — 3 tasks autonomous execution: (1) catalog + build script: lottie-compose 6.7.1 + media3 1.4.1 (resolved up to 1.9.0 transitively by CameraX 1.6.0 — Rule 3 deviation accepted); (2) home_lottie.json byte-identical copy (746491 B, sha256 5d3cfc5c…) to app/src/main/assets/lottie/; (3) FilterPrefsRepository extended with onboardingCompleted: Flow<Boolean> + setOnboardingCompleted() (no-arg per `<interfaces>` spec — Rule 3 deviation re plan-text drift); 3 @Ignore('Plan 06-02') FilterPrefsRepositoryTest cases un-ignored & GREEN. Atomic commit 03ff140. 9 D-32 grep-asserts re-verified. APK assembles. Suite 170 / 24 ignored / 0 failures (-3 ignored vs 06-01 = +3 net GREEN).
 
-**Stopped at:** Plan 06-02 complete — Wave 1 deps + Lottie asset + onboarding prefs key landed; commit 03ff140; Wave 2 (Plan 06-03 Splash + Onboarding) unblocked.
+**Stopped at:** Completed 06-03-PLAN.md
 
 **Next expected action:** Start Phase 6 UX Polish via `/gsd-discuss-phase 6` — Splash, Home, Onboarding, Preview, Collection, Share.
 
