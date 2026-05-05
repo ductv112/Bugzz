@@ -1,86 +1,188 @@
 package com.bugzz.filter.camera.data
 
-import org.junit.Ignore
+import android.content.ContentResolver
+import android.content.Context
+import android.database.Cursor
+import android.database.MatrixCursor
+import android.net.Uri
+import android.provider.MediaStore
+import app.cash.turbine.test
+import kotlinx.coroutines.test.runTest
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertTrue
 import org.junit.Test
 import org.junit.runner.RunWith
+import org.mockito.ArgumentCaptor
+import org.mockito.Mockito
+import org.mockito.kotlin.any
+import org.mockito.kotlin.anyOrNull
+import org.mockito.kotlin.whenever
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
 
 /**
- * RED scaffold per 06-VALIDATION Wave 0.
+ * Unit tests for [CollectionRepository] (UX-05 + D-12 + T-06-02).
  *
- * Un-Ignored in **Plan 06-05** when CollectionRepository lands.
+ * Plan 06-05 un-Ignore — the four cases scaffolded in Plan 06 Wave 0 now have a concrete SUT.
  *
- * Coverage matrix (UX-05 + UX-07 + T-06-02):
- *   - ContentResolver.query returns null → repository returns empty list (no NPE)
- *   - Cursor row → MediaItem mapping preserves mimeType + uri + display name
- *   - rows whose mimeType starts "image/" produce Images.Media URIs (T-06-02)
- *   - rows whose mimeType starts "video/" produce Video.Media URIs (T-06-02)
- *   - Rows outside DCIM/Bugzz/ excluded via RELATIVE_PATH selection clause
+ * Coverage matrix:
+ *   1. emptyCursor_emitsEmptyList         — UX-05 happy path: no rows → empty Flow emission
+ *   2. imageRow_constructsImagesMediaUri  — D-12 / T-06-02: image/jpeg row → Images.Media URI
+ *   3. videoRow_constructsVideoMediaUri   — D-12 / T-06-02: video/mp4 row  → Video.Media URI
+ *   4. selectionArgsBindRelativePath      — T-06-02: selectionArgs[0] starts with "DCIM/Bugzz/"
+ *      (parameter binding, NOT string concat — SQLi prevented by ContentResolver implementation)
  *
- * Robolectric runner is required because the eventual SUT will touch Context, ContentResolver,
- * and MediaStore.* URI constants — same pattern as
- * [com.bugzz.filter.camera.recording.VideoRecorderTest] which uses
- * @RunWith(RobolectricTestRunner::class) @Config(sdk = [34]) for the same reason.
+ * Robolectric runner is required because the SUT touches `MediaStore.*` URI constants and
+ * `ContentResolver.query` with a real `MatrixCursor`. Pattern mirrors VideoRecorderTest's
+ * `buildMockContext()` (STATE #14 / Phase 5 #24).
  *
- * Tests are intentionally @Ignored at this wave — CollectionRepository SUT does not exist yet,
- * so we do not import it. When Plan 06-05 lands, the implementer will:
- *   - Add real imports + a buildMockContext() helper (mirroring VideoRecorderTest)
- *   - Stub ContentResolver.query() with MatrixCursor instances per scenario
- *   - Replace markMissing() with assertEquals/assertTrue against repository.queryAll()
+ * @see CollectionRepository
  */
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [34])
 class CollectionRepositoryTest {
 
-    /** Stub helper — replaced with real assertions in Plan 06-05. */
-    private fun markMissing() {
-        // Intentional no-op.
+    /** Builds a Context whose `contentResolver` returns the supplied [cursor] for any query. */
+    private fun buildContextWithCursor(cursor: Cursor?): Pair<Context, ContentResolver> {
+        val mockResolver = Mockito.mock(ContentResolver::class.java)
+        whenever(
+            mockResolver.query(
+                any<Uri>(),
+                anyOrNull(),
+                anyOrNull(),
+                anyOrNull(),
+                anyOrNull(),
+            )
+        ).thenReturn(cursor)
+        val mockContext = Mockito.mock(Context::class.java)
+        whenever(mockContext.contentResolver).thenReturn(mockResolver)
+        whenever(mockContext.applicationContext).thenReturn(mockContext)
+        return mockContext to mockResolver
+    }
+
+    /** Builds a single-row MatrixCursor with the supplied id + mime. */
+    private fun buildSingleRowCursor(id: Long, mime: String, name: String = "row.$id"): MatrixCursor {
+        val cursor = MatrixCursor(
+            arrayOf(
+                MediaStore.MediaColumns._ID,
+                MediaStore.MediaColumns.DISPLAY_NAME,
+                MediaStore.MediaColumns.MIME_TYPE,
+                MediaStore.MediaColumns.DATE_MODIFIED,
+            )
+        )
+        cursor.addRow(arrayOf<Any>(id, name, mime, 1_700_000_000L))
+        return cursor
     }
 
     /**
-     * UX-07 empty-state seed: when ContentResolver.query returns null (rare but legal —
-     * e.g., user revoked storage access mid-session), repository must return emptyList()
-     * rather than crashing or returning null itself.
+     * UX-05 empty seed: an empty cursor (no rows in DCIM/Bugzz/) emits an empty list — drives
+     * EmptyStateColumn rendering downstream in CollectionScreen.
      */
     @Test
-    @Ignore("Plan 06-05 — un-ignore when CollectionRepository lands")
-    fun query_returnsNull_repositoryReturnsEmptyList() {
-        markMissing()
+    fun emptyCursor_emitsEmptyList() = runTest {
+        val emptyCursor = MatrixCursor(
+            arrayOf(
+                MediaStore.MediaColumns._ID,
+                MediaStore.MediaColumns.DISPLAY_NAME,
+                MediaStore.MediaColumns.MIME_TYPE,
+                MediaStore.MediaColumns.DATE_MODIFIED,
+            )
+        )
+        val (context, _) = buildContextWithCursor(emptyCursor)
+        val repository = CollectionRepository(context)
+
+        repository.loadMediaItems().test {
+            assertEquals(emptyList<MediaItem>(), awaitItem())
+            awaitComplete()
+        }
     }
 
     /**
-     * UX-05 happy path: a Cursor row with (id, display_name, mime_type, date_added) maps
-     * to a MediaItem with the same fields and a non-null content URI.
+     * D-12 / T-06-02 image-namespace correctness: a row with `mime=image/jpeg` produces a URI
+     * in the `MediaStore.Images.Media` namespace (not Files). Sharing apps and AsyncImage
+     * decoders rely on this — see RESEARCH §Critical Note.
      */
     @Test
-    @Ignore("Plan 06-05 — un-ignore when CollectionRepository lands")
-    fun cursorRow_mapsToMediaItem_withCorrectMimeType() {
-        markMissing()
+    fun imageRow_constructsImagesMediaUri() = runTest {
+        val cursor = buildSingleRowCursor(id = 1L, mime = "image/jpeg")
+        val (context, _) = buildContextWithCursor(cursor)
+        val repository = CollectionRepository(context)
+
+        repository.loadMediaItems().test {
+            val list = awaitItem()
+            assertEquals(1, list.size)
+            val uriString = list[0].uri.toString()
+            assertTrue(
+                "Image row must produce Images.Media URI, got: $uriString",
+                uriString.contains("images/media/1"),
+            )
+            assertEquals("image/jpeg", list[0].mimeType)
+            awaitComplete()
+        }
     }
 
     /**
-     * T-06-02 namespace correctness: rows with mime_type starting "image/" must produce
-     * URIs in the MediaStore.Images.Media namespace. Rows with "video/" must produce
-     * URIs in the MediaStore.Video.Media namespace. Mismatch → ContentResolver.openInputStream
-     * fails for the consumer (Preview screen, share intent).
+     * D-12 / T-06-02 video-namespace correctness: a row with `mime=video/mp4` produces a URI
+     * in the `MediaStore.Video.Media` namespace. ExoPlayer's MediaItem requires this for
+     * proper Surface attachment in VideoPreview.
      */
     @Test
-    @Ignore("Plan 06-05 — un-ignore when CollectionRepository lands")
-    fun mimeBranching_imageRowsToImagesMediaUri_videoRowsToVideoMediaUri() {
-        markMissing()
+    fun videoRow_constructsVideoMediaUri() = runTest {
+        val cursor = buildSingleRowCursor(id = 2L, mime = "video/mp4")
+        val (context, _) = buildContextWithCursor(cursor)
+        val repository = CollectionRepository(context)
+
+        repository.loadMediaItems().test {
+            val list = awaitItem()
+            assertEquals(1, list.size)
+            val uriString = list[0].uri.toString()
+            assertTrue(
+                "Video row must produce Video.Media URI, got: $uriString",
+                uriString.contains("video/media/2"),
+            )
+            assertEquals("video/mp4", list[0].mimeType)
+            awaitComplete()
+        }
     }
 
     /**
-     * UX-05 scope: query selection clause uses RELATIVE_PATH = "DCIM/Bugzz/" so files saved
-     * elsewhere on the device do not appear in the collection grid. Tested by stubbing the
-     * Cursor with both in-scope and out-of-scope rows and asserting only in-scope items
-     * surface in the result list (the production code is expected to add the WHERE clause —
-     * out-of-scope rows simply will not be present in the cursor it receives).
+     * T-06-02 parameter-binding mitigation: the repository passes the relative-path filter as
+     * a positional `?` placeholder + selectionArgs entry — never via string concat. Captures
+     * the actual args array and asserts the first element binds to `DCIM/Bugzz/%`.
      */
     @Test
-    @Ignore("Plan 06-05 — un-ignore when CollectionRepository lands")
-    fun selection_excludesRowsOutsideDcimBugzzRelativePath() {
-        markMissing()
+    fun selectionArgsBindRelativePath() = runTest {
+        val emptyCursor = MatrixCursor(
+            arrayOf(
+                MediaStore.MediaColumns._ID,
+                MediaStore.MediaColumns.DISPLAY_NAME,
+                MediaStore.MediaColumns.MIME_TYPE,
+                MediaStore.MediaColumns.DATE_MODIFIED,
+            )
+        )
+        val (context, mockResolver) = buildContextWithCursor(emptyCursor)
+        val repository = CollectionRepository(context)
+
+        // Trigger the query — emission isn't necessary for arg capture; it's enough that
+        // resolver.query() ran.
+        repository.loadMediaItems().test {
+            awaitItem()
+            awaitComplete()
+        }
+
+        val argsCaptor: ArgumentCaptor<Array<String>> =
+            ArgumentCaptor.forClass(Array<String>::class.java)
+        Mockito.verify(mockResolver).query(
+            any(),
+            anyOrNull(),
+            anyOrNull(),
+            argsCaptor.capture(),
+            anyOrNull(),
+        )
+        val captured = argsCaptor.value
+        assertTrue(
+            "selectionArgs[0] must bind to DCIM/Bugzz/% — got: ${captured[0]}",
+            captured[0] == "DCIM/Bugzz/%",
+        )
     }
 }
