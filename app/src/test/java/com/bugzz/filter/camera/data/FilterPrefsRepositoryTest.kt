@@ -15,6 +15,7 @@ import kotlinx.coroutines.test.setMain
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Before
+import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.TemporaryFolder
@@ -133,5 +134,66 @@ class FilterPrefsRepositoryTest {
         )
         val repo = FilterPrefsRepository(throwingStore)
         assertEquals(FilterPrefsRepository.DEFAULT_FILTER_ID, repo.lastUsedFilterId.first())
+    }
+
+    // -------------------------------------------------------------------------
+    // Phase 6 D-23 EXTENSION — onboarding_completed key (UX-01 + UX-02)
+    //
+    // The plan extends this same FilterPrefsRepository class (rather than creating
+    // OnboardingPrefsRepository) so we have ONE repo + ONE test class for DataStore
+    // round-trip + corruption-default semantics. Tests are @Ignored at Wave 0 because
+    // the property `onboardingCompleted: Flow<Boolean>` and the writer
+    // `setOnboardingCompleted(value: Boolean)` are landing in Plan 06-02.
+    //
+    // When Plan 06-02 lands, the implementer will:
+    //   - Add `KEY_ONBOARDING_COMPLETED = booleanPreferencesKey("onboarding_completed")`
+    //     and DEFAULT_ONBOARDING_COMPLETED = false in FilterPrefsRepository.companion
+    //   - Add `onboardingCompleted: Flow<Boolean>` mirroring the lastUsedFilterId .catch pattern
+    //   - Add `suspend fun setOnboardingCompleted(value: Boolean)`
+    //   - Remove @Ignore from the three tests below
+    //
+    // T-06-04 mirror of T-04-01: corrupt DataStore → emit `false` (safe default — better to
+    // re-show onboarding than to skip it on a corrupted prefs file).
+    // -------------------------------------------------------------------------
+
+    /**
+     * UX-02 round-trip: setOnboardingCompleted(true) → onboardingCompleted.first() == true.
+     * Mirrors the writeThenRead_returnsSameId pattern.
+     */
+    @Test
+    @Ignore("Plan 06-02 — un-ignore when onboardingCompleted property + setOnboardingCompleted() land")
+    fun writeOnboardingCompleted_thenRead_returnsTrue() = runTest(testDispatcher) {
+        // Body to be implemented in Plan 06-02. Sketch:
+        //   val repo = newRepo("onboarding-write.preferences_pb")
+        //   repo.setOnboardingCompleted(true)
+        //   advanceUntilIdle()
+        //   assertEquals(true, repo.onboardingCompleted.first())
+    }
+
+    /**
+     * UX-01 first-launch default: fresh DataStore (no onboarding write yet) → onboardingCompleted
+     * emits false. SplashViewModel uses this to route first-launch users to OnboardingScreen.
+     */
+    @Test
+    @Ignore("Plan 06-02 — un-ignore when onboardingCompleted property + setOnboardingCompleted() land")
+    fun readOnboardingCompleted_beforeWrite_returnsFalseDefault() = runTest(testDispatcher) {
+        // Body to be implemented in Plan 06-02. Sketch:
+        //   val repo = newRepo("onboarding-empty.preferences_pb")
+        //   assertEquals(false, repo.onboardingCompleted.first())
+    }
+
+    /**
+     * T-06-04 mitigation: if the DataStore preferences file is corrupted (IOException on read),
+     * onboardingCompleted must emit false (safe default — re-show onboarding, never crash).
+     * Mirrors the corruptedDataStore_emitsDefault pattern but for the boolean key.
+     */
+    @Test
+    @Ignore("Plan 06-02 — un-ignore when onboardingCompleted property + setOnboardingCompleted() land")
+    fun corruptedDataStore_onboardingCompleted_emitsFalseDefault() = runTest(testDispatcher) {
+        // Body to be implemented in Plan 06-02. Sketch:
+        //   val throwingStore: DataStore<Preferences> = mock()
+        //   whenever(throwingStore.data).doReturn(flow { throw IOException("simulated corruption") })
+        //   val repo = FilterPrefsRepository(throwingStore)
+        //   assertEquals(false, repo.onboardingCompleted.first())
     }
 }
