@@ -157,17 +157,16 @@ class FilterPrefsRepositoryTest {
     // -------------------------------------------------------------------------
 
     /**
-     * UX-02 round-trip: setOnboardingCompleted(true) → onboardingCompleted.first() == true.
-     * Mirrors the writeThenRead_returnsSameId pattern.
+     * UX-02 round-trip: setOnboardingCompleted() → onboardingCompleted.first() == true.
+     * Mirrors the writeThenRead_returnsSameId pattern. D-23 specifies the setter has no
+     * argument (single-shot "mark complete"); idempotent on repeated calls.
      */
     @Test
-    @Ignore("Plan 06-02 — un-ignore when onboardingCompleted property + setOnboardingCompleted() land")
     fun writeOnboardingCompleted_thenRead_returnsTrue() = runTest(testDispatcher) {
-        // Body to be implemented in Plan 06-02. Sketch:
-        //   val repo = newRepo("onboarding-write.preferences_pb")
-        //   repo.setOnboardingCompleted(true)
-        //   advanceUntilIdle()
-        //   assertEquals(true, repo.onboardingCompleted.first())
+        val repo = newRepo("onboarding-write.preferences_pb")
+        repo.setOnboardingCompleted()
+        advanceUntilIdle()
+        assertEquals(true, repo.onboardingCompleted.first())
     }
 
     /**
@@ -175,11 +174,9 @@ class FilterPrefsRepositoryTest {
      * emits false. SplashViewModel uses this to route first-launch users to OnboardingScreen.
      */
     @Test
-    @Ignore("Plan 06-02 — un-ignore when onboardingCompleted property + setOnboardingCompleted() land")
     fun readOnboardingCompleted_beforeWrite_returnsFalseDefault() = runTest(testDispatcher) {
-        // Body to be implemented in Plan 06-02. Sketch:
-        //   val repo = newRepo("onboarding-empty.preferences_pb")
-        //   assertEquals(false, repo.onboardingCompleted.first())
+        val repo = newRepo("onboarding-empty.preferences_pb")
+        assertEquals(false, repo.onboardingCompleted.first())
     }
 
     /**
@@ -188,12 +185,12 @@ class FilterPrefsRepositoryTest {
      * Mirrors the corruptedDataStore_emitsDefault pattern but for the boolean key.
      */
     @Test
-    @Ignore("Plan 06-02 — un-ignore when onboardingCompleted property + setOnboardingCompleted() land")
     fun corruptedDataStore_onboardingCompleted_emitsFalseDefault() = runTest(testDispatcher) {
-        // Body to be implemented in Plan 06-02. Sketch:
-        //   val throwingStore: DataStore<Preferences> = mock()
-        //   whenever(throwingStore.data).doReturn(flow { throw IOException("simulated corruption") })
-        //   val repo = FilterPrefsRepository(throwingStore)
-        //   assertEquals(false, repo.onboardingCompleted.first())
+        val throwingStore: DataStore<Preferences> = mock()
+        whenever(throwingStore.data).doReturn(
+            flow<Preferences> { throw IOException("simulated corruption") }
+        )
+        val repo = FilterPrefsRepository(throwingStore)
+        assertEquals(false, repo.onboardingCompleted.first())
     }
 }

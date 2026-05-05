@@ -3,6 +3,7 @@ package com.bugzz.filter.camera.data
 import android.content.Context
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
+import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.emptyPreferences
 import androidx.datastore.preferences.core.stringPreferencesKey
@@ -59,8 +60,32 @@ class FilterPrefsRepository internal constructor(
         dataStore.edit { prefs -> prefs[KEY_LAST_FILTER] = id }
     }
 
+    /**
+     * D-23: Onboarding completion flag. Defaults to `false` on fresh install (key absent → null →
+     * fallback to `false` → SplashScreen routes to Onboarding). On [IOException] (DataStore
+     * corruption — T-06-04 mirror of T-04-01), also falls back to `false`: safer to re-show
+     * onboarding than to crash on Splash.
+     */
+    val onboardingCompleted: Flow<Boolean> = dataStore.data
+        .catch { e ->
+            if (e is IOException) {
+                Timber.tag("FilterPrefs").w(e, "DataStore read error — onboarding default false")
+                emit(emptyPreferences())
+            } else throw e
+        }
+        .map { prefs -> prefs[KEY_ONBOARDING_COMPLETED] ?: false }
+
+    /**
+     * D-23: Sets `onboarding_completed = true`. Called by `OnboardingViewModel.completeOnboarding`
+     * on Skip or Get Started taps. Idempotent — repeated calls have no additional effect.
+     */
+    suspend fun setOnboardingCompleted() {
+        dataStore.edit { prefs -> prefs[KEY_ONBOARDING_COMPLETED] = true }
+    }
+
     companion object {
         private val KEY_LAST_FILTER = stringPreferencesKey("last_used_filter_id")
+        private val KEY_ONBOARDING_COMPLETED = booleanPreferencesKey("onboarding_completed")
 
         /** First entry in FilterCatalog.all after Plan 04-04 roster (D-02). */
         const val DEFAULT_FILTER_ID = "spider_nose_static"

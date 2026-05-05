@@ -157,4 +157,11 @@ dependencies {
 
     // DataStore-core for InMemoryDataStore test factory (04-VALIDATION Wave 0)
     testImplementation(libs.androidx.datastore.preferences.core)
+
+    // Phase 6 — Lottie animations (Splash + Onboarding + EmptyState) per 06-CONTEXT D-30
+    implementation(libs.lottie.compose)
+
+    // Phase 6 — Media3 ExoPlayer for video preview playback (UX-04 video case)
+    implementation(libs.androidx.media3.exoplayer)
+    implementation(libs.androidx.media3.ui)
 }
