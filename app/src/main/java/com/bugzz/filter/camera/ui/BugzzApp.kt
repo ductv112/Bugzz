@@ -15,6 +15,7 @@ import com.bugzz.filter.camera.ui.nav.HomeRoute
 import com.bugzz.filter.camera.ui.nav.OnboardingRoute
 import com.bugzz.filter.camera.ui.nav.PreviewRoute
 import com.bugzz.filter.camera.ui.nav.SplashRoute
+import com.bugzz.filter.camera.ui.onboarding.OnboardingScreen
 import com.bugzz.filter.camera.ui.screens.CollectionScreen
 import com.bugzz.filter.camera.ui.screens.PreviewScreen
 import com.bugzz.filter.camera.ui.splash.SplashScreen
@@ -36,6 +37,15 @@ fun BugzzApp() {
                 onNavigateToHome = {
                     navController.navigate(HomeRoute) {
                         popUpTo(SplashRoute) { inclusive = true }
+                    }
+                }
+            )
+        }
+        composable<OnboardingRoute> {
+            OnboardingScreen(
+                onComplete = {
+                    navController.navigate(HomeRoute) {
+                        popUpTo(OnboardingRoute) { inclusive = true }
                     }
                 }
             )
