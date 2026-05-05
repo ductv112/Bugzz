@@ -16,14 +16,11 @@ import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Share
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -36,15 +33,15 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.role
 import androidx.compose.ui.semantics.semantics
-import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import coil.compose.AsyncImage
+import com.bugzz.filter.camera.ui.components.DeleteConfirmDialog
+import com.bugzz.filter.camera.ui.share.buildShareIntent
 import kotlinx.coroutines.launch
 
 /**
@@ -60,27 +57,28 @@ import kotlinx.coroutines.launch
  *      `PreviewAction` items.
  *
  * Actions (UI-SPEC §5):
- *   - **Done** (Check icon)  → [onDone]                — file remains saved; pop back
- *   - **Share** (Share icon) → [onShareNotImplemented] — Plan 06-06 wires real Intent.ACTION_SEND
- *   - **Delete** (Delete icon) → inline AlertDialog → [PreviewViewModel.deleteArtifact] →
- *     [onDeleted] on success
+ *   - **Done** (Check icon)   → [onDone]    — file remains saved; pop back
+ *   - **Share** (Share icon)  → real `Intent.ACTION_SEND` via [buildShareIntent] +
+ *                                `context.startActivity` (Plan 06-06 wiring; replaces Plan 04
+ *                                Toast placeholder). T-06-01 mitigation lives in [buildShareIntent].
+ *   - **Delete** (Delete icon) → shared [DeleteConfirmDialog] (Plan 06-06 — replaces inline
+ *                                AlertDialog from Plan 04) → [PreviewViewModel.deleteArtifact] →
+ *                                [onDeleted] on success
  *   - **Retake** (Refresh icon) → [onRetake] — file remains saved; pop back to capture screen
  *
- * Plan 06-04 ships Share as a Toast placeholder via [onShareNotImplemented]. Plan 06-06 will
- * replace the Toast with `Intent.ACTION_SEND` + `FileProvider`-style URI grant (T-06-01).
+ * Plan 06-06 changes (vs Plan 06-04):
+ *   - `onShareNotImplemented` parameter removed; Share action now reads `LocalContext` and calls
+ *     `context.startActivity(buildShareIntent(uri, mimeType))` directly.
+ *   - Inline `AlertDialog(...)` block replaced with the shared
+ *     [com.bugzz.filter.camera.ui.components.DeleteConfirmDialog] composable.
  *
- * Plan 06-04 ships Delete with an INLINE Material3 AlertDialog. Plan 06-06 will refactor the
- * dialog out to `ui/components/DeleteConfirmDialog.kt` shared composable for reuse across
- * Collection screen and future Settings clear-all.
- *
- * Phase 6, Plan 06-04, UX-04, D-08, D-09, D-10. T-06-03 mitigation delegated to [VideoPreview].
+ * Phase 6, Plan 06-06, UX-04, UX-08, SHR-01..04, T-06-01, T-06-03 (delegated to [VideoPreview]),
+ * D-08, D-09, D-10, D-16.
  *
  * @param uri Captured artifact URI (content://media/...). Always non-null per BugzzApp nav arg.
  * @param onDone "Done" button action (typically `navController.popBackStack()`).
  * @param onRetake "Retake" button action (typically `navController.popBackStack()`).
  * @param onDeleted Called when delete succeeds (typically `navController.popBackStack()`).
- * @param onShareNotImplemented Called on Share button — Plan 06-04 caller shows a Toast.
- *   Plan 06-06 will swap this for the real share Intent.
  */
 @Composable
 fun PreviewScreen(
@@ -88,12 +86,12 @@ fun PreviewScreen(
     onDone: () -> Unit,
     onRetake: () -> Unit,
     onDeleted: () -> Unit,
-    onShareNotImplemented: () -> Unit,
     viewModel: PreviewViewModel = hiltViewModel(),
 ) {
-    var mimeType by remember { mutableStateOf<String?>(null) }
+    var mimeType by remember(uri) { mutableStateOf<String?>(null) }
     var showDeleteDialog by remember { mutableStateOf(false) }
     val scope = rememberCoroutineScope()
+    val context = LocalContext.current
 
     LaunchedEffect(uri) {
         mimeType = viewModel.resolveMimeType(uri)
@@ -149,8 +147,13 @@ fun PreviewScreen(
                 PreviewAction(
                     icon = Icons.Default.Share,
                     label = "Share",
-                    // Plan 06-06 will replace this with a real Intent.ACTION_SEND.
-                    onClick = onShareNotImplemented,
+                    // Plan 06-06: real Intent.ACTION_SEND wiring (SHR-01..04, T-06-01).
+                    onClick = {
+                        scope.launch {
+                            val mime = mimeType ?: viewModel.resolveMimeType(uri)
+                            context.startActivity(buildShareIntent(uri, mime))
+                        }
+                    },
                 )
                 PreviewAction(
                     icon = Icons.Default.Delete,
@@ -166,45 +169,16 @@ fun PreviewScreen(
         }
     }
 
-    // Plan 06-06 will refactor to ui/components/DeleteConfirmDialog.kt shared composable.
+    // Plan 06-06: shared DeleteConfirmDialog (replaces Plan 04's inline AlertDialog).
     if (showDeleteDialog) {
-        AlertDialog(
-            onDismissRequest = { showDeleteDialog = false },
-            title = {
-                Text(
-                    text = "Delete this artifact?",
-                    // UI-SPEC §3 + §Typography: 2-weight system — explicit Medium (500).
-                    style = TextStyle(fontSize = 16.sp, fontWeight = FontWeight.Medium),
-                )
-            },
-            text = {
-                Text(
-                    text = "This can't be undone.",
-                    style = MaterialTheme.typography.bodyMedium,
-                )
-            },
-            confirmButton = {
-                // "Cancel" on right (Material3 confirmButton slot) — safe action.
-                TextButton(onClick = { showDeleteDialog = false }) {
-                    Text("Cancel")
-                }
-            },
-            dismissButton = {
-                // "Delete" on left (Material3 dismissButton slot) — destructive, error color.
-                TextButton(
-                    onClick = {
-                        showDeleteDialog = false
-                        scope.launch {
-                            val ok = viewModel.deleteArtifact(uri)
-                            if (ok) onDeleted()
-                            // On failure, dialog is already dismissed; user sees no change.
-                        }
-                    },
-                    colors = ButtonDefaults.textButtonColors(
-                        contentColor = MaterialTheme.colorScheme.error,
-                    ),
-                ) {
-                    Text("Delete")
+        DeleteConfirmDialog(
+            onDismiss = { showDeleteDialog = false },
+            onConfirm = {
+                showDeleteDialog = false
+                scope.launch {
+                    val ok = viewModel.deleteArtifact(uri)
+                    if (ok) onDeleted()
+                    // On failure, dialog is already dismissed; user sees no change.
                 }
             },
         )

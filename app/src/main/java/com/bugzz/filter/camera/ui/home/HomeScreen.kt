@@ -1,6 +1,5 @@
 package com.bugzz.filter.camera.ui.home
 
-import android.widget.Toast
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -19,35 +18,40 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 
 /**
  * Production HomeScreen per 04-UI-SPEC §Component Specs §1 + 04-CONTEXT D-19.
  *
  * Layout (portrait-locked per D-21):
- *  - Settings gear: IconButton TopEnd, padding 16dp. Tap → Toast "Settings coming soon".
- *  - Center stack: Face Filter (200x80 filled, enabled) + Insect Filter (200x80 outlined, disabled)
- *    separated by 32dp vertical gap.
+ *  - Settings gear: IconButton TopEnd, padding 16dp. Tap → invokes [onSettings] lambda
+ *    (Phase 6 Plan 06-06 wiring; Plan 06-07 finalizes the BugzzApp call site to navigate to
+ *    SettingsRoute). Replaces Plan 04's Toast "Settings coming soon" placeholder.
+ *  - Center stack: Face Filter (200x80 filled, enabled) + Insect Filter (200x80 outlined,
+ *    enabled in Phase 5) separated by 32dp vertical gap.
  *  - Bottom: My Collection (160x56 outlined) with 32dp bottom padding.
  *
- * MOD-01 delivery — both mode buttons visible; only Face Filter is functional in Phase 4.
+ * Phase 6 Plan 06-06 changes (D-06): added `onSettings` lambda parameter; removed Toast +
+ * `LocalContext` usage. Plan 06-07 will replace BugzzApp's placeholder lambda with
+ * `navController.navigate(SettingsRoute)` once SettingsScreen lands.
+ *
+ * MOD-01 delivery — both mode buttons visible; Face + Insect filter shipped Phase 4 + 5.
  */
 @Composable
 fun HomeScreen(
     onFaceFilter: () -> Unit,
     onInsectFilter: () -> Unit,
     onMyCollection: () -> Unit,
+    onSettings: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    val context = LocalContext.current
-
     Scaffold(modifier = modifier.fillMaxSize()) { padding ->
         Box(modifier = Modifier.fillMaxSize().padding(padding)) {
 
             // Settings gear — TopEnd (04-UI-SPEC §1 Settings gear).
+            // Plan 06-06: Toast "Settings coming soon" replaced by onSettings lambda (D-06).
             IconButton(
-                onClick = { Toast.makeText(context, "Settings coming soon", Toast.LENGTH_SHORT).show() },
+                onClick = onSettings,
                 modifier = Modifier
                     .align(Alignment.TopEnd)
                     .padding(top = 16.dp, end = 16.dp)

@@ -1,9 +1,7 @@
 package com.bugzz.filter.camera.ui
 
 import android.net.Uri
-import android.widget.Toast
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.platform.LocalContext
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
@@ -58,6 +56,7 @@ fun BugzzApp() {
                 onFaceFilter = { navController.navigate(CameraRoute(mode = CameraMode.FaceFilter)) },
                 onInsectFilter = { navController.navigate(CameraRoute(mode = CameraMode.InsectFilter)) },
                 onMyCollection = { navController.navigate(CollectionRoute) },
+                onSettings = { /* Plan 06-07 will replace this with navController.navigate(SettingsRoute) */ },
             )
         }
         composable<CameraRoute> { backStackEntry ->
@@ -76,7 +75,6 @@ fun BugzzApp() {
             }
         }
         composable<PreviewRoute> { backStackEntry ->
-            val context = LocalContext.current
             val route: PreviewRoute = backStackEntry.toRoute()
             val uri = Uri.parse(route.uri)
             PreviewScreen(
@@ -84,10 +82,6 @@ fun BugzzApp() {
                 onDone = { navController.popBackStack() },
                 onRetake = { navController.popBackStack() },
                 onDeleted = { navController.popBackStack() },
-                onShareNotImplemented = {
-                    // Plan 06-06 wires real Intent.ACTION_SEND + FileProvider URI grant.
-                    Toast.makeText(context, "Share coming next", Toast.LENGTH_SHORT).show()
-                },
             )
         }
         composable<CollectionRoute> {

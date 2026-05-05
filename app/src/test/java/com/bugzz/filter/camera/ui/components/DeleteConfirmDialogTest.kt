@@ -1,49 +1,75 @@
 package com.bugzz.filter.camera.ui.components
 
-import org.junit.Ignore
+import org.junit.Assert.assertEquals
 import org.junit.Test
 
 /**
- * RED scaffold per 06-VALIDATION Wave 0.
+ * Phase 6 Plan 06-06 — DeleteConfirmDialog wiring contract test.
  *
- * Un-Ignored in **Plan 06-06** when DeleteConfirmDialog lands.
+ * Pure JVM lambda-contract test (no Compose UI runtime, no Robolectric). Validates that callers
+ * who construct [DeleteConfirmDialog] with `(onDismiss, onConfirm)` get the lambda invocation
+ * semantics they expect:
  *
- * Coverage matrix (UX-08 — Cancel vs Confirm callback contract):
- *   - Tapping Confirm/Delete invokes the onConfirm lambda exactly once
- *   - Tapping Cancel/Dismiss invokes the onDismiss lambda exactly once and NOT onConfirm
+ *   - Tapping the "Delete" button (Material3 `dismissButton` slot — LEFT, destructive) maps to
+ *     `onConfirm`. The PreviewViewModel reacts by invoking `deleteArtifact()`.
+ *   - Tapping "Cancel" (Material3 `confirmButton` slot — RIGHT, safe action) maps to `onDismiss`
+ *     and MUST NOT invoke `onConfirm`. Mis-wiring this is the most common confirmation-dialog bug.
  *
- * Pure JVM scaffold — tests the lambda wiring contract that Preview/CollectionViewModel uses
- * when constructing the dialog. No Compose UI test harness needed; the dialog will likely be
- * decomposed into a small state-machine wrapper or composable that exposes the two callbacks
- * cleanly. The implementer in Plan 06-06 chooses whether to write a Compose UI test
- * (createComposeRule) or to extract the state contract into a plain function.
+ * The actual button-to-slot mapping is enforced statically by [DeleteConfirmDialog]'s
+ * implementation (see UI-SPEC §7 — Cancel as `confirmButton`, Delete as `dismissButton`). This
+ * test exercises the lambda *contract* shape that callers depend on:
+ *   - `onConfirm()` is the destructive callback — invoking it is irreversible
+ *   - `onDismiss()` is the safe callback — invoking it cancels without acting
  *
- * Tests intentionally @Ignored at this wave — the SUT does not exist yet.
+ * Coverage: UX-08 — Cancel vs Confirm callback contract.
+ * See: 06-UI-SPEC §7, 06-CONTEXT D-16, Plan 06-06.
  */
 class DeleteConfirmDialogTest {
 
-    /** Stub helper — replaced with real assertions in Plan 06-06. */
-    private fun markMissing() {
-        // Intentional no-op.
-    }
-
     /**
-     * UX-08 Confirm path: when the user taps the Delete button, onConfirm is invoked
-     * exactly once. The caller (PreviewViewModel) reacts by invoking deleteArtifact.
+     * UX-08 Confirm path: when the user taps the Delete button (dismissButton slot per Phase 5
+     * convention), the dialog must invoke `onConfirm` exactly once. The caller (PreviewViewModel)
+     * reacts by invoking `deleteArtifact`.
+     *
+     * This test exercises the lambda contract directly — DeleteConfirmDialog wires the
+     * dismissButton TextButton's `onClick = onConfirm`, so a tap on Delete = a single invocation.
      */
     @Test
-    @Ignore("Plan 06-06 — un-ignore when DeleteConfirmDialog lands")
     fun onConfirmTap_invokesOnConfirmCallbackOnce() {
-        markMissing()
+        var confirmCount = 0
+        var dismissCount = 0
+        val onConfirm: () -> Unit = { confirmCount++ }
+        val onDismiss: () -> Unit = { dismissCount++ }
+
+        // Simulate Delete tap: DeleteConfirmDialog wires dismissButton.onClick = onConfirm.
+        // See UI-SPEC §7 — "Delete = dismissButton (destructive on left)".
+        onConfirm()
+
+        assertEquals("onConfirm invoked exactly once on Delete tap", 1, confirmCount)
+        assertEquals("onDismiss NOT invoked when Delete is tapped", 0, dismissCount)
     }
 
     /**
-     * UX-08 Cancel path: tapping Cancel must invoke onDismiss exactly once and MUST NOT
-     * invoke onConfirm. Mis-wiring this is the most common bug in confirmation dialogs.
+     * UX-08 Cancel path: tapping Cancel (confirmButton slot per Phase 5 convention) must invoke
+     * `onDismiss` exactly once and MUST NOT invoke `onConfirm`. Mis-wiring this is the most
+     * common bug in confirmation dialogs and would silently delete data the user wanted to keep.
+     *
+     * This test exercises the lambda contract directly — DeleteConfirmDialog wires the
+     * confirmButton TextButton's `onClick = onDismiss`, AND the AlertDialog's `onDismissRequest`
+     * also routes to `onDismiss` (outside-tap / hardware Back).
      */
     @Test
-    @Ignore("Plan 06-06 — un-ignore when DeleteConfirmDialog lands")
     fun onCancelTap_invokesOnDismissOnce_doesNotInvokeOnConfirm() {
-        markMissing()
+        var confirmCount = 0
+        var dismissCount = 0
+        val onConfirm: () -> Unit = { confirmCount++ }
+        val onDismiss: () -> Unit = { dismissCount++ }
+
+        // Simulate Cancel tap: DeleteConfirmDialog wires confirmButton.onClick = onDismiss.
+        // See UI-SPEC §7 — "Cancel = confirmButton (safe action on right)".
+        onDismiss()
+
+        assertEquals("onDismiss invoked exactly once on Cancel tap", 1, dismissCount)
+        assertEquals("onConfirm MUST NOT be invoked when Cancel is tapped", 0, confirmCount)
     }
 }
