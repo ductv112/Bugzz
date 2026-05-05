@@ -19,8 +19,8 @@ import com.bugzz.filter.camera.ui.nav.OnboardingRoute
 import com.bugzz.filter.camera.ui.nav.PreviewRoute
 import com.bugzz.filter.camera.ui.nav.SplashRoute
 import com.bugzz.filter.camera.ui.onboarding.OnboardingScreen
+import com.bugzz.filter.camera.ui.collection.CollectionScreen
 import com.bugzz.filter.camera.ui.preview.PreviewScreen
-import com.bugzz.filter.camera.ui.screens.CollectionScreen
 import com.bugzz.filter.camera.ui.splash.SplashScreen
 
 @Composable
@@ -91,7 +91,17 @@ fun BugzzApp() {
             )
         }
         composable<CollectionRoute> {
-            CollectionScreen(onBack = { navController.popBackStack() })
+            CollectionScreen(
+                onBack = { navController.popBackStack() },
+                onItemTap = { item ->
+                    navController.navigate(PreviewRoute(item.uri.toString()))
+                },
+                onOpenCamera = {
+                    navController.navigate(HomeRoute) {
+                        popUpTo(CollectionRoute) { inclusive = true }
+                    }
+                },
+            )
         }
     }
 }
