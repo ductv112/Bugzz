@@ -90,15 +90,15 @@ Feature-parity clone of reference app (`com.insect.filters.funny.prank.bug.filte
 - [x] **UX-05**: My Collection screen lists saved photos and videos from `DCIM/Bugzz/` via MediaStore query
 - [x] **UX-06**: Collection items open full-screen preview with share/delete actions
 - [x] **UX-07**: Empty state shown when collection is empty (matches reference)
-- [ ] **UX-08**: Delete-item confirmation dialog prevents accidental deletion
+- [x] **UX-08**: Delete-item confirmation dialog prevents accidental deletion
 - [ ] **UX-09**: Settings screen shows app version, privacy policy link, rate app (no-op placeholder)
 
 ### Share
 
-- [ ] **SHR-01**: Share button on Preview and Collection screens invokes `Intent.ACTION_SEND` with MediaStore content URI
-- [ ] **SHR-02**: Share intent `type` matches artifact MIME (image/jpeg or video/mp4)
-- [ ] **SHR-03**: Android share sheet shows available targets (WhatsApp, Instagram, TikTok, Facebook, Messenger, Zalo if installed)
-- [ ] **SHR-04**: Shared content arrives at target app with overlay intact
+- [x] **SHR-01**: Share button on Preview and Collection screens invokes `Intent.ACTION_SEND` with MediaStore content URI
+- [x] **SHR-02**: Share intent `type` matches artifact MIME (image/jpeg or video/mp4)
+- [x] **SHR-03**: Android share sheet shows available targets (WhatsApp, Instagram, TikTok, Facebook, Messenger, Zalo if installed)
+- [x] **SHR-04**: Shared content arrives at target app with overlay intact
 
 ### Performance & Device Matrix
 
@@ -221,12 +221,12 @@ Final mapping locked by roadmap (2026-04-18). Every v1 requirement is assigned t
 | UX-05 | Phase 6 | Complete |
 | UX-06 | Phase 6 | Complete |
 | UX-07 | Phase 6 | Complete |
-| UX-08 | Phase 6 | Pending |
+| UX-08 | Phase 6 | Complete |
 | UX-09 | Phase 6 | Pending |
-| SHR-01 | Phase 6 | Pending |
-| SHR-02 | Phase 6 | Pending |
-| SHR-03 | Phase 6 | Pending |
-| SHR-04 | Phase 6 | Pending |
+| SHR-01 | Phase 6 | Complete |
+| SHR-02 | Phase 6 | Complete |
+| SHR-03 | Phase 6 | Complete |
+| SHR-04 | Phase 6 | Complete |
 | PRF-01 | Phase 7 | Pending |
 | PRF-02 | Phase 7 | Pending |
 | PRF-03 | Phase 7 | Pending |
