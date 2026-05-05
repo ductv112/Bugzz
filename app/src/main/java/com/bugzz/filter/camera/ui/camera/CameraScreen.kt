@@ -4,6 +4,7 @@ import android.Manifest
 import android.app.Activity
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.net.Uri
 import android.provider.Settings
 import android.view.HapticFeedbackConstants
 import android.widget.Toast
@@ -68,6 +69,15 @@ import kotlinx.coroutines.launch
 /**
  * Phase 5 Camera Compose surface — extends Phase 4 with production video recording UI.
  *
+ * Phase 6 update (Plan 06-04 — D-09 navigation):
+ *  - Post-capture flow now navigates to PreviewScreen instead of showing a Toast. The
+ *    composable accepts an [onCaptureSaved] lambda (parent passes
+ *    `navController.navigate(PreviewRoute(uri.toString()))`); both `OneShotEvent.PhotoSaved`
+ *    and `OneShotEvent.VideoSaved` invoke it. The "Saved to gallery" / "Recording saved"
+ *    Toasts (Phase 3 D-12 / Phase 5 D-07) are removed for these branches — Preview becomes
+ *    the user-facing confirmation. Error branches (PhotoError/VideoError/FilterLoadError/
+ *    CameraError) keep their Toasts unchanged.
+ *
  * Phase 5 additions (Plan 05-04):
  *  - Production RecordButton (56dp red circle, 2dp white border) at Alignment.BottomStart,
  *    padding(start=24dp, bottom=24dp). Replaces Phase 2/4 debug record button (D-07).
@@ -88,11 +98,14 @@ import kotlinx.coroutines.launch
  *  - FilterPicker strip at BottomCenter padding(bottom=104dp) (D-15/D-17).
  *  - Flip button at TopEnd (D-24).
  *  - CAMERA permission launcher (Phase 2).
- *  - OneShotEvent.PhotoSaved/PhotoError/FilterLoadError Toasts (Phase 3).
+ *  - OneShotEvent.PhotoError/FilterLoadError Toasts (Phase 3).
+ *
+ * @param onCaptureSaved Invoked with the saved artifact URI on PhotoSaved/VideoSaved events.
+ *   Plan 06-04 D-09 — replaces Phase 3 Toast confirmation with navigation to PreviewScreen.
  */
 @Composable
 fun CameraScreen(
-    onOpenPreview: () -> Unit,
+    onCaptureSaved: (Uri) -> Unit,
     vm: CameraViewModel = hiltViewModel(),
 ) {
     val lifecycleOwner = LocalLifecycleOwner.current
@@ -181,16 +194,14 @@ fun CameraScreen(
                     Toast.makeText(context, "Record error: ${event.reason}", Toast.LENGTH_LONG).show()
                 is OneShotEvent.CameraError ->
                     Toast.makeText(context, "Camera error: ${event.message}", Toast.LENGTH_LONG).show()
-                // Phase 3 (D-12 / D-35)
-                is OneShotEvent.PhotoSaved ->
-                    Toast.makeText(context, "Saved to gallery", Toast.LENGTH_SHORT).show()
+                // Phase 6 D-09 — replaces Phase 3 D-12 / D-35 Toast with navigation to PreviewScreen.
+                is OneShotEvent.PhotoSaved -> onCaptureSaved(event.uri)
                 is OneShotEvent.PhotoError ->
                     Toast.makeText(context, "Photo error: ${event.message}", Toast.LENGTH_LONG).show()
                 is OneShotEvent.FilterLoadError ->
                     Toast.makeText(context, "Filter error: ${event.message}", Toast.LENGTH_LONG).show()
-                // Phase 5 (Plan 05-03) — video recording outcomes (UI-SPEC §Copywriting)
-                is OneShotEvent.VideoSaved ->
-                    Toast.makeText(context, "Recording saved", Toast.LENGTH_SHORT).show()
+                // Phase 6 D-09 — replaces Phase 5 D-07 Toast "Recording saved" with navigation.
+                is OneShotEvent.VideoSaved -> onCaptureSaved(event.uri)
                 is OneShotEvent.VideoError ->
                     Toast.makeText(context, "Recording failed: ${event.message}", Toast.LENGTH_LONG).show()
             }

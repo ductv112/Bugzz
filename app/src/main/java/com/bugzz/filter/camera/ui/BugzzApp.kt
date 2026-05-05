@@ -1,6 +1,9 @@
 package com.bugzz.filter.camera.ui
 
+import android.net.Uri
+import android.widget.Toast
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.platform.LocalContext
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
@@ -16,8 +19,8 @@ import com.bugzz.filter.camera.ui.nav.OnboardingRoute
 import com.bugzz.filter.camera.ui.nav.PreviewRoute
 import com.bugzz.filter.camera.ui.nav.SplashRoute
 import com.bugzz.filter.camera.ui.onboarding.OnboardingScreen
+import com.bugzz.filter.camera.ui.preview.PreviewScreen
 import com.bugzz.filter.camera.ui.screens.CollectionScreen
-import com.bugzz.filter.camera.ui.screens.PreviewScreen
 import com.bugzz.filter.camera.ui.splash.SplashScreen
 
 @Composable
@@ -61,13 +64,31 @@ fun BugzzApp() {
             val route: CameraRoute = backStackEntry.toRoute()
             when (route.mode) {
                 CameraMode.FaceFilter -> CameraScreen(
-                    onOpenPreview = { navController.navigate(PreviewRoute) }
+                    onCaptureSaved = { uri ->
+                        navController.navigate(PreviewRoute(uri.toString()))
+                    },
                 )
-                CameraMode.InsectFilter -> InsectFilterScreen()
+                CameraMode.InsectFilter -> InsectFilterScreen(
+                    onCaptureSaved = { uri ->
+                        navController.navigate(PreviewRoute(uri.toString()))
+                    },
+                )
             }
         }
-        composable<PreviewRoute> {
-            PreviewScreen(onBack = { navController.popBackStack() })
+        composable<PreviewRoute> { backStackEntry ->
+            val context = LocalContext.current
+            val route: PreviewRoute = backStackEntry.toRoute()
+            val uri = Uri.parse(route.uri)
+            PreviewScreen(
+                uri = uri,
+                onDone = { navController.popBackStack() },
+                onRetake = { navController.popBackStack() },
+                onDeleted = { navController.popBackStack() },
+                onShareNotImplemented = {
+                    // Plan 06-06 wires real Intent.ACTION_SEND + FileProvider URI grant.
+                    Toast.makeText(context, "Share coming next", Toast.LENGTH_SHORT).show()
+                },
+            )
         }
         composable<CollectionRoute> {
             CollectionScreen(onBack = { navController.popBackStack() })

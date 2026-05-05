@@ -4,6 +4,7 @@ import android.Manifest
 import android.app.Activity
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.net.Uri
 import android.provider.Settings
 import android.view.HapticFeedbackConstants
 import android.widget.Toast
@@ -96,10 +97,21 @@ import kotlinx.coroutines.launch
  *
  * Uses extracted RecordButton + RecordingIndicator shared composables (WARNING 9 option A closure).
  *
+ * Phase 6 update (Plan 06-04 — D-09 navigation):
+ *  - Post-capture flow now navigates to PreviewScreen instead of showing a Toast. Mirrors
+ *    [com.bugzz.filter.camera.ui.camera.CameraScreen]: composable accepts an [onCaptureSaved]
+ *    lambda; both `OneShotEvent.PhotoSaved` and `OneShotEvent.VideoSaved` invoke it. The
+ *    "Saved to gallery" / "Recording saved" Toasts are removed for these branches. Error
+ *    branches (PhotoError/VideoError/FilterLoadError) keep their Toasts unchanged.
+ *
  * Phase 5, D-01..D-24, MOD-03..07, VID-09, VID-10.
+ *
+ * @param onCaptureSaved Invoked with the saved artifact URI on PhotoSaved/VideoSaved events.
+ *   Plan 06-04 D-09 — replaces Phase 5 Toast confirmation with navigation to PreviewScreen.
  */
 @Composable
 fun InsectFilterScreen(
+    onCaptureSaved: (Uri) -> Unit,
     viewModel: InsectFilterViewModel = hiltViewModel(),
 ) {
     val lifecycleOwner = LocalLifecycleOwner.current
@@ -165,14 +177,14 @@ fun InsectFilterScreen(
     LaunchedEffect(Unit) {
         viewModel.events.collect { event ->
             when (event) {
-                is OneShotEvent.PhotoSaved ->
-                    Toast.makeText(context, "Saved to gallery", Toast.LENGTH_SHORT).show()
+                // Phase 6 D-09 — replaces Phase 5 Toast confirmation with navigation to Preview.
+                is OneShotEvent.PhotoSaved -> onCaptureSaved(event.uri)
                 is OneShotEvent.PhotoError ->
                     Toast.makeText(context, "Photo failed: ${event.message}", Toast.LENGTH_LONG).show()
                 is OneShotEvent.FilterLoadError ->
                     Toast.makeText(context, "Filter failed to load", Toast.LENGTH_SHORT).show()
-                is OneShotEvent.VideoSaved ->
-                    Toast.makeText(context, "Recording saved", Toast.LENGTH_SHORT).show()
+                // Phase 6 D-09 — replaces Phase 5 D-07 Toast "Recording saved" with navigation.
+                is OneShotEvent.VideoSaved -> onCaptureSaved(event.uri)
                 is OneShotEvent.VideoError ->
                     Toast.makeText(context, "Recording failed: ${event.message}", Toast.LENGTH_LONG).show()
                 else -> Unit
