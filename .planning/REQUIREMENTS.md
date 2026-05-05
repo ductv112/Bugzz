@@ -86,7 +86,7 @@ Feature-parity clone of reference app (`com.insect.filters.funny.prank.bug.filte
 - [x] **UX-01**: Splash screen displays app logo via Lottie animation, auto-advances in ≤ 2 seconds
 - [x] **UX-02**: First-launch flow shows 3-screen Lottie onboarding carousel (skippable)
 - [ ] **UX-03**: Home screen matches reference visual spec: two large mode buttons (Face Filter / Insect Filter), settings gear icon, collection icon
-- [ ] **UX-04**: Preview/Result screen shows captured photo/video with Save, Share, Delete, Retake actions
+- [x] **UX-04**: Preview/Result screen shows captured photo/video with Save, Share, Delete, Retake actions
 - [ ] **UX-05**: My Collection screen lists saved photos and videos from `DCIM/Bugzz/` via MediaStore query
 - [ ] **UX-06**: Collection items open full-screen preview with share/delete actions
 - [ ] **UX-07**: Empty state shown when collection is empty (matches reference)
@@ -217,7 +217,7 @@ Final mapping locked by roadmap (2026-04-18). Every v1 requirement is assigned t
 | UX-01 | Phase 6 | Complete |
 | UX-02 | Phase 6 | Complete |
 | UX-03 | Phase 6 | Pending |
-| UX-04 | Phase 6 | Pending |
+| UX-04 | Phase 6 | Complete |
 | UX-05 | Phase 6 | Pending |
 | UX-06 | Phase 6 | Pending |
 | UX-07 | Phase 6 | Pending |

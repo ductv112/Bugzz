@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: Completed 06-03-PLAN.md
-last_updated: "2026-05-05T15:37:28.845Z"
+stopped_at: Completed 06-04-PLAN.md
+last_updated: "2026-05-05T15:51:40.380Z"
 progress:
   total_phases: 7
   completed_phases: 5
   total_plans: 42
-  completed_plans: 37
-  percent: 88
+  completed_plans: 38
+  percent: 90
 ---
 
 # State: Bugzz
@@ -28,13 +28,13 @@ progress:
 ## Current Position
 
 Phase: 06 (UX Polish — Splash/Home/Onboarding/Preview/Collection/Share) — IN PROGRESS
-Plan: 06-03 complete (3 of 8) → next Plan 06-04 (Wave 3: Routes PreviewRoute breaking change + PreviewScreen photo+video)
+Plan: 06-04 complete (4 of 8) → next Plan 06-05 (Wave 4: Collection screen + repository + empty state)
 
 - **Phase:** 6
-- **Plan:** 06-03 complete (3 of 8) → next Plan 06-04 (Wave 3: PreviewRoute + PreviewScreen)
-- **Previous plan:** 06-03 complete — Wave 2 production Splash + Onboarding + Routes additions: ui/components/LottiePlayer.kt shared D-26 wrapper; ui/splash/{SplashScreen,SplashViewModel}.kt with 1.5s auto-advance + DataStore-conditional first-launch routing (StateFlow<Boolean?> tri-state, T-06-04 .catch defence-in-depth); ui/onboarding/{OnboardingScreen,OnboardingViewModel}.kt 3-page HorizontalPager + Skip/Next/GetStarted + 3-dot indicator + decideNextAction() pure-JVM testable helper; Routes.kt +OnboardingRoute +SettingsRoute (PreviewRoute UNCHANGED — Plan 06-04 owns the breaking change); BugzzApp wires Splash + Onboarding production composables with popUpTo back-stack rules (D-25); 8 tests un-Ignored & GREEN (3 SplashVM + 2 OnboardingVM + 3 OnboardingPagerState); suite 170/16 ignored/0 failures; UI-SPEC §2/§3 verbatim copy + spacing on-grid + accessibility verified; D-32 invariants intact (9/9 grep-asserts pass). Commits f0be773 + f214b2f.
+- **Plan:** 06-04 complete (4 of 8) → next Plan 06-05 (Wave 4: Collection screen + repository + empty state)
+- **Previous plan:** 06-04 complete — Wave 3 atomic PreviewRoute breaking change + production PreviewScreen/VideoPreview/PreviewViewModel: Routes.kt PreviewRoute data object → @Serializable data class(val uri: String); BugzzApp PreviewRoute composable rewired with toRoute<PreviewRoute>() + Uri.parse + Toast 'Share coming next' placeholder (Plan 06-06 wires real share); CameraScreen + InsectFilterScreen accept onCaptureSaved: (Uri) -> Unit and route OneShotEvent.PhotoSaved/VideoSaved through it (D-09 — replaces Phase 3 D-12 'Saved to gallery' + Phase 5 D-07 'Recording saved' Toasts); ui/preview/PreviewScreen.kt full-screen Coil AsyncImage(ContentScale.Fit) for photos / VideoPreview for video, 80dp Surface(#1E1E1E) bottom bar with Done/Share/Delete/Retake IconButtons (10sp labelSmall), inline AlertDialog for delete confirm (DeleteConfirmDialog shared composable extraction deferred to Plan 06-06); ui/preview/VideoPreview.kt ExoPlayer host with remember(uri) + DisposableEffect ON_PAUSE/ON_RESUME observer + onDispose release() (T-06-03 mitigation, non-negotiable); ui/preview/PreviewViewModel.kt @HiltViewModel with suspend resolveMimeType(uri) + suspend deleteArtifact(uri) on Dispatchers.IO with Exception-safe delete; 5 PreviewViewModelTest cases un-Ignored & GREEN (Robolectric mock<Context> + mock<ContentResolver> harness — image/video/null MIME + delete success/throws-no-crash); suite 171/12 ignored/0 failures (+1 test, -4 ignored vs 06-03); 9 D-32 grep-asserts intact (4/1/3/6/1/2/9/1/2 — same file counts as Plan 06-03); APK assembles. Atomic commit 291daeb (8 files: Routes + BugzzApp + Camera + InsectFilter + 3 Preview production + test).
 - **Status:** Ready to execute
-- **Progress:** [█████████░] 88%
+- **Progress:** [█████████░] 90%
 
 ### Phase Map
 
@@ -85,6 +85,7 @@ Phase 7: Performance & Device Matrix                      [ pending ]
 | Phase 06 P01 | 600 | 3 tasks | 9 files |
 | Phase 06 P02 | 400s | 3 tasks | 5 files |
 | Phase 06 P03 | ~600s | 3 tasks | 10 files |
+| Phase 06 P04 | 498 | 3 tasks | 8 files |
 
 ## Accumulated Context
 
@@ -106,6 +107,10 @@ Phase 7: Performance & Device Matrix                      [ pending ]
 36. **[Phase 06-02] FilterPrefsRepository extended in-place with second key (onboarding_completed) — D-23 single-instance rule:** Same `@Singleton class FilterPrefsRepository` now holds both `lastUsedFilterId: Flow<String>` (Phase 4) and `onboardingCompleted: Flow<Boolean>` (Phase 6) keys, sharing one DataStore instance + one .catch IOException handler pattern. NOT a separate OnboardingPrefsRepository class (rejected per D-23 to prevent drift). Setter signature: `suspend fun setOnboardingCompleted()` (no Boolean arg — single-shot mark-complete, idempotent on repeat). Default value `false` so first launch routes to OnboardingScreen; T-06-04 mitigation mirrors T-04-01 verbatim (`if (e is IOException) emit(emptyPreferences())` → maps to false). **Pattern: future preference keys land as additional `val …: Flow<T>` + `suspend fun set…()` on this same class; only add a new repo when keys' lifecycle/scope differs.** (06-02-SUMMARY.md)
 
 37. **[Phase 06-02] media3-exoplayer/ui declared at 1.4.1 but resolved to 1.9.0 by Gradle conflict resolution (CameraX 1.6.0 transitive):** Catalog pins `media3 = "1.4.1"` for both `media3-exoplayer` and `media3-ui`, but CameraX 1.6.0 transitively pulls `androidx.media3:media3-common:1.9.0` (and friends) for VideoCapture+muxer integration. Mixing 1.4.1 + 1.9.0 transitive across `media3-common` would crash at runtime due to ABI mismatch on shared `media3-common`. Gradle's resolver auto-upgrades both to 1.9.0 (correct + safe). Catalog declarations stay at 1.4.1 as floor; resolver harmonizes. **Pattern: when introducing media3 modules alongside CameraX, always allow Gradle to resolve up — do NOT exclude CameraX-transitive media3 deps. Public API surface from 1.4.1→1.9.0 is backward-compatible for the basic ExoPlayer.Builder + setMediaItem(Uri) flow Plan 06-04 PreviewScreen will use.** (06-02-SUMMARY.md Deviation 1)
+
+39. **[Phase 06-04] PreviewRoute atomic breaking change pattern (RESEARCH Pitfall 6):** Routes.kt `data object` → `data class(val uri: String)` covering 4 production files in single commit (Routes + BugzzApp + CameraScreen + InsectFilterScreen). Build is incoherent at any partial-staged state but coherent at commit boundary. **Observed:** Kotlin's `NavHostController.navigate(Any)` signature ACCEPTS a class reference even when the route shape changes — runtime nav error, not compile error. Plan 06-04 prediction "compile WILL break" turned out optimistic: the build stayed green after Task 1 (Routes change alone), and only Task 3's runtime navigation paths actually exercised the breakage. **Pattern: rely on grep + behavior tests, not the build green light, to verify route-shape migrations.** Commit `291daeb`. (06-04-SUMMARY.md Deviation 2)
+
+40. **[Phase 06-04] Compose-scoped ExoPlayer ownership (NOT ViewModel-scoped):** `VideoPreview` composable owns ExoPlayer via `remember(uri)` + `DisposableEffect onDispose { release() }`. T-06-03 mitigation closes deterministically with composable lifetime. ViewModel CANNOT own ExoPlayer because resource ownership wants composable lifetime, not back-stack-survival ViewModel scope (which would keep the player alive across PreviewScreen → Camera → PreviewScreen cycles, leaking AudioFocus + MediaCodec + SurfaceTexture). LifecycleEventObserver pauses on `ON_PAUSE` / resumes on `ON_RESUME` for additional defence (battery + audio focus when backgrounded). **Pattern: native-resource-holding heavy SDK objects (ExoPlayer, MediaCodec, custom GL contexts) belong in `remember + DisposableEffect`, never in a ViewModel.** Commit `291daeb`. (06-04-SUMMARY.md)
 
 38. **[Phase 06-02] Lottie composition asset path = `lottie/home_lottie.json` (under assets/), NOT res/raw/:** RESEARCH Pitfall 4 — production code calls `LottieCompositionSpec.Asset("lottie/home_lottie.json")` which resolves relative to `assets/` root, so the file MUST live at `app/src/main/assets/lottie/home_lottie.json`. Placing it at `res/raw/` would require `LottieCompositionSpec.RawRes(R.raw.home_lottie)` (different API) — DO NOT mix the two paths. Single 746491 B JSON shared across Splash + Onboarding pages 1-3 + EmptyState (D-29). SHA256 byte-identical to `reference/raw_extract/res/raw/home_lottie.json` source verified at copy time (no JSON re-formatting drift). (06-02-SUMMARY.md)
 
@@ -180,23 +185,27 @@ None.
 
 ## Session Continuity
 
-**Last agent:** gsd-execute-phase (Plan 06-02 Wave 1 executor — autonomous per `feedback_autonomy.md`)
-**Last action:** Completed 06-02-PLAN.md — 3 tasks autonomous execution: (1) catalog + build script: lottie-compose 6.7.1 + media3 1.4.1 (resolved up to 1.9.0 transitively by CameraX 1.6.0 — Rule 3 deviation accepted); (2) home_lottie.json byte-identical copy (746491 B, sha256 5d3cfc5c…) to app/src/main/assets/lottie/; (3) FilterPrefsRepository extended with onboardingCompleted: Flow<Boolean> + setOnboardingCompleted() (no-arg per `<interfaces>` spec — Rule 3 deviation re plan-text drift); 3 @Ignore('Plan 06-02') FilterPrefsRepositoryTest cases un-ignored & GREEN. Atomic commit 03ff140. 9 D-32 grep-asserts re-verified. APK assembles. Suite 170 / 24 ignored / 0 failures (-3 ignored vs 06-01 = +3 net GREEN).
+**Last agent:** gsd-execute-phase (Plan 06-04 Wave 3 executor — autonomous per `feedback_autonomy.md`)
+**Last action:** Completed 06-04-PLAN.md — Wave 3 atomic PreviewRoute breaking change + production PreviewScreen / VideoPreview / PreviewViewModel landed in single commit 291daeb (Routes.kt data object → @Serializable data class(val uri: String) + BugzzApp PreviewRoute composable rewired with toRoute + Uri.parse + Toast 'Share coming next' placeholder + CameraScreen/InsectFilterScreen now accept onCaptureSaved: (Uri) -> Unit and route OneShotEvent.PhotoSaved/VideoSaved through it replacing Phase 3/5 'Saved to gallery'/'Recording saved' Toasts per D-09 + ui/preview/PreviewScreen.kt 213 lines full-screen Coil AsyncImage(ContentScale.Fit) for photos / VideoPreview for video, 80dp Surface(#1E1E1E) bottom bar with Done/Share/Delete/Retake IconButtons + 10sp labelSmall labels + inline AlertDialog for delete confirm + ui/preview/VideoPreview.kt 66 lines ExoPlayer host with remember(uri) + DisposableEffect ON_PAUSE/ON_RESUME observer + onDispose release() T-06-03 mitigation + ui/preview/PreviewViewModel.kt 61 lines @HiltViewModel with suspend resolveMimeType + suspend deleteArtifact on Dispatchers.IO with Exception-safe delete + 5 PreviewViewModelTest cases un-Ignored & GREEN via Robolectric mock<Context> + mock<ContentResolver> harness — image/video/null MIME branches + delete success/throws-no-crash). Suite 171/12 ignored/0 failures. 9 D-32 grep-asserts intact (4/1/3/6/1/2/9/1/2). APK assembles clean.
 
-**Stopped at:** Completed 06-03-PLAN.md
+**Stopped at:** Completed 06-04-PLAN.md
 
-**Next expected action:** Start Phase 6 UX Polish via `/gsd-discuss-phase 6` — Splash, Home, Onboarding, Preview, Collection, Share.
+**Next expected action:** Continue Phase 6 with Plan 06-05 (Wave 4: Collection screen + repository + EmptyStateColumn) — invokes CollectionRepository (MediaStore.Files query DCIM/Bugzz/) + LazyVerticalGrid 3-column thumbnail UI with `MediaMetadataRetriever` video bitmap extraction.
 
-**Files modified this session (Plan 03-02):**
+**Files modified this session (Plan 06-04):**
 
-- `app/src/main/java/com/bugzz/filter/camera/detector/BboxIouTracker.kt` (replaced stub with full production body — greedy IoU matcher, TrackerResult return type, companion constants 0.3f/5/2)
-- `app/src/main/java/com/bugzz/filter/camera/detector/OneEuroFilter.kt` (LandmarkSmoother.onFaceLost TODO replaced with real iterator.remove body)
-- `app/src/main/java/com/bugzz/filter/camera/detector/FaceDetectorClient.kt` (tracker param added; createAnalyzer consumer rewritten; smoothFace signature changed to TrackedFace; Timber format updated; SMOOTHED_CONTOUR_TYPES reordered)
-- `app/src/main/java/com/bugzz/filter/camera/detector/FaceSnapshot.kt` (KDoc updated — trackingId is tracker-assigned stable ID, not ML Kit sentinel)
-- `app/src/test/java/com/bugzz/filter/camera/detector/BboxIouTrackerTest.kt` (all 10 @Ignore annotations removed)
-- `app/src/test/java/com/bugzz/filter/camera/detector/LandmarkSmootherTest.kt` (all 3 @Ignore annotations removed)
-- `app/src/test/java/com/bugzz/filter/camera/detector/FaceDetectorClientTest.kt` (@Ignore removed; tracker wire-up test body implemented)
-- `.planning/phases/03-first-filter-end-to-end-photo-capture/03-02-SUMMARY.md` (created)
+- `app/src/main/java/com/bugzz/filter/camera/ui/nav/Routes.kt` (PreviewRoute data object → @Serializable data class(val uri: String); RESEARCH Pitfall 6 atomic breaking change)
+- `app/src/main/java/com/bugzz/filter/camera/ui/BugzzApp.kt` (composable<PreviewRoute> rewired with toRoute + Uri.parse + production PreviewScreen import + Toast 'Share coming next' placeholder; CameraRoute composable passes onCaptureSaved closure to both Camera + InsectFilter)
+- `app/src/main/java/com/bugzz/filter/camera/ui/camera/CameraScreen.kt` (signature: onOpenPreview removed → onCaptureSaved: (Uri) -> Unit added; events.collect: PhotoSaved + VideoSaved invoke onCaptureSaved instead of Toast; D-09 KDoc)
+- `app/src/main/java/com/bugzz/filter/camera/ui/insect/InsectFilterScreen.kt` (mirror Camera changes: onCaptureSaved param + events.collect rewire; D-09 KDoc)
+- `app/src/main/java/com/bugzz/filter/camera/ui/preview/PreviewViewModel.kt` (created — @HiltViewModel @Inject(@ApplicationContext); suspend resolveMimeType + suspend deleteArtifact on Dispatchers.IO; T-06-01 Exception-safe delete returns false on SecurityException)
+- `app/src/main/java/com/bugzz/filter/camera/ui/preview/VideoPreview.kt` (created — Compose ExoPlayer host: remember(uri) build + DisposableEffect ON_PAUSE/ON_RESUME observer + onDispose release(); T-06-03 mitigation per RESEARCH Pattern 3 verbatim)
+- `app/src/main/java/com/bugzz/filter/camera/ui/preview/PreviewScreen.kt` (created — full-screen Coil AsyncImage / VideoPreview branch + 80dp Surface(#1E1E1E) bottom bar with 4 PreviewAction sub-composables + inline AlertDialog for Delete confirm; UI-SPEC §5 verbatim)
+- `app/src/test/java/com/bugzz/filter/camera/ui/preview/PreviewViewModelTest.kt` (4 RED @Ignored stubs replaced with 5 GREEN tests under @RunWith(RobolectricTestRunner) @Config sdk=34 + mock<Context>+mock<ContentResolver> harness)
+- `.planning/phases/06-ux-polish-splash-home-onboarding-preview-collection-share/06-04-SUMMARY.md` (created)
+- `.planning/STATE.md` (this file — Plan counter advanced; decision #39 + #40 added; session continuity updated)
+- `.planning/REQUIREMENTS.md` (UX-04 marked complete via `requirements mark-complete UX-04`)
+- `.planning/ROADMAP.md` (refreshed via `roadmap update-plan-progress 06`)
 - `.planning/STATE.md` (updated — this file)
 - `.planning/ROADMAP.md` (updated via roadmap update-plan-progress 03)
 - `.planning/ROADMAP.md` (updated via roadmap update-plan-progress 02)
