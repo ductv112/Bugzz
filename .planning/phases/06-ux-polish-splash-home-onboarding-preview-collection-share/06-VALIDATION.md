@@ -43,8 +43,8 @@ created: 2026-05-04
 | 06-03-NN | 03 (SplashScreen + Onboarding + Routes nav graph) | 2 | UX-01, UX-02 | T-06-04 | unit | `./gradlew :app:testDebugUnitTest --tests "*SplashViewModelTest* *OnboardingViewModelTest* *OnboardingPagerStateTest*"` | ✅ Wave 2 Splash + Onboarding GREEN |
 | 06-04-NN | 04 (Routes PreviewRoute breaking change + PreviewScreen photo+video) | 3 | UX-04 | T-06-03 (ExoPlayer leak), T-06-01 | unit + manual | `./gradlew :app:testDebugUnitTest --tests "*PreviewViewModelTest*"` + 06-HANDOFF | ⬜ |
 | 06-05-NN | 05 (CollectionRepository + CollectionScreen + EmptyStateColumn) | 4 | UX-05, UX-06, UX-07 | T-06-02 | unit | `./gradlew :app:testDebugUnitTest --tests "*CollectionRepositoryTest* *CollectionViewModelTest*"` | ⬜ |
-| 06-06-NN | 06 (DeleteConfirmDialog + Share intent + HomeScreen polish) | 5 | UX-08, UX-09, SHR-01..04 | T-06-01, T-06-06 | unit | `./gradlew :app:testDebugUnitTest --tests "*DeleteConfirmDialogTest* *ShareIntentBuilderTest*"` | ⬜ |
-| 06-07-NN | 07 (Settings + StubScreens delete + nav graph close-out) | 5 | UX-09 | T-06-06 | unit + manual | `./gradlew :app:testDebugUnitTest` + 06-HANDOFF | ⬜ |
+| 06-06-NN | 06 (DeleteConfirmDialog + Share intent + HomeScreen polish) | 5 | UX-08, UX-09, SHR-01..04 | T-06-01, T-06-06 | unit | `./gradlew :app:testDebugUnitTest --tests "*DeleteConfirmDialogTest* *ShareIntentBuilderTest*"` | ✅ DeleteConfirmDialog + Share + HomeScreen onSettings GREEN |
+| 06-07-NN | 07 (Settings + StubScreens delete + nav graph close-out) | 5 | UX-09 | T-06-06 | unit + manual | `./gradlew :app:testDebugUnitTest` + 06-HANDOFF | ✅ SettingsScreen + nav graph + StubScreens delete GREEN |
 | 06-08-NN | 08 (Clean build + 06-HANDOFF + device checkpoint + post-PASS close-out) | 6 | All Phase 6 reqs | T-06-01..06 | manual (device) | 06-HANDOFF.md sign-off + Phase 4+5 deferred UAT bonus | ⬜ |
 
 ### Per-Requirement Test Specification

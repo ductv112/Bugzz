@@ -91,7 +91,7 @@ Feature-parity clone of reference app (`com.insect.filters.funny.prank.bug.filte
 - [x] **UX-06**: Collection items open full-screen preview with share/delete actions
 - [x] **UX-07**: Empty state shown when collection is empty (matches reference)
 - [x] **UX-08**: Delete-item confirmation dialog prevents accidental deletion
-- [ ] **UX-09**: Settings screen shows app version, privacy policy link, rate app (no-op placeholder)
+- [x] **UX-09**: Settings screen shows app version, privacy policy link, rate app (no-op placeholder)
 
 ### Share
 
@@ -222,7 +222,7 @@ Final mapping locked by roadmap (2026-04-18). Every v1 requirement is assigned t
 | UX-06 | Phase 6 | Complete |
 | UX-07 | Phase 6 | Complete |
 | UX-08 | Phase 6 | Complete |
-| UX-09 | Phase 6 | Pending |
+| UX-09 | Phase 6 | Complete |
 | SHR-01 | Phase 6 | Complete |
 | SHR-02 | Phase 6 | Complete |
 | SHR-03 | Phase 6 | Complete |

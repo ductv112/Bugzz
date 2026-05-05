@@ -15,10 +15,12 @@ import com.bugzz.filter.camera.ui.nav.CollectionRoute
 import com.bugzz.filter.camera.ui.nav.HomeRoute
 import com.bugzz.filter.camera.ui.nav.OnboardingRoute
 import com.bugzz.filter.camera.ui.nav.PreviewRoute
+import com.bugzz.filter.camera.ui.nav.SettingsRoute
 import com.bugzz.filter.camera.ui.nav.SplashRoute
 import com.bugzz.filter.camera.ui.onboarding.OnboardingScreen
 import com.bugzz.filter.camera.ui.collection.CollectionScreen
 import com.bugzz.filter.camera.ui.preview.PreviewScreen
+import com.bugzz.filter.camera.ui.settings.SettingsScreen
 import com.bugzz.filter.camera.ui.splash.SplashScreen
 
 @Composable
@@ -56,7 +58,7 @@ fun BugzzApp() {
                 onFaceFilter = { navController.navigate(CameraRoute(mode = CameraMode.FaceFilter)) },
                 onInsectFilter = { navController.navigate(CameraRoute(mode = CameraMode.InsectFilter)) },
                 onMyCollection = { navController.navigate(CollectionRoute) },
-                onSettings = { /* Plan 06-07 will replace this with navController.navigate(SettingsRoute) */ },
+                onSettings = { navController.navigate(SettingsRoute) },
             )
         }
         composable<CameraRoute> { backStackEntry ->
@@ -96,6 +98,9 @@ fun BugzzApp() {
                     }
                 },
             )
+        }
+        composable<SettingsRoute> {
+            SettingsScreen(onBack = { navController.popBackStack() })
         }
     }
 }

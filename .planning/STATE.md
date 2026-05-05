@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: Completed 06-06-PLAN.md
-last_updated: "2026-05-05T16:22:33.775Z"
+stopped_at: Completed 06-07-PLAN.md (SettingsScreen + nav graph + StubScreens delete) — Phase 6 production code feature-complete
+last_updated: "2026-05-05T16:32:47.286Z"
 progress:
   total_phases: 7
   completed_phases: 5
   total_plans: 42
-  completed_plans: 40
-  percent: 95
+  completed_plans: 41
+  percent: 98
 ---
 
 # State: Bugzz
@@ -28,14 +28,14 @@ progress:
 ## Current Position
 
 Phase: 06 (UX Polish — Splash/Home/Onboarding/Preview/Collection/Share) — IN PROGRESS
-Plan: 7-05 complete (5 of 8) → next Plan 06-06 (Wave 5: Share intent + DeleteConfirmDialog extraction)
+Plan: 8-05 complete (5 of 8) → next Plan 06-06 (Wave 5: Share intent + DeleteConfirmDialog extraction)
 
 - **Phase:** 6
-- **Plan:** 7-05 complete (5 of 8) → next Plan 06-06 (Wave 5: Share intent + DeleteConfirmDialog extraction)
+- **Plan:** 8-05 complete (5 of 8) → next Plan 06-06 (Wave 5: Share intent + DeleteConfirmDialog extraction)
 - **Previous plan:** 06-05 complete — Wave 4 production CollectionScreen + CollectionRepository + CollectionViewModel + EmptyStateColumn shipped: data/MediaItem.kt pure data class (D-15, bitmap-free per RESEARCH §Anti-pattern); data/CollectionRepository.kt @Singleton MediaStore.Files query — selectionArgs-bound RELATIVE_PATH LIKE filter (T-06-02 mitigation, captured[0]=='DCIM/Bugzz/%' verified by ArgumentCaptor in unit test) + per-MIME URI namespace re-construction via ContentUris.withAppendedId (Images.Media for image/jpeg, Video.Media for video/mp4 per D-12 / RESEARCH §Critical Note); ui/collection/CollectionViewModel.kt @HiltViewModel with init that collects loadMediaItems and lazy-extracts video thumbnails via MediaMetadataRetriever.getFrameAtTime(0, OPTION_CLOSEST_SYNC) on Dispatchers.IO with try/catch/finally release() — bitmap cache held in StateFlow<Map<Uri, Bitmap?>> NOT on MediaItem; ui/collection/CollectionScreen.kt LazyVerticalGrid(GridCells.Adaptive(minSize=120.dp), Arrangement.spacedBy(4.dp), 4.dp) with CollectionThumbnail Box(aspectRatio(1f)) clip(RectangleShape) clickable Role.Button — image rows = Coil AsyncImage(Crop) with #2A2A2A placeholder/error, video rows = VM-cached Bitmap (or #2A2A2A) under 30% black scrim with centered 24dp white PlayArrow icon overlay; UI-SPEC §6 grid spacing values verbatim {4, 24, 120}; ui/components/EmptyStateColumn.kt shared composable (D-26 / UI-SPEC §8) — 120dp Lottie loop + 16dp + 16sp/Medium heading + 16dp + Material3 Button(labelLarge), animationAsset defaults to lottie/home_lottie.json (D-29); BugzzApp CollectionRoute composable rewired stub→production with onItemTap → PreviewRoute(item.uri.toString()) and onOpenCamera → HomeRoute popUpTo(CollectionRoute) inclusive (D-13 standard back-stack); 6 tests un-Ignored & GREEN (4 CollectionRepositoryTest via Robolectric+MatrixCursor+ArgumentCaptor + 2 CollectionViewModelTest pure-JVM mock<Context>+mock<CollectionRepository>+flowOf); suite 171/6 ignored/0 failures (-6 ignored vs Plan 06-04 baseline); 9 D-32 grep-asserts intact (4/1/3/6/1/2/9/1/2); APK assembles clean. 3 atomic commits (3aae2b3, e8017ef, 73617ff).
 - **Older plan (06-04):** Wave 3 atomic PreviewRoute breaking change + production PreviewScreen/VideoPreview/PreviewViewModel — Wave 3 atomic PreviewRoute breaking change + production PreviewScreen/VideoPreview/PreviewViewModel: Routes.kt PreviewRoute data object → @Serializable data class(val uri: String); BugzzApp PreviewRoute composable rewired with toRoute<PreviewRoute>() + Uri.parse + Toast 'Share coming next' placeholder (Plan 06-06 wires real share); CameraScreen + InsectFilterScreen accept onCaptureSaved: (Uri) -> Unit and route OneShotEvent.PhotoSaved/VideoSaved through it (D-09 — replaces Phase 3 D-12 'Saved to gallery' + Phase 5 D-07 'Recording saved' Toasts); ui/preview/PreviewScreen.kt full-screen Coil AsyncImage(ContentScale.Fit) for photos / VideoPreview for video, 80dp Surface(#1E1E1E) bottom bar with Done/Share/Delete/Retake IconButtons (10sp labelSmall), inline AlertDialog for delete confirm (DeleteConfirmDialog shared composable extraction deferred to Plan 06-06); ui/preview/VideoPreview.kt ExoPlayer host with remember(uri) + DisposableEffect ON_PAUSE/ON_RESUME observer + onDispose release() (T-06-03 mitigation, non-negotiable); ui/preview/PreviewViewModel.kt @HiltViewModel with suspend resolveMimeType(uri) + suspend deleteArtifact(uri) on Dispatchers.IO with Exception-safe delete; 5 PreviewViewModelTest cases un-Ignored & GREEN (Robolectric mock<Context> + mock<ContentResolver> harness — image/video/null MIME + delete success/throws-no-crash); suite 171/12 ignored/0 failures (+1 test, -4 ignored vs 06-03); 9 D-32 grep-asserts intact (4/1/3/6/1/2/9/1/2 — same file counts as Plan 06-03); APK assembles. Atomic commit 291daeb (8 files: Routes + BugzzApp + Camera + InsectFilter + 3 Preview production + test).
 - **Status:** Ready to execute
-- **Progress:** [██████████] 95%
+- **Progress:** [██████████] 98%
 
 ### Phase Map
 
@@ -89,6 +89,7 @@ Phase 7: Performance & Device Matrix                      [ pending ]
 | Phase 06 P04 | 498 | 3 tasks | 8 files |
 | Phase 06 P05 | 535 | 3 tasks | 8 files |
 | Phase 06 P06 | 320 | 3 tasks | 7 files |
+| Phase 06 P07 | 240 | 3 tasks | 3 files |
 
 ## Accumulated Context
 
@@ -199,7 +200,7 @@ None.
 **Last agent:** gsd-execute-phase (Plan 06-05 Wave 4 executor — autonomous per `feedback_autonomy.md`)
 **Last action:** Completed 06-05-PLAN.md — Wave 4 production CollectionScreen + CollectionRepository + CollectionViewModel + EmptyStateColumn shipped (5 production files created + BugzzApp CollectionRoute rewired stub→production with PreviewRoute(uri.toString()) tap routing + popUpTo HomeRoute on empty-state CTA); 6 tests un-Ignored GREEN (4 RepoTest Robolectric+MatrixCursor+ArgumentCaptor + 2 VMTest pure-JVM mock<Context>+mock<CollectionRepository>+flowOf); suite 171/6/0/0; T-06-02 selectionArgs binding verified; per-MIME URI namespace re-construction (Images.Media for image/jpeg, Video.Media for video/mp4 per RESEARCH §Critical Note); 9 D-32 grep-asserts intact (4/1/3/6/1/2/9/1/2). 3 atomic commits 3aae2b3 / e8017ef / 73617ff. Earlier action: Completed 06-04-PLAN.md — Wave 3 atomic PreviewRoute breaking change + production PreviewScreen / VideoPreview / PreviewViewModel landed in single commit 291daeb (Routes.kt data object → @Serializable data class(val uri: String) + BugzzApp PreviewRoute composable rewired with toRoute + Uri.parse + Toast 'Share coming next' placeholder + CameraScreen/InsectFilterScreen now accept onCaptureSaved: (Uri) -> Unit and route OneShotEvent.PhotoSaved/VideoSaved through it replacing Phase 3/5 'Saved to gallery'/'Recording saved' Toasts per D-09 + ui/preview/PreviewScreen.kt 213 lines full-screen Coil AsyncImage(ContentScale.Fit) for photos / VideoPreview for video, 80dp Surface(#1E1E1E) bottom bar with Done/Share/Delete/Retake IconButtons + 10sp labelSmall labels + inline AlertDialog for delete confirm + ui/preview/VideoPreview.kt 66 lines ExoPlayer host with remember(uri) + DisposableEffect ON_PAUSE/ON_RESUME observer + onDispose release() T-06-03 mitigation + ui/preview/PreviewViewModel.kt 61 lines @HiltViewModel with suspend resolveMimeType + suspend deleteArtifact on Dispatchers.IO with Exception-safe delete + 5 PreviewViewModelTest cases un-Ignored & GREEN via Robolectric mock<Context> + mock<ContentResolver> harness — image/video/null MIME branches + delete success/throws-no-crash). Suite 171/12 ignored/0 failures. 9 D-32 grep-asserts intact (4/1/3/6/1/2/9/1/2). APK assembles clean.
 
-**Stopped at:** Completed 06-06-PLAN.md
+**Stopped at:** Completed 06-07-PLAN.md (SettingsScreen + nav graph + StubScreens delete) — Phase 6 production code feature-complete
 
 **Next expected action:** Continue Phase 6 with Plan 06-06 (Wave 5: Share intent + DeleteConfirmDialog extraction) — `Intent.ACTION_SEND` + `FileProvider`-style URI grant (T-06-01 mitigation), ShareIntentBuilder factory + tests, refactor PreviewScreen inline AlertDialog → shared `ui/components/DeleteConfirmDialog.kt` composable for reuse across Preview + future Settings clear-all.
 
