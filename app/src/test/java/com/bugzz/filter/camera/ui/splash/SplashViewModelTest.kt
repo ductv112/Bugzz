@@ -1,64 +1,105 @@
 package com.bugzz.filter.camera.ui.splash
 
-import org.junit.Ignore
+import app.cash.turbine.test
+import com.bugzz.filter.camera.data.FilterPrefsRepository
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.test.StandardTestDispatcher
+import kotlinx.coroutines.test.advanceUntilIdle
+import kotlinx.coroutines.test.resetMain
+import kotlinx.coroutines.test.runTest
+import kotlinx.coroutines.test.setMain
+import org.junit.After
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNull
+import org.junit.Before
 import org.junit.Test
+import org.mockito.kotlin.doReturn
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.stub
 
 /**
- * RED scaffold per 06-VALIDATION Wave 0.
+ * Unit tests for [SplashViewModel] (UX-01 + T-06-04).
  *
- * Un-Ignored in **Plan 06-03** when SplashViewModel lands.
+ * Coverage matrix:
+ *   - onboarding_completed=false → onboardingCompleted StateFlow resolves to false (route to Onboarding)
+ *   - onboarding_completed=true  → onboardingCompleted StateFlow resolves to true  (route to Home)
+ *   - DataStore IOException via .catch → onboardingCompleted StateFlow resolves to null (T-06-04 safe default — composable treats null after delay as "show onboarding")
  *
- * Coverage matrix (UX-01 + T-06-04):
- *   - onboarding_completed=false → emits Onboarding navigation target
- *   - onboarding_completed=true  → emits Home navigation target
- *   - DataStore IOException      → emits Onboarding (safe-default false per T-06-04 mirror of T-04-01)
- *
- * Purpose: this file pre-creates the test path that Plan 06-03's per-task verification command
- * will reference (`*SplashViewModelTest*`). Tests are intentionally @Ignored — the SplashViewModel
- * SUT does not exist yet, so we do not import it; we reference it only by name in the @Ignore
- * message. When Plan 06-03 lands the production class, the implementer will:
- *   1. Add real imports + setUp/tearDown blocks
- *   2. Replace each `markMissing()` call with the real assertion using a constructed VM
- *   3. Remove the @Ignore annotation
- *
- * Pattern mirrored from Phase 5 Wave 0: [com.bugzz.filter.camera.ui.insect.StickerStateTest]
- * (when it was @Ignored prior to Plan 05-02 landing). Pure JVM — no @RunWith, no Android types.
+ * Pattern mirrors [com.bugzz.filter.camera.ui.insect.InsectFilterViewModelTest]: pure JVM,
+ * StandardTestDispatcher + advanceUntilIdle, mock FilterPrefsRepository (no Hilt graph).
  */
+@OptIn(ExperimentalCoroutinesApi::class)
 class SplashViewModelTest {
 
-    /** Stub helper: lets each test body compile cleanly while remaining @Ignored at runtime. */
-    private fun markMissing() {
-        // Intentional no-op. Body replaced with real construction + assertion in Plan 06-03.
+    private val testDispatcher = StandardTestDispatcher()
+    private val mockPrefs: FilterPrefsRepository = mock()
+
+    @Before
+    fun setUp() {
+        Dispatchers.setMain(testDispatcher)
+    }
+
+    @After
+    fun tearDown() {
+        Dispatchers.resetMain()
     }
 
     /**
-     * UX-01 path A: first launch (DataStore key onboarding_completed missing or false)
-     * → SplashViewModel emits a navigation event routing to OnboardingRoute.
+     * UX-01 path A: first launch (DataStore key onboarding_completed=false)
+     * → SplashViewModel.onboardingCompleted resolves to false.
      */
     @Test
-    @Ignore("Plan 06-03 — un-ignore when SplashViewModel lands")
-    fun onboardingNotCompleted_emitsOnboardingNavTarget() {
-        markMissing()
+    fun onboardingNotCompleted_emitsOnboardingNavTarget() = runTest(testDispatcher) {
+        mockPrefs.stub {
+            on { onboardingCompleted } doReturn flowOf(false)
+        }
+        val vm = SplashViewModel(mockPrefs)
+        advanceUntilIdle()
+
+        vm.onboardingCompleted.test {
+            assertEquals(false, awaitItem())
+            cancelAndIgnoreRemainingEvents()
+        }
     }
 
     /**
      * UX-01 path B: subsequent launch (DataStore key onboarding_completed=true)
-     * → SplashViewModel emits a navigation event routing to HomeRoute.
+     * → SplashViewModel.onboardingCompleted resolves to true.
      */
     @Test
-    @Ignore("Plan 06-03 — un-ignore when SplashViewModel lands")
-    fun onboardingCompleted_emitsHomeNavTarget() {
-        markMissing()
+    fun onboardingCompleted_emitsHomeNavTarget() = runTest(testDispatcher) {
+        mockPrefs.stub {
+            on { onboardingCompleted } doReturn flowOf(true)
+        }
+        val vm = SplashViewModel(mockPrefs)
+        advanceUntilIdle()
+
+        vm.onboardingCompleted.test {
+            assertEquals(true, awaitItem())
+            cancelAndIgnoreRemainingEvents()
+        }
     }
 
     /**
-     * T-06-04 mirror: if DataStore read throws IOException (corrupted prefs file),
-     * SplashViewModel must NOT crash and must default to the OnboardingRoute target.
-     * Same fail-safe pattern as FilterPrefsRepository corruptedDataStore_emitsDefault.
+     * T-06-04 mirror: if DataStore read throws (corrupted prefs file), SplashViewModel must NOT
+     * crash and must default to null (composable treats null after the 1.5s delay as
+     * "show onboarding" — defence-in-depth on top of the repository's own .catch fallback).
      */
     @Test
-    @Ignore("Plan 06-03 — un-ignore when SplashViewModel lands")
-    fun dataStoreIoException_emitsOnboardingNavTarget_safeDefault() {
-        markMissing()
+    fun dataStoreIoException_emitsOnboardingNavTarget_safeDefault() = runTest(testDispatcher) {
+        mockPrefs.stub {
+            on { onboardingCompleted } doReturn flow { throw java.io.IOException("simulated corruption") }
+        }
+        val vm = SplashViewModel(mockPrefs)
+        advanceUntilIdle()
+
+        // .catch { emit(null) } → first emission after error is null.
+        vm.onboardingCompleted.test {
+            assertNull(awaitItem())
+            cancelAndIgnoreRemainingEvents()
+        }
     }
 }
