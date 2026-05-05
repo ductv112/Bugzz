@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: planning
-stopped_at: Plan 06-01 complete — Wave 0 RED scaffolds landed; suite GREEN at 170/27/0; 06-VALIDATION wave_0_complete=true
-last_updated: "2026-05-05T15:13:54.676Z"
+status: in_progress
+stopped_at: Plan 06-02 complete — Wave 1 deps + Lottie asset + DataStore onboarding key landed; commit 03ff140; suite GREEN at 170/24 ignored/0 (-3 ignored vs 06-01 = 3 onboarding tests un-ignored & passing); 9 D-32 grep-asserts pass; APK assembles; Wave 2 (Splash + Onboarding) unblocked
+last_updated: "2026-05-05T15:30:00.000Z"
 progress:
   total_phases: 7
   completed_phases: 5
   total_plans: 42
-  completed_plans: 35
-  percent: 83
+  completed_plans: 36
+  percent: 86
 ---
 
 # State: Bugzz
@@ -31,10 +31,10 @@ Phase: 05 (Video Recording + Audio + Insect Filter Free-Placement Mode) — COMP
 Plan: 7 of 7 complete
 
 - **Phase:** 6
-- **Plan:** Not started
-- **Previous plan:** 05-07 complete — Phase 5 closed on Xiaomi 13T 2026-05-04; 8/15 hard gates verified via ADB automation; 2 inline gap fixes shipped (05-gaps-01 cameraMode propagation 37b7a17, 05-gaps-02 StickerRenderer coord transform de27c4e); 143 unit tests GREEN; 05-VALIDATION.md nyquist_compliant: true; VideoRecorder + CameraController.startRecording/stopRecording + RecordingState sealed + OverlayEffectBuilder cameraMode branch + InsectFilterScreen + StickerRenderer + ThermalMonitor all production-wired; nav rewired InsectFilter button live; stubs deleted.
-- **Status:** Ready to plan
-- **Progress:** [████████░░] 83%
+- **Plan:** 06-02 complete (2 of 8) → next Plan 06-03 (Wave 2: Splash + Onboarding)
+- **Previous plan:** 06-02 complete — Wave 1 lottie-compose 6.7.1 + media3-exoplayer/ui 1.4.1→1.9.0 (transitive resolution to CameraX-pulled 1.9.0) on classpath; home_lottie.json (746491 B, sha256 5d3cfc5c…) byte-identical at app/src/main/assets/lottie/; FilterPrefsRepository extended in-place with onboardingCompleted: Flow<Boolean> + setOnboardingCompleted() (no-arg, idempotent) + KEY_ONBOARDING_COMPLETED booleanPreferencesKey; T-06-04 mitigation (.catch IOException → false) present; 3 FilterPrefsRepositoryTest @Ignore('Plan 06-02') cases un-ignored & GREEN (7/7 in that class); full suite 170/24 ignored/0; D-32 invariants intact. Commit 03ff140.
+- **Status:** In Progress (Wave 2 unblocked)
+- **Progress:** [█████████░] 86%
 
 ### Phase Map
 
@@ -83,6 +83,7 @@ Phase 7: Performance & Device Matrix                      [ pending ]
 | Phase 05 P06 | 180 | 1 tasks | 3 files |
 | Phase 05 P07 | ~2100 | 4 tasks | 10 files |
 | Phase 06 P01 | 600 | 3 tasks | 9 files |
+| Phase 06 P02 | 400s | 3 tasks | 5 files |
 
 ## Accumulated Context
 
@@ -100,6 +101,12 @@ Phase 7: Performance & Device Matrix                      [ pending ]
 34. **[Phase 05-gaps-01] InsectFilterViewModel.bind must pass cameraMode=CameraMode.InsectFilter explicitly:** Omitting the `cameraMode` argument caused `controller.bind(lifecycle)` to default to `CameraMode.FaceFilter`, attaching `MlKitAnalyzer` in InsectFilter mode (CPU waste) and running `FilterEngine.onDraw` instead of `StickerRenderer.onDraw` (wrong render path). Fix at commit `37b7a17`. Pattern: any ViewModel that binds `CameraController` for a non-FaceFilter mode MUST pass its mode explicitly — never rely on default. Verified: ZERO FaceTracker logcat lines in Insect mode post-fix; StickerRenderer active.
 
 35. **[Phase 05-gaps-02] StickerRenderer coordinate transform: Compose preview px → OverlayEffect buffer canvas px requires axis-swap + scale + front-cam mirror:** `StickerState.offset` is in portrait Compose preview px (e.g. 1220×2712 on Xiaomi 13T). `OverlayEffect` buffer canvas is landscape 1920×1080. Transform: (1) axis swap (portrait Y → landscape X; portrait X → landscape Y) for 90° CW PreviewView rotation, (2) scale by `bufferW/previewH` and `bufferH/previewW`, (3) front-cam mirror inversion on mapped axis. `StickerRenderer.setPreviewSize(w,h)` must be called when InsectFilterScreen lays out. `onDraw` resets matrix to identity before applying custom transform — does NOT inherit `sensorToBufferTransform` from OverlayEffectBuilder. Fix at commit `de27c4e`. Visual drag direction polish (axis-mirror fine-tune) deferred to Phase 7 cross-OEM matrix.
+
+36. **[Phase 06-02] FilterPrefsRepository extended in-place with second key (onboarding_completed) — D-23 single-instance rule:** Same `@Singleton class FilterPrefsRepository` now holds both `lastUsedFilterId: Flow<String>` (Phase 4) and `onboardingCompleted: Flow<Boolean>` (Phase 6) keys, sharing one DataStore instance + one .catch IOException handler pattern. NOT a separate OnboardingPrefsRepository class (rejected per D-23 to prevent drift). Setter signature: `suspend fun setOnboardingCompleted()` (no Boolean arg — single-shot mark-complete, idempotent on repeat). Default value `false` so first launch routes to OnboardingScreen; T-06-04 mitigation mirrors T-04-01 verbatim (`if (e is IOException) emit(emptyPreferences())` → maps to false). **Pattern: future preference keys land as additional `val …: Flow<T>` + `suspend fun set…()` on this same class; only add a new repo when keys' lifecycle/scope differs.** (06-02-SUMMARY.md)
+
+37. **[Phase 06-02] media3-exoplayer/ui declared at 1.4.1 but resolved to 1.9.0 by Gradle conflict resolution (CameraX 1.6.0 transitive):** Catalog pins `media3 = "1.4.1"` for both `media3-exoplayer` and `media3-ui`, but CameraX 1.6.0 transitively pulls `androidx.media3:media3-common:1.9.0` (and friends) for VideoCapture+muxer integration. Mixing 1.4.1 + 1.9.0 transitive across `media3-common` would crash at runtime due to ABI mismatch on shared `media3-common`. Gradle's resolver auto-upgrades both to 1.9.0 (correct + safe). Catalog declarations stay at 1.4.1 as floor; resolver harmonizes. **Pattern: when introducing media3 modules alongside CameraX, always allow Gradle to resolve up — do NOT exclude CameraX-transitive media3 deps. Public API surface from 1.4.1→1.9.0 is backward-compatible for the basic ExoPlayer.Builder + setMediaItem(Uri) flow Plan 06-04 PreviewScreen will use.** (06-02-SUMMARY.md Deviation 1)
+
+38. **[Phase 06-02] Lottie composition asset path = `lottie/home_lottie.json` (under assets/), NOT res/raw/:** RESEARCH Pitfall 4 — production code calls `LottieCompositionSpec.Asset("lottie/home_lottie.json")` which resolves relative to `assets/` root, so the file MUST live at `app/src/main/assets/lottie/home_lottie.json`. Placing it at `res/raw/` would require `LottieCompositionSpec.RawRes(R.raw.home_lottie)` (different API) — DO NOT mix the two paths. Single 746491 B JSON shared across Splash + Onboarding pages 1-3 + EmptyState (D-29). SHA256 byte-identical to `reference/raw_extract/res/raw/home_lottie.json` source verified at copy time (no JSON re-formatting drift). (06-02-SUMMARY.md)
 
 31. **[Phase 04-08 gap-01] AssetLoader must use assetDir not filterId as cache key + path source:** `AssetLoader.preload(assetDir)` and `get(assetDir, frameIdx)` take the full asset-relative path (e.g. `"sprites/sprite_spider"`) — NOT the `filterId` (e.g. `"spider_nose_static"`). FilterCatalog D-30 shares 4 sprite directories across 15 filters; using `filterId` caused `FilterLoadFailed` toast on first launch (manifest.json path was `sprites/spider_nose_static/manifest.json` — a path that does not exist). Fix at commit `514410c`. Cache key scoped to `assetDir` means shared sprites decode once for all catalog entries — D-30 perf win realized on device. **Pattern: any class that bridges `FilterDefinition.id` (logical) ↔ `FilterDefinition.assetDir` (filesystem) must use `assetDir` for I/O operations.**
 
@@ -172,10 +179,10 @@ None.
 
 ## Session Continuity
 
-**Last agent:** gsd-execute-phase (Plan 05-07 Task 4 post-PASS closure executor)
-**Last action:** Completed 05-07-PLAN.md — Task 4: 05-07-SUMMARY.md written; 05-VALIDATION.md nyquist_compliant flipped to true; STATE.md + ROADMAP.md updated. Phase 5 device verification 8/15 hard gates PASS on Xiaomi 13T 2026-05-04. Inline gap fixes 05-gaps-01 (InsectFilterViewModel cameraMode propagation, commit 37b7a17) + 05-gaps-02 (StickerRenderer coord transform, commit de27c4e) shipped. 143 unit tests GREEN.
+**Last agent:** gsd-execute-phase (Plan 06-02 Wave 1 executor — autonomous per `feedback_autonomy.md`)
+**Last action:** Completed 06-02-PLAN.md — 3 tasks autonomous execution: (1) catalog + build script: lottie-compose 6.7.1 + media3 1.4.1 (resolved up to 1.9.0 transitively by CameraX 1.6.0 — Rule 3 deviation accepted); (2) home_lottie.json byte-identical copy (746491 B, sha256 5d3cfc5c…) to app/src/main/assets/lottie/; (3) FilterPrefsRepository extended with onboardingCompleted: Flow<Boolean> + setOnboardingCompleted() (no-arg per `<interfaces>` spec — Rule 3 deviation re plan-text drift); 3 @Ignore('Plan 06-02') FilterPrefsRepositoryTest cases un-ignored & GREEN. Atomic commit 03ff140. 9 D-32 grep-asserts re-verified. APK assembles. Suite 170 / 24 ignored / 0 failures (-3 ignored vs 06-01 = +3 net GREEN).
 
-**Stopped at:** Plan 06-01 complete — Wave 0 RED scaffolds landed; suite GREEN at 170/27/0; 06-VALIDATION wave_0_complete=true
+**Stopped at:** Plan 06-02 complete — Wave 1 deps + Lottie asset + onboarding prefs key landed; commit 03ff140; Wave 2 (Plan 06-03 Splash + Onboarding) unblocked.
 
 **Next expected action:** Start Phase 6 UX Polish via `/gsd-discuss-phase 6` — Splash, Home, Onboarding, Preview, Collection, Share.
 
