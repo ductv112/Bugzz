@@ -160,8 +160,8 @@ Plans:
 
 Plans:
 - [x] 07-01-PLAN.md — Wave 0 Nyquist scaffolds + JankStats catalog add + perf/ package skeletons (Wave 0)
-- [ ] 07-02-PLAN.md — Release build flip (R8 + shrinkResources + arm64-v8a) + WebP sprite conversion (Wave 1)
-- [ ] 07-03-PLAN.md — JankStats wire-in + DetectionLatencyRecorder + FaceDetectorClient Perf log (Wave 2)
+- [x] 07-02-PLAN.md — Release build flip (R8 + shrinkResources + arm64-v8a) + WebP sprite conversion (Wave 1)
+- [x] 07-03-PLAN.md — JankStats wire-in + DetectionLatencyRecorder + FaceDetectorClient Perf log (Wave 2)
 - [ ] 07-04-PLAN.md — Phase 6 polish trio: D-20a/b/c (Wave 2)
 - [ ] 07-05-PLAN.md — verify-audio-sync.sh + 07-PERF-REPORT + Xiaomi 13T baseline (Wave 3)
 - [ ] 07-06-PLAN.md — 07-HANDOFF cross-OEM device runbook (Wave 4)
