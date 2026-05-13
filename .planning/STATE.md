@@ -3,8 +3,8 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: verifying
-stopped_at: Phase 6 complete — 13/13 hard gates PASS on Xiaomi 13T 2026-05-13; Plan 06-08 closed; Phase 7 perf+cross-OEM is next
-last_updated: "2026-05-13T07:37:15.486Z"
+stopped_at: Phase 7 context gathered
+last_updated: "2026-05-13T07:43:48.932Z"
 progress:
   total_phases: 7
   completed_phases: 6
@@ -201,7 +201,7 @@ None.
 **Last agent:** gsd-execute-phase (Plan 06-05 Wave 4 executor — autonomous per `feedback_autonomy.md`)
 **Last action:** Completed 06-05-PLAN.md — Wave 4 production CollectionScreen + CollectionRepository + CollectionViewModel + EmptyStateColumn shipped (5 production files created + BugzzApp CollectionRoute rewired stub→production with PreviewRoute(uri.toString()) tap routing + popUpTo HomeRoute on empty-state CTA); 6 tests un-Ignored GREEN (4 RepoTest Robolectric+MatrixCursor+ArgumentCaptor + 2 VMTest pure-JVM mock<Context>+mock<CollectionRepository>+flowOf); suite 171/6/0/0; T-06-02 selectionArgs binding verified; per-MIME URI namespace re-construction (Images.Media for image/jpeg, Video.Media for video/mp4 per RESEARCH §Critical Note); 9 D-32 grep-asserts intact (4/1/3/6/1/2/9/1/2). 3 atomic commits 3aae2b3 / e8017ef / 73617ff. Earlier action: Completed 06-04-PLAN.md — Wave 3 atomic PreviewRoute breaking change + production PreviewScreen / VideoPreview / PreviewViewModel landed in single commit 291daeb (Routes.kt data object → @Serializable data class(val uri: String) + BugzzApp PreviewRoute composable rewired with toRoute + Uri.parse + Toast 'Share coming next' placeholder + CameraScreen/InsectFilterScreen now accept onCaptureSaved: (Uri) -> Unit and route OneShotEvent.PhotoSaved/VideoSaved through it replacing Phase 3/5 'Saved to gallery'/'Recording saved' Toasts per D-09 + ui/preview/PreviewScreen.kt 213 lines full-screen Coil AsyncImage(ContentScale.Fit) for photos / VideoPreview for video, 80dp Surface(#1E1E1E) bottom bar with Done/Share/Delete/Retake IconButtons + 10sp labelSmall labels + inline AlertDialog for delete confirm + ui/preview/VideoPreview.kt 66 lines ExoPlayer host with remember(uri) + DisposableEffect ON_PAUSE/ON_RESUME observer + onDispose release() T-06-03 mitigation + ui/preview/PreviewViewModel.kt 61 lines @HiltViewModel with suspend resolveMimeType + suspend deleteArtifact on Dispatchers.IO with Exception-safe delete + 5 PreviewViewModelTest cases un-Ignored & GREEN via Robolectric mock<Context> + mock<ContentResolver> harness — image/video/null MIME branches + delete success/throws-no-crash). Suite 171/12 ignored/0 failures. 9 D-32 grep-asserts intact (4/1/3/6/1/2/9/1/2). APK assembles clean.
 
-**Stopped at:** Phase 6 complete — 13/13 hard gates PASS on Xiaomi 13T 2026-05-13; Plan 06-08 closed; Phase 7 perf+cross-OEM is next
+**Stopped at:** Phase 7 context gathered
 
 **Next expected action:** Continue Phase 6 with Plan 06-06 (Wave 5: Share intent + DeleteConfirmDialog extraction) — `Intent.ACTION_SEND` + `FileProvider`-style URI grant (T-06-01 mitigation), ShareIntentBuilder factory + tests, refactor PreviewScreen inline AlertDialog → shared `ui/components/DeleteConfirmDialog.kt` composable for reuse across Preview + future Settings clear-all.
 
