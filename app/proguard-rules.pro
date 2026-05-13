@@ -11,3 +11,20 @@
 # Reactive section — populate as R8 failures surface during device verification:
 # (add narrow -keep rules here, one per observed failure; document each with
 # PR reference + the grep-assert it was needed to preserve)
+
+# Plan 07-02 device CHECKPOINT inline fix (2026-05-13):
+# R8 obfuscated CameraMode enum + Routes data classes that kotlinx.serialization +
+# navigation-compose look up by FQN at runtime. Symptom:
+#   IllegalArgumentException: Cannot find class with name
+#   "com.bugzz.filter.camera.ui.home.CameraMode"
+# Keep classnames + @Serializable companion serializers for all Bugzz nav route +
+# enum types. This is the standard navigation-compose + kotlinx.serialization R8
+# fix from https://developer.android.com/guide/navigation/navcontroller#type-safe.
+-keepnames class com.bugzz.filter.camera.ui.home.CameraMode { *; }
+-keepnames class com.bugzz.filter.camera.ui.nav.** { *; }
+-if @kotlinx.serialization.Serializable class com.bugzz.filter.camera.**
+-keepclassmembers class <1> {
+    static <1>$Companion Companion;
+    static kotlinx.serialization.KSerializer serializer(...);
+}
+-keep,includedescriptorclasses class com.bugzz.filter.camera.**$$serializer { *; }
