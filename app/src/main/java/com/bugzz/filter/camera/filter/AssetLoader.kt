@@ -47,7 +47,7 @@ class AssetLoader @Inject constructor(
         for (idx in 0 until manifest.frameCount) {
             val key = "$assetDir/frame_$idx"
             if (cache.get(key) != null) continue   // already cached (shared across filters per D-30)
-            val path = "$assetDir/frame_${idx.toString().padStart(2, '0')}.png"
+            val path = "$assetDir/frame_${idx.toString().padStart(2, '0')}.${manifest.frameExtension}"
             val opts = BitmapFactory.Options().apply {
                 inPreferredConfig = when (manifest.bitmapConfig) {
                     "RGB_565" -> Bitmap.Config.RGB_565

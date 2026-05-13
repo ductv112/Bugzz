@@ -36,4 +36,12 @@ data class SpriteManifest(
     val mirrorable: Boolean = true,
     val bitmapConfig: String? = null,
     val behaviorConfig: JsonElement? = null,   // D-29 shape extension; NOT parsed by Phase 04-04
+    /**
+     * Phase 7 D-07 — frame file extension under [assetDir] (no leading dot). Default
+     * `"png"` preserves backcompat with Phase 3-6 manifests that omit the field — kotlinx
+     * serialization assigns the default when the field is missing from the JSON. Production
+     * manifest.json files set `"frameExtension": "webp"` post-Plan 07-02 WebP conversion.
+     * AssetLoader builds frame paths as `frame_NN.{frameExtension}`.
+     */
+    val frameExtension: String = "png",
 )
