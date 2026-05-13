@@ -131,4 +131,12 @@ class FaceDetectorClientTest {
             singleResult.removedIds.isEmpty(),
         )
     }
+
+    // ---- Phase 7 W0 EXTEND (Plan 07-03 un-Ignores) -------------------------------------
+
+    @org.junit.Test
+    @org.junit.Ignore("Plan 07-03 — Timber.tag(\"Perf\").d(\"detect=%dms ...\") inline log pending")
+    fun perfTimingLog_emitsInDebugOnly() {
+        org.junit.Assert.fail("Plan 07-03 adds BuildConfig.DEBUG-gated Timber log — Wave 0 RED")
+    }
 }

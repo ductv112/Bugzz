@@ -82,4 +82,16 @@ class DebugOverlayRendererTest {
         // 4 / MIN_SAFE_SCALE (0.0001) = 40000f - finite, not infinity or NaN.
         assertEquals(40_000f, s, 1f)
     }
+
+    // ---- Phase 7 W0 EXTEND (Plan 07-04 un-Ignores) -------------------------------------
+
+    @org.junit.Test
+    @org.junit.Ignore("Plan 07-04 — D-20a draw() BuildConfig.DEBUG gate verification pending")
+    fun draw_skips_in_release_when_BuildConfig_DEBUG_false() {
+        // Per RESEARCH Q1: DebugOverlayRenderer.draw() line 60 ALREADY has `if (!BuildConfig.DEBUG) return`.
+        // This test verifies the gate FIRES — i.e., draw() is a no-op when BuildConfig.DEBUG=false.
+        // Plan 07-04 chooses verification strategy (BuildConfig flag manipulation OR architectural
+        // assertion via mocking Canvas + asserting zero drawRect/drawCircle invocations).
+        org.junit.Assert.fail("Plan 07-04 — D-20a gate verification — Wave 0 RED")
+    }
 }
