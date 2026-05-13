@@ -93,7 +93,9 @@ class CollectionRepositoryTest {
 
         repository.loadMediaItems().test {
             assertEquals(emptyList<MediaItem>(), awaitItem())
-            awaitComplete()
+            // Phase 7 D-20b: callbackFlow stays open for live refresh — cancel instead of
+            // awaiting completion (flow no longer auto-completes after initial emit).
+            cancelAndIgnoreRemainingEvents()
         }
     }
 
@@ -117,7 +119,7 @@ class CollectionRepositoryTest {
                 uriString.contains("images/media/1"),
             )
             assertEquals("image/jpeg", list[0].mimeType)
-            awaitComplete()
+            cancelAndIgnoreRemainingEvents()  // Phase 7 D-20b: callbackFlow stays open
         }
     }
 
@@ -141,7 +143,7 @@ class CollectionRepositoryTest {
                 uriString.contains("video/media/2"),
             )
             assertEquals("video/mp4", list[0].mimeType)
-            awaitComplete()
+            cancelAndIgnoreRemainingEvents()  // Phase 7 D-20b: callbackFlow stays open
         }
     }
 
@@ -167,7 +169,7 @@ class CollectionRepositoryTest {
         // resolver.query() ran.
         repository.loadMediaItems().test {
             awaitItem()
-            awaitComplete()
+            cancelAndIgnoreRemainingEvents()  // Phase 7 D-20b: callbackFlow stays open
         }
 
         val argsCaptor: ArgumentCaptor<Array<String>> =

@@ -2,12 +2,17 @@ package com.bugzz.filter.camera.data
 
 import android.content.ContentUris
 import android.content.Context
+import android.database.ContentObserver
+import android.os.Handler
+import android.os.Looper
 import android.provider.MediaStore
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -37,11 +42,21 @@ import javax.inject.Singleton
  * Sort order: `DATE_MODIFIED DESC` — newest first, matching reference Bugzz Filters Prank's
  * Collection screen ordering.
  *
- * Threading: the cursor walk runs on [Dispatchers.IO] via [flowOn]. The flow emits exactly once
- * per subscription (terminal `emit`); to refresh, callers re-subscribe. ContentObserver-backed
- * live updates are deferred — Plan 06-06 will revisit when share + delete round-trips need it.
+ * **Phase 7 D-20b live refresh:** Threading now uses [callbackFlow] with a [ContentObserver]
+ * registered on `MediaStore.Files.getContentUri("external")` with `notifyForDescendants=true`.
+ * A single observer covers BOTH image and video changes (RESEARCH Pattern 3 + Pitfall 5 —
+ * per-MIME registration would miss cross-namespace updates). The flow emits the initial
+ * snapshot on subscription, then RE-emits each time MediaStore signals a change. The
+ * observer is unregistered in [awaitClose] when collection is cancelled — T-07-03 mitigation
+ * (no listener leak through ViewModel rebind cycles).
  *
- * Phase 6, Plan 06-05, UX-05, D-12, T-06-02. RESEARCH §Pattern 4 + §Critical Note.
+ * The cursor walk runs on [Dispatchers.IO] via [flowOn] applied to the callbackFlow — the
+ * producer body itself executes on IO, so [performQuery] (synchronous I/O) is correctly
+ * dispatched off Main. Callers that only need the initial snapshot can use `.first()` —
+ * `awaitClose` fires correctly on cancellation.
+ *
+ * Phase 6, Plan 06-05, UX-05, D-12, T-06-02. Phase 7, Plan 07-04, D-20b, T-07-03, T-07-11.
+ * RESEARCH §Pattern 3 + §Pattern 4 + §Critical Note + §Pitfall 5.
  */
 @Singleton
 class CollectionRepository @Inject constructor(
@@ -49,14 +64,64 @@ class CollectionRepository @Inject constructor(
 ) {
 
     /**
-     * Emits a single snapshot of Bugzz captures, sorted newest-first.
+     * Emits the current snapshot of Bugzz captures (DCIM/Bugzz/, image/jpeg + video/mp4)
+     * sorted newest-first, then RE-emits each time a MediaStore.Files row is added or removed.
+     *
+     * **Phase 7 D-20b — Live MediaStore refresh:** registers a [ContentObserver] on
+     * `MediaStore.Files.getContentUri("external")` with `notifyForDescendants=true`. A single
+     * observer covers both image and video changes (RESEARCH Pattern 3 + Pitfall 5 —
+     * per-MIME registration would miss cross-namespace notifications). When the observer's
+     * `onChange` fires, [performQuery] is re-invoked on IO and a fresh list is emitted.
+     *
+     * **T-06-02 mitigation preserved verbatim:** selectionArgs bind via parallel array —
+     * no string concatenation. See [performQuery].
+     *
+     * **T-07-03 mitigation:** the observer is unregistered via [awaitClose] when the flow
+     * collection is cancelled (ViewModel scoping handles this — no manual DisposableEffect
+     * needed on the composable side).
      *
      * Returns an empty list when:
      *   - The directory has no qualifying files
      *   - `ContentResolver.query` returns `null` (rare — happens when storage permission is
      *     revoked mid-session). The `?.use {}` short-circuits cleanly without crashing.
      */
-    fun loadMediaItems(): Flow<List<MediaItem>> = flow {
+    fun loadMediaItems(): Flow<List<MediaItem>> = callbackFlow {
+        // ContentObserver dispatches onChange via Handler.post — when constructed with the main
+        // Looper, callbacks land on Main. We re-enter the callbackFlow's coroutine scope via
+        // launch{} so trySend is invoked inside the producer scope (capturing structured
+        // cancellation when the collector cancels).
+        val observer = object : ContentObserver(Handler(Looper.getMainLooper())) {
+            override fun onChange(selfChange: Boolean) {
+                launch {
+                    trySend(performQuery())
+                }
+            }
+        }
+
+        context.contentResolver.registerContentObserver(
+            MediaStore.Files.getContentUri("external"),
+            /* notifyForDescendants = */ true,
+            observer,
+        )
+
+        // Initial snapshot — emit current contents immediately on subscription.
+        // flowOn(Dispatchers.IO) below moves the producer body to IO, so performQuery runs there.
+        trySend(performQuery())
+
+        awaitClose {
+            context.contentResolver.unregisterContentObserver(observer)
+        }
+    }.flowOn(Dispatchers.IO)
+
+    /**
+     * Synchronous MediaStore query. Extracted from the Phase 6 `flow {}` body so the Phase 7
+     * [callbackFlow] can call it both for the initial snapshot AND each `observer.onChange`.
+     *
+     * Phase 6 D-12 + T-06-02 + RESEARCH §Critical Note logic preserved verbatim — per-MIME
+     * URI namespace re-construction via [ContentUris.withAppendedId]; selectionArgs binding;
+     * sort by `DATE_MODIFIED DESC`.
+     */
+    private fun performQuery(): List<MediaItem> {
         val projection = arrayOf(
             MediaStore.MediaColumns._ID,
             MediaStore.MediaColumns.DISPLAY_NAME,
@@ -108,6 +173,6 @@ class CollectionRepository @Inject constructor(
                 )
             }
         }
-        emit(items)
-    }.flowOn(Dispatchers.IO)
+        return items
+    }
 }
