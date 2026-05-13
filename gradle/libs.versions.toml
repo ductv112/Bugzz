@@ -60,6 +60,11 @@ turbine = "1.2.0"
 lottieCompose = "6.7.1"
 media3 = "1.4.1"
 
+# Phase 7 additions — JankStats stable 1.0.0 (RESEARCH version correction
+# from CONTEXT D-01's stated 1.0.0-beta02; stable shipped Oct 8 2025 with
+# identical API surface — Rule 1 auto-fix pattern from Phase 02-02/02-04)
+metricsPerformance = "1.0.0"
+
 [libraries]
 # Core
 androidx-core-ktx = { module = "androidx.core:core-ktx", version.ref = "coreKtx" }
@@ -143,6 +148,10 @@ turbine = { module = "app.cash.turbine:turbine", version.ref = "turbine" }
 lottie-compose = { module = "com.airbnb.android:lottie-compose", version.ref = "lottieCompose" }
 androidx-media3-exoplayer = { module = "androidx.media3:media3-exoplayer", version.ref = "media3" }
 androidx-media3-ui = { module = "androidx.media3:media3-ui", version.ref = "media3" }
+
+# Phase 7 — JankStats frame timing observer (debug-only per CONTEXT D-01 + RESEARCH §Anti-pattern;
+# zero per-frame allocations + FrameMetrics integration on API ≥ 24)
+androidx-metrics-performance = { module = "androidx.metrics:metrics-performance", version.ref = "metricsPerformance" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

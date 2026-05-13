@@ -164,4 +164,9 @@ dependencies {
     // Phase 6 — Media3 ExoPlayer for video preview playback (UX-04 video case)
     implementation(libs.androidx.media3.exoplayer)
     implementation(libs.androidx.media3.ui)
+
+    // Phase 7 — JankStats frame timing observer (debug-only per RESEARCH §Anti-pattern —
+    // keeps production users overhead-free; debugImplementation excludes from release APK).
+    // CONTEXT D-01 + RESEARCH §Standard Stack version correction (1.0.0 stable not beta02).
+    debugImplementation(libs.androidx.metrics.performance)
 }
