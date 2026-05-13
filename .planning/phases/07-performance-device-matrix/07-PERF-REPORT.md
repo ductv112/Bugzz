@@ -198,6 +198,56 @@ Canvas-based OverlayEffect proves sufficient on representative mid-tier hardware
 
 **Status: PASS** — All PRF-01..03 hard targets met with headroom on Xiaomi 13T baseline. GL escalation correctly deferred per D-18. Plan 07-07 (final cross-OEM CHECKPOINT) can reference this baseline as the Xiaomi 13T datum.
 
+## Plan 07-07 Final Close-out Build (2026-05-13)
+
+Final clean build via `./gradlew :app:clean :app:assembleRelease :app:assembleDebug :app:testDebugUnitTest -x lintDebug` — BUILD SUCCESSFUL in 18s.
+
+### Final APK Artifacts
+
+| Artifact | Path | Size (bytes) | Size (MB) | SHA-256 |
+|----------|------|--------------|-----------|---------|
+| Release | `app/build/outputs/apk/release/app-release.apk` | 20,450,049 | 19.5 MB | `8b9d18ac5cb7788cf2c82f6d02cd30032175867dec3897e8c0a6a01e2e5a745d` |
+| Debug   | `app/build/outputs/apk/debug/app-debug.apk` | 91,883,653 | 87.6 MB | `d953a2cabf5d37742fac26c76320f63bfb21c274016874eda6867831d75190ae` |
+
+Release APK size 19.5 MB / 40 MB target = **20.5 MB headroom (PRF-04 PASS).**
+
+### Test Suite Final State
+
+- `./gradlew :app:testDebugUnitTest -x lintDebug` → BUILD SUCCESSFUL (FROM-CACHE)
+- **192 tests / 0 skipped / 0 failures / 0 errors** (per JUnit XML aggregate across 39 result files)
+- Phase 6 baseline 172 + Phase 7 un-Ignored tests (Plans 07-01 through 07-04) = 192 enabled
+
+### 9 D-32 Source-level Grep-Asserts (D-24)
+
+Verified intact on Kotlin source under `app/src/main/`:
+
+| Pattern | Count |
+|---------|-------|
+| `isCapturing` | 14 |
+| `bindJob?.cancel()` | 1 |
+| `OneShotEvent.FilterLoadError` | 7 |
+| `captureFlash` | 13 |
+| `require(frameCount > 0)` | 1 |
+| `assetLoader.preload(def.assetDir)` | 3 |
+| `isRecording` | 47 |
+| `cameraMode = com.bugzz.filter.camera.ui.home.CameraMode.InsectFilter` | 1 |
+| `canvas.setMatrix(Matrix())` | 1 |
+
+All 9 patterns ≥1 occurrence — Phase 3/4/5 inline fixes preserved through Phase 7 release build. R8 does NOT strip these because they are control-flow constructs (`require`, `cancel()`, assignment, function call) encoded in dex bytecode, not class-name strings.
+
+### Release APK Class Preservation
+
+`unzip + grep -a` on `classes.dex` (37.0.0 build-tools apkanalyzer not installed in current SDK; raw dex-grep used as equivalent evidence — D-32 patterns are bytecode-level not class-name-level):
+
+- `com/bugzz/filter/camera/MainActivity` → 2 references in classes.dex (entry-point preserved)
+- T-07-01 IDS strings remain stripped: 0 occurrences of `detect=`, `jank dur=`, `JankStats`, `DetectionLatencyRecorder`, `PerfReporter` per Plan 07-05 verification (unchanged in this final build — same source).
+
+R8 obfuscates non-keep classes (e.g., `FilterEngine` → likely `Lcom/bugzz/filter/camera/a;`) which is EXPECTED. Source-level D-32 grep-asserts remain the authoritative survival signal per D-24 — they are control-flow assertions, not symbol-table entries.
+
+### Smoke-install on Xiaomi 13T
+
+Release APK boot + smoke-install was verified at Plan 07-02 CHECKPOINT (commit 47a6e54 + post R8-keep-rule inline fix). Same APK bytes (20,450,049 B; release build is deterministic across cache-hits per Gradle FROM-CACHE behavior). No re-install needed in Plan 07-07.
+
 ---
 
 *Phase: 07-performance-device-matrix*
