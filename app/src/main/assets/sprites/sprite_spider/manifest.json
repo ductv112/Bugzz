@@ -6,5 +6,6 @@
   "anchorType": "FOREHEAD",
   "behavior": "STATIC",
   "scaleFactor": 0.3,
-  "mirrorable": true
+  "mirrorable": true,
+  "frameExtension": "webp"
 }

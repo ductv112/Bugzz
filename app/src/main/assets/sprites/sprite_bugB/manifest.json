@@ -6,5 +6,6 @@
   "anchorType": "NOSE_TIP",
   "behavior": "CRAWL",
   "scaleFactor": 0.22,
-  "mirrorable": true
+  "mirrorable": true,
+  "frameExtension": "webp"
 }
