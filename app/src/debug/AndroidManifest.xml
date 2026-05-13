@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+          xmlns:tools="http://schemas.android.com/tools">
+
+    <!--
+      Phase 7 D-20c — LeakCanary LAUNCHER hijack disable (debug-only).
+
+      LeakCanary 2.14 registers `leakcanary.internal.activity.LeakLauncherActivity`
+      with `android.intent.category.LAUNCHER` for its "Leaks" tile on the device home
+      screen. On Xiaomi HyperOS this competes with MainActivity for
+      `am start -c LAUNCHER` selection (see 06-CHECKPOINT.md Notes — required an
+      explicit `am start -n .../.MainActivity` workaround during T-07-01 device runs).
+
+      **Important — LeakCanary declares it as `<activity-alias>`, NOT `<activity>`.**
+      The aliased target is `leakcanary.internal.activity.LeakActivity`; the alias is
+      what owns the LAUNCHER intent-filter. To remove the LAUNCHER hijack we therefore
+      need to override the `<activity-alias>` element specifically (Plan 07-04 deviation
+      from the original `<activity>` spec — Rule 1 inline bug-fix; the original spec
+      shape was discovered to mis-target the wrong element type during build verification).
+
+      `tools:node="remove"` instructs the AGP manifest merger to drop the LeakCanary
+      <activity-alias> entry from the debug merged manifest entirely. Stronger than
+      `android:enabled="false"` (which would leave a disabled placeholder per RESEARCH
+      Pattern 4 alternative form).
+
+      RESEARCH Pitfall 6: the `xmlns:tools` declaration on the <manifest> root is
+      mandatory — without it, manifest merger silently ignores the node-marker
+      directive.
+
+      Scope (T-07-10 mitigation): the `tools:node="remove"` directive targets the
+      SPECIFIC FQN `leakcanary.internal.activity.LeakLauncherActivity` only — it
+      cannot remove MainActivity or any other production activity by accident.
+
+      Production manifest (`app/src/main/AndroidManifest.xml`) is UNTOUCHED — AGP
+      scopes source sets by buildType, so this overlay applies to debug builds only.
+
+      Verification (post `./gradlew :app:processDebugManifest`):
+        grep "LeakLauncherActivity" \
+          app/build/intermediates/merged_manifests/debug/processDebugManifest/AndroidManifest.xml
+        # → 0 matches expected
+    -->
+
+    <application>
+        <activity-alias
+            android:name="leakcanary.internal.activity.LeakLauncherActivity"
+            android:targetActivity="leakcanary.internal.activity.LeakActivity"
+            tools:node="remove" />
+    </application>
+</manifest>
