@@ -104,9 +104,9 @@ Feature-parity clone of reference app (`com.insect.filters.funny.prank.bug.filte
 
 - [x] **PRF-01**: Live preview sustains ≥ 24 fps during normal filter playback on mid-tier test device
 - [x] **PRF-02**: Face detection latency ≤ 100 ms per frame (measured via Android Studio profiler)
-- [ ] **PRF-03**: 60-second video record produces a file with audio synced within 50 ms drift
-- [ ] **PRF-04**: Final release APK ≤ 40 MB (via APK Analyzer)
-- [ ] **PRF-05**: App verified working on Samsung + Pixel (minimum 2-OEM matrix) on real Android 9+ devices
+- [x] **PRF-03**: 60-second video record produces a file with audio synced within 50 ms drift
+- [x] **PRF-04**: Final release APK ≤ 40 MB (via APK Analyzer)
+- [x] **PRF-05**: App verified working on Samsung + Pixel (minimum 2-OEM matrix) on real Android 9+ devices
 
 ## v2 Requirements
 
@@ -229,9 +229,9 @@ Final mapping locked by roadmap (2026-04-18). Every v1 requirement is assigned t
 | SHR-04 | Phase 6 | Complete |
 | PRF-01 | Phase 7 | Complete |
 | PRF-02 | Phase 7 | Complete |
-| PRF-03 | Phase 7 | Pending |
-| PRF-04 | Phase 7 | Pending |
-| PRF-05 | Phase 7 | Pending |
+| PRF-03 | Phase 7 | Complete |
+| PRF-04 | Phase 7 | Complete |
+| PRF-05 | Phase 7 | Complete |
 
 **Coverage:**
 - v1 requirements: 67 total

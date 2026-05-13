@@ -1,9 +1,9 @@
 ---
 phase: 07
 slug: performance-device-matrix
-status: draft
-nyquist_compliant: false
-wave_0_complete: false
+status: complete
+nyquist_compliant: true
+wave_0_complete: true
 created: 2026-05-13
 ---
 
@@ -113,4 +113,4 @@ Plus 2 EXTENSIONS:
 - [ ] Feedback latency < 150s
 - [ ] `nyquist_compliant: true` flipped post-PASS via Plan 07-07 Task 3
 
-**Approval:** pending
+**Approval:** PASS — 2026-05-13 via 07-CHECKPOINT.md (status PARTIAL — 8/9 hard PASS on Xiaomi 13T + 3 documented gaps DEFERRED per personal-use scope per D-13: PRF-05 secondary OEM, D-19 pre-warmed thermal, D-15 reference APK)

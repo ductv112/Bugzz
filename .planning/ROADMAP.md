@@ -13,7 +13,7 @@
 - [x] **Phase 4: Filter Catalog + Picker + Face Filter Mode** — 15-25 bundled filters with 4 bug behaviors, horizontal picker, instant in-preview filter swap. (completed 2026-05-04)
 - [ ] **Phase 5: Video Recording + Audio + Insect Filter Free-Placement Mode** — 60s video capture with audio+overlay muxed, plus draggable/pinch/rotate sticker mode.
 - [x] **Phase 6: UX Polish — Splash, Home, Onboarding, Preview, Collection, Share** — every reference screen wired, MediaStore-backed collection, Android share sheet delivering artifacts with overlay intact. (completed 2026-05-13)
-- [ ] **Phase 7: Performance & Device Matrix** — measured ≥24fps on mid-tier device, thermal mitigation verified, APK ≤40MB, cross-OEM pass on Samsung + Pixel.
+- [x] **Phase 7: Performance & Device Matrix** — measured 28 fps on Xiaomi 13T (0 jank events), face detection ≤35.6 ms upper-bound, APK 19.5 MB / 40 MB target, audio drift <50 ms. PRF-05 Samsung + Pixel deferred per D-13 personal-use scope. (completed 2026-05-13)
 
 ## Phase Details
 
@@ -163,9 +163,9 @@ Plans:
 - [x] 07-02-PLAN.md — Release build flip (R8 + shrinkResources + arm64-v8a) + WebP sprite conversion (Wave 1)
 - [x] 07-03-PLAN.md — JankStats wire-in + DetectionLatencyRecorder + FaceDetectorClient Perf log (Wave 2)
 - [x] 07-04-PLAN.md — Phase 6 polish trio: D-20a/b/c (Wave 2)
-- [ ] 07-05-PLAN.md — verify-audio-sync.sh + 07-PERF-REPORT + Xiaomi 13T baseline (Wave 3)
+- [x] 07-05-PLAN.md — verify-audio-sync.sh + 07-PERF-REPORT + Xiaomi 13T baseline (Wave 3) — completed 2026-05-13
 - [x] 07-06-PLAN.md — 07-HANDOFF cross-OEM device runbook (Wave 4)
-- [ ] 07-07-PLAN.md — Release APK + 9 D-32 R8 survival + device PASS + Phase 7 close-out (Wave 5)
+- [x] 07-07-PLAN.md — Release APK + 9 D-32 R8 survival + device PASS + Phase 7 close-out (Wave 5) — completed 2026-05-13
 
 ## Progress
 
@@ -177,7 +177,7 @@ Plans:
 | 4. Filter Catalog + Picker + Face Filter Mode | 8/8 | Complete    | 2026-05-04 |
 | 5. Video Recording + Audio + Insect Filter Mode | 7/7 | Complete    | 2026-05-04 |
 | 6. UX Polish — Splash, Home, Onboarding, Preview, Collection, Share | 8/8 | Complete    | 2026-05-13 |
-| 7. Performance & Device Matrix | 4/7 | In Progress | - |
+| 7. Performance & Device Matrix | 7/7 | Complete    | 2026-05-13 |
 
 ## Coverage Summary
 
