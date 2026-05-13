@@ -162,7 +162,7 @@ Plans:
 - [x] 07-01-PLAN.md — Wave 0 Nyquist scaffolds + JankStats catalog add + perf/ package skeletons (Wave 0)
 - [x] 07-02-PLAN.md — Release build flip (R8 + shrinkResources + arm64-v8a) + WebP sprite conversion (Wave 1)
 - [x] 07-03-PLAN.md — JankStats wire-in + DetectionLatencyRecorder + FaceDetectorClient Perf log (Wave 2)
-- [ ] 07-04-PLAN.md — Phase 6 polish trio: D-20a/b/c (Wave 2)
+- [x] 07-04-PLAN.md — Phase 6 polish trio: D-20a/b/c (Wave 2)
 - [ ] 07-05-PLAN.md — verify-audio-sync.sh + 07-PERF-REPORT + Xiaomi 13T baseline (Wave 3)
 - [ ] 07-06-PLAN.md — 07-HANDOFF cross-OEM device runbook (Wave 4)
 - [ ] 07-07-PLAN.md — Release APK + 9 D-32 R8 survival + device PASS + Phase 7 close-out (Wave 5)
@@ -177,7 +177,7 @@ Plans:
 | 4. Filter Catalog + Picker + Face Filter Mode | 8/8 | Complete    | 2026-05-04 |
 | 5. Video Recording + Audio + Insect Filter Mode | 7/7 | Complete    | 2026-05-04 |
 | 6. UX Polish — Splash, Home, Onboarding, Preview, Collection, Share | 8/8 | Complete    | 2026-05-13 |
-| 7. Performance & Device Matrix | 0/7 | Planned    | - |
+| 7. Performance & Device Matrix | 4/7 | In Progress | - |
 
 ## Coverage Summary
 
