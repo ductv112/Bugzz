@@ -189,7 +189,18 @@ dependencies {
     implementation(libs.androidx.media3.ui)
 
     // Phase 7 — JankStats frame timing observer (debug-only per RESEARCH §Anti-pattern —
-    // keeps production users overhead-free; debugImplementation excludes from release APK).
+    // keeps production users overhead-free; debugImplementation excludes from release runtime).
     // CONTEXT D-01 + RESEARCH §Standard Stack version correction (1.0.0 stable not beta02).
+    //
+    // Plan 07-03 Rule 3 auto-fix: MainActivity.kt now references `JankStats` types directly
+    // (gated by `if (BuildConfig.DEBUG) { ... }`), so the release Kotlin compiler needs the
+    // types resolvable on the compile classpath even though the runtime classpath excludes
+    // them. `compileOnly` for the release variant gives types-only access (R8 then strips the
+    // unreachable BuildConfig.DEBUG=false branch), while `debugImplementation` keeps the
+    // runtime dependency exclusively in debug builds. Net effect: identical T-07-01 mitigation
+    // (no JankStats classes in release dex) + release compile no longer fails on
+    // `Unresolved reference 'metrics'`. Canonical Android pattern for debug-only library
+    // types referenced from BuildConfig.DEBUG-gated main code.
+    compileOnly(libs.androidx.metrics.performance)
     debugImplementation(libs.androidx.metrics.performance)
 }
