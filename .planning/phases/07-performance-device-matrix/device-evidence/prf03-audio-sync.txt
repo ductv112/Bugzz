@@ -1,0 +1,14 @@
+================================================================
+Phase 7 PRF-03 verification — .planning/phases/07-performance-device-matrix/device-evidence/mp4/prf03-test.mp4
+================================================================
+audio_start: 0.049104 s
+video_start: 0.000000 s
+   start_drift: 0.049104 s (|0.049104| < 0.050 → PASS)
+
+audio_dur:   59.734875 s
+video_dur:   59.780067 s
+   dur_drift:   -0.045192 s (|0.045192| < 0.050 → PASS)
+
+video frames counted: 122 (INFO (60s@30fps target band is 1795-1805; shorter/longer clips report INFO))
+================================================================
+RESULT: PASS (both drifts under 50ms)
