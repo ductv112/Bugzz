@@ -12,7 +12,7 @@
 - [ ] **Phase 3: First Filter End-to-End + Photo Capture** — one production filter tracks face in real time, shutter bakes overlay into JPEG saved to `DCIM/Bugzz/`.
 - [x] **Phase 4: Filter Catalog + Picker + Face Filter Mode** — 15-25 bundled filters with 4 bug behaviors, horizontal picker, instant in-preview filter swap. (completed 2026-05-04)
 - [ ] **Phase 5: Video Recording + Audio + Insect Filter Free-Placement Mode** — 60s video capture with audio+overlay muxed, plus draggable/pinch/rotate sticker mode.
-- [ ] **Phase 6: UX Polish — Splash, Home, Onboarding, Preview, Collection, Share** — every reference screen wired, MediaStore-backed collection, Android share sheet delivering artifacts with overlay intact.
+- [x] **Phase 6: UX Polish — Splash, Home, Onboarding, Preview, Collection, Share** — every reference screen wired, MediaStore-backed collection, Android share sheet delivering artifacts with overlay intact. (completed 2026-05-13)
 - [ ] **Phase 7: Performance & Device Matrix** — measured ≥24fps on mid-tier device, thermal mitigation verified, APK ≤40MB, cross-OEM pass on Samsung + Pixel.
 
 ## Phase Details
@@ -133,8 +133,18 @@ Plans:
   3. My Collection screen queries MediaStore for `DCIM/Bugzz/` artifacts and renders a grid; empty state is shown when no artifacts exist; tapping an item opens full-screen preview with share/delete; delete requires confirmation.
   4. Android share sheet shows available targets (WhatsApp, Instagram, TikTok, Facebook, Messenger, Zalo if installed); chosen target receives the content URI with `FLAG_GRANT_READ_URI_PERMISSION` and successfully opens the file with filter overlay intact.
   5. Settings screen shows app version, privacy policy link (stub), and rate-app placeholder; all screens navigate via `navigation-compose` with consistent back-stack behavior; second-launch skips onboarding and lands on Home directly.
-**Plans**: TBD
+**Plans**: 8 plans
 **UI hint**: yes
+
+Plans:
+- [x] 06-01-PLAN.md — Wave 0 Nyquist scaffolds: 8 new + 1 extended test files for UX-01..09 / SHR-01..04 (Wave 0)
+- [x] 06-02-PLAN.md — Wave 1 deps + DataStore onboarding_completed extension + Lottie asset copy (Wave 1)
+- [x] 06-03-PLAN.md — Wave 2 SplashScreen + Onboarding 3-page pager + Routes nav graph (Wave 2)
+- [x] 06-04-PLAN.md — Wave 3 atomic PreviewRoute breaking change + PreviewScreen photo+video (Wave 3)
+- [x] 06-05-PLAN.md — Wave 4 CollectionRepository + CollectionScreen + EmptyStateColumn (Wave 4)
+- [x] 06-06-PLAN.md — Wave 5 DeleteConfirmDialog extraction + ShareIntentBuilder + HomeScreen polish (Wave 5)
+- [x] 06-07-PLAN.md — Wave 5 SettingsScreen + nav graph close-out + StubScreens delete (Wave 5)
+- [x] 06-08-PLAN.md — Wave 6 Clean build + 06-HANDOFF Xiaomi 13T runbook + device PASS + nyquist flip (Wave 6) — completed 2026-05-13
 
 ### Phase 7: Performance & Device Matrix
 **Goal**: Verify that the Core Value (smooth live AR preview) holds under measurement on real mid-tier hardware across at least two OEMs, with the escalation path (Canvas → custom GL `CameraEffect`) invoked only if Canvas profiles poorly.
@@ -157,7 +167,7 @@ Plans:
 | 3. First Filter End-to-End + Photo Capture | 5/5 | In Progress (awaiting phase complete) | 2026-04-20 |
 | 4. Filter Catalog + Picker + Face Filter Mode | 8/8 | Complete    | 2026-05-04 |
 | 5. Video Recording + Audio + Insect Filter Mode | 7/7 | Complete    | 2026-05-04 |
-| 6. UX Polish — Splash, Home, Onboarding, Preview, Collection, Share | 0/? | Not started | - |
+| 6. UX Polish — Splash, Home, Onboarding, Preview, Collection, Share | 8/8 | Complete    | 2026-05-13 |
 | 7. Performance & Device Matrix | 0/? | Not started | - |
 
 ## Coverage Summary

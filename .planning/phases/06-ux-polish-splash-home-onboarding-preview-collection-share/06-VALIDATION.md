@@ -1,8 +1,8 @@
 ---
 phase: 06
 slug: ux-polish-splash-home-onboarding-preview-collection-share
-status: draft
-nyquist_compliant: false
+status: complete
+nyquist_compliant: true
 wave_0_complete: true
 created: 2026-05-04
 ---
@@ -45,7 +45,7 @@ created: 2026-05-04
 | 06-05-NN | 05 (CollectionRepository + CollectionScreen + EmptyStateColumn) | 4 | UX-05, UX-06, UX-07 | T-06-02 | unit | `./gradlew :app:testDebugUnitTest --tests "*CollectionRepositoryTest* *CollectionViewModelTest*"` | ⬜ |
 | 06-06-NN | 06 (DeleteConfirmDialog + Share intent + HomeScreen polish) | 5 | UX-08, UX-09, SHR-01..04 | T-06-01, T-06-06 | unit | `./gradlew :app:testDebugUnitTest --tests "*DeleteConfirmDialogTest* *ShareIntentBuilderTest*"` | ✅ DeleteConfirmDialog + Share + HomeScreen onSettings GREEN |
 | 06-07-NN | 07 (Settings + StubScreens delete + nav graph close-out) | 5 | UX-09 | T-06-06 | unit + manual | `./gradlew :app:testDebugUnitTest` + 06-HANDOFF | ✅ SettingsScreen + nav graph + StubScreens delete GREEN |
-| 06-08-NN | 08 (Clean build + 06-HANDOFF + device checkpoint + post-PASS close-out) | 6 | All Phase 6 reqs | T-06-01..06 | manual (device) | 06-HANDOFF.md sign-off + Phase 4+5 deferred UAT bonus | ⬜ |
+| 06-08-NN | 08 (Clean build + 06-HANDOFF + device checkpoint + post-PASS close-out) | 6 | All Phase 6 reqs | T-06-01..06 | manual (device) | 06-HANDOFF.md sign-off + Phase 4+5 deferred UAT bonus | ✅ Wave 6 device PASS + close-out |
 
 ### Per-Requirement Test Specification
 
@@ -104,11 +104,11 @@ Plus 1 EXTENSION:
 
 ## Validation Sign-Off
 
-- [ ] All tasks have `<automated>` verify or Wave 0 dependencies
-- [ ] Sampling continuity preserved
-- [ ] Wave 0 covers all 8 new + 1 EXTEND test files
-- [ ] No watch-mode flags
-- [ ] Feedback latency < 100s
-- [ ] `nyquist_compliant: true` flipped post-PASS via Plan 06-08 Task 4
+- [x] All tasks have `<automated>` verify or Wave 0 dependencies
+- [x] Sampling continuity preserved
+- [x] Wave 0 covers all 8 new + 1 EXTEND test files
+- [x] No watch-mode flags
+- [x] Feedback latency < 100s
+- [x] `nyquist_compliant: true` flipped post-PASS via Plan 06-08 Task 3
 
-**Approval:** pending
+**Approval:** PASS — 2026-05-13 via 06-CHECKPOINT.md
