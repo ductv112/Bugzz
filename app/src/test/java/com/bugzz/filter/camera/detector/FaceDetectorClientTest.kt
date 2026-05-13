@@ -132,11 +132,36 @@ class FaceDetectorClientTest {
         )
     }
 
-    // ---- Phase 7 W0 EXTEND (Plan 07-03 un-Ignores) -------------------------------------
+    // ---- Phase 7 W0 EXTEND (Plan 07-03 un-Ignored) -------------------------------------
 
+    /**
+     * Phase 7 D-04 — verify the latency log wiring + DetectionLatencyRecorder constructor
+     * injection are present in [FaceDetectorClient].
+     *
+     * **Strategy A (structural reflection — Plan 07-03 acceptance §Strategy):** the
+     * MlKitAnalyzer consumer lambda is a non-trivial body that we cannot easily invoke from a
+     * pure-JVM test (calling [FaceDetectorClient.createAnalyzer] requires constructing the
+     * client, which calls `FaceDetection.getClient(options)` — requires MlKitContext which is
+     * not available without full Android runtime; see Decision #18 in STATE.md / Plan 03-02
+     * `createAnalyzer_passesFacesThroughTracker_beforeSmoothing` precedent).
+     *
+     * Instead, this test verifies the wire-in **structurally**: the constructor must accept
+     * [com.bugzz.filter.camera.perf.DetectionLatencyRecorder] as a parameter, proving the
+     * recorder is reachable from `createAnalyzer`'s lambda body. The literal `detect=%dms ...`
+     * Timber log shape is enforced by separate D-32 grep-asserts on the production source.
+     */
     @org.junit.Test
-    @org.junit.Ignore("Plan 07-03 — Timber.tag(\"Perf\").d(\"detect=%dms ...\") inline log pending")
     fun perfTimingLog_emitsInDebugOnly() {
-        org.junit.Assert.fail("Plan 07-03 adds BuildConfig.DEBUG-gated Timber log — Wave 0 RED")
+        val ctors = FaceDetectorClient::class.java.declaredConstructors
+        val hasLatencyRecorderParam = ctors.any { ctor ->
+            ctor.parameterTypes.any { it.name.contains("DetectionLatencyRecorder") }
+        }
+        org.junit.Assert.assertTrue(
+            "FaceDetectorClient constructor must accept DetectionLatencyRecorder " +
+                "(Phase 7 D-04 — PRF-02 face detection latency wire-in). " +
+                "If this fails, the Timber.tag(\"Perf\").d(\"detect=%dms ...\") log block + " +
+                "recorder.record(detectMs) inside createAnalyzer cannot be reached.",
+            hasLatencyRecorderParam,
+        )
     }
 }

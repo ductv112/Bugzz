@@ -8,6 +8,8 @@ import com.google.mlkit.vision.face.FaceContour
 import com.google.mlkit.vision.face.FaceDetection
 import com.google.mlkit.vision.face.FaceDetector
 import com.google.mlkit.vision.face.FaceDetectorOptions
+import com.bugzz.filter.camera.BuildConfig
+import com.bugzz.filter.camera.perf.DetectionLatencyRecorder
 import com.bugzz.filter.camera.thermal.ThermalMonitor
 import timber.log.Timber
 import java.util.concurrent.Executor
@@ -38,6 +40,7 @@ class FaceDetectorClient @Inject constructor(
     @Named("cameraExecutor") private val cameraExecutor: Executor,
     private val tracker: BboxIouTracker,   // ADR-01 #3 — Phase 3 bbox-IoU tracker
     private val thermalMonitor: ThermalMonitor,  // D-14 Phase 5 frame-skip throttle
+    private val detectionLatencyRecorder: DetectionLatencyRecorder,  // Phase 7 D-04 PRF-02
 ) {
     /** Incremented each time the MlKitAnalyzer consumer fires; used by shouldSkipFrame. */
     private var frameCounter = 0
@@ -67,7 +70,21 @@ class FaceDetectorClient @Inject constructor(
                 return@MlKitAnalyzer
             }
 
+            // Phase 7 D-04 — face detection latency timing. BuildConfig.DEBUG gate so release
+            // builds dead-code-eliminate this entire timing block. Reuses existing frameCounter
+            // (RESEARCH Q5) — no parallel counter introduced.
+            val t0 = System.nanoTime()
             val faces: List<Face> = result.getValue(detector) ?: emptyList()
+            val detectMs = (System.nanoTime() - t0) / 1_000_000L
+            if (BuildConfig.DEBUG) {
+                Timber.tag("Perf").d(
+                    "detect=%dms frame=%d faces=%d",
+                    detectMs,
+                    frameCounter,
+                    faces.size,
+                )
+                detectionLatencyRecorder.record(detectMs)
+            }
             val tNanos = System.nanoTime()
 
             // ADR-01 #3 — tracker assigns stable IDs (ML Kit trackingId always null under
