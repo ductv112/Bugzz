@@ -25,11 +25,34 @@ android {
 
     buildTypes {
         release {
-            isMinifyEnabled = false
-            proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
+            // Phase 7 D-06: minify + shrinkResources + isDebuggable=false produce a proper
+            // shipping APK shape. R8 + ProGuard consumer rules from Hilt 2.57 + Compose
+            // Compiler AARs handle reflection-adjacent keeps automatically (RESEARCH
+            // §Anti-pattern — no pre-emptive hand-written keep-everything rules).
+            isMinifyEnabled = true
+            isShrinkResources = true
+            isDebuggable = false
+            // Phase 7 D-22: debug keystore OK for personal use (project is personal, not
+            // Play-Store published). Without this, AGP emits app-release-unsigned.apk and
+            // ADB install fails with INSTALL_PARSE_FAILED_NO_CERTIFICATES. If Xiaomi HyperOS
+            // rejects debug-signed release APKs (RESEARCH Q4), Plan 07-02 Task 4 CHECKPOINT
+            // documents the one-off release-keystore inline-fix.
+            signingConfig = signingConfigs.getByName("debug")
+            proguardFiles(
+                getDefaultProguardFile("proguard-android-optimize.txt"),
+                "proguard-rules.pro",
+            )
+            ndk {
+                // Phase 7 D-08 + RESEARCH Pitfall 3: scope abiFilters to RELEASE ONLY so
+                // debug Robolectric / emulator builds keep all ABIs. minSdk 28 = Android 9+
+                // is ≥98% 64-bit ARM on the Vietnam market per CONTEXT D-08.
+                abiFilters += listOf("arm64-v8a")
+            }
         }
         debug {
-            // StrictMode + LeakCanary: no special AGP config needed — they enable via BuildConfig.DEBUG + debugImplementation
+            // StrictMode + LeakCanary: no special AGP config needed — they enable via
+            // BuildConfig.DEBUG + debugImplementation. ALL ABIs preserved for emulator
+            // + Robolectric compat (RESEARCH Pitfall 3).
         }
     }
 
